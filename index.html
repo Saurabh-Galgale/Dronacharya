@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      @media (min-width: 560px) {
+        #root {
+          display: none;
+        }
+
+        body {
+          margin: 0;
+          height: 100vh;
+        }
+
+        body::before {
+          content: "This site is best viewed on screens smaller than 560px.";
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          height: 100vh;
+          width: 100vw;
+          font-size: 1.2rem;
+          padding: 2rem;
+          box-sizing: border-box;
+        }
+      }
+    </style>
+    <script>
+      function checkScreen() {
+        if (window.innerWidth >= 560) {
+          // disable right click
+          document.addEventListener("contextmenu", (e) => e.preventDefault());
+
+          // disable ALL keyboard keys
+          document.addEventListener("keydown", (e) => {
+            e.preventDefault();
+            return false;
+          });
+
+          document.addEventListener("keypress", (e) => {
+            e.preventDefault();
+            return false;
+          });
+
+          document.addEventListener("keyup", (e) => {
+            e.preventDefault();
+            return false;
+          });
+        }
+      }
+
+      // run on load + resize
+      checkScreen();
+      window.addEventListener("resize", checkScreen);
+    </script>
+
+    <title>द्रोणाचार्य अकादमी</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
