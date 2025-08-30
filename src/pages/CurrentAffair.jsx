@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Box, Typography, Button, Paper, Grid } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-
-// 🔹 तुमचा लोगो import करा (उदा. /assets/logo.jpeg मध्ये असेल तर)
 import logo from "/images/logo.jpeg";
 
 const topics = [
@@ -34,17 +32,15 @@ const topicQueryMap = {
   महाराष्ट्र: "Maharashtra state news",
 };
 
-// 🔹 Loading dots component
+// 🔹 Loading dots
 function LoadingDots() {
   const [dots, setDots] = useState("");
-
   useEffect(() => {
     const interval = setInterval(() => {
       setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
     }, 500);
     return () => clearInterval(interval);
   }, []);
-
   return <span>{dots}</span>;
 }
 
@@ -60,14 +56,11 @@ export default function CurrentAffairs() {
 
     try {
       const query = topicQueryMap[topic] || "India";
-
-      // ✅ GNews API fetch
       const gnewsRes = await fetch(
         `https://gnews.io/api/v4/top-headlines?token=${
           import.meta.env.VITE_GNEWS_API_KEY
         }&q=${encodeURIComponent(query)}&lang=en&country=in&max=12`
       );
-
       const gnewsData = await gnewsRes.json();
 
       if (!gnewsData.articles || gnewsData.articles.length === 0) {
@@ -83,7 +76,6 @@ export default function CurrentAffairs() {
         )
         .join("\n\n");
 
-      // ✅ AI Marathi summarization
       const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -124,14 +116,16 @@ export default function CurrentAffairs() {
         📌 विषयानुसार करंट अफेयर्स
       </Typography>
 
-      {/* 🔹 विषयांची यादी */}
-      <Grid container spacing={1} mb={2}>
+      {/* 🔹 विषयांची यादी in grid */}
+      <Grid container spacing={2} xs={8} mb={3}>
         {topics.map((t) => (
-          <Grid item key={t}>
+          <Grid item xs={6} sm={4} md={3} key={t}>
             <Button
+              fullWidth
               variant={selectedTopic === t ? "contained" : "outlined"}
               onClick={() => fetchCurrentAffairs(t)}
               disabled={loading}
+              sx={{ textAlign: "center", py: 1.5 }}
             >
               {t}
             </Button>
@@ -160,6 +154,22 @@ export default function CurrentAffairs() {
           <Typography variant="h6" fontWeight="bold">
             लोड होत आहे
             <LoadingDots />
+          </Typography>
+        </Box>
+      )}
+
+      {/* 🔹 सुरुवातीची सूचना */}
+      {!loading && !content && !selectedTopic && (
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "50vh",
+          }}
+        >
+          <Typography variant="h6" color="text.secondary">
+            वरील कुठल्याही विषयावर क्लिक करा
           </Typography>
         </Box>
       )}

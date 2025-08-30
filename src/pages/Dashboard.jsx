@@ -130,7 +130,6 @@ export default function Dashboard() {
           src={videoList[currentVideo]}
           autoPlay
           muted
-          loop
           playsInline
           onEnded={handleVideoEnd}
           style={{

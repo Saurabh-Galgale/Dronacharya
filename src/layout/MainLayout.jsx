@@ -26,6 +26,7 @@ import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import ArticleIcon from "@mui/icons-material/Article";
+import NotesIcon from "@mui/icons-material/Notes";
 import ChatIcon from "@mui/icons-material/Chat";
 import SendIcon from "@mui/icons-material/Send";
 import SchoolIcon from "@mui/icons-material/School";
@@ -163,6 +164,19 @@ export default function Layout({ children }) {
               <ListIcon />
             </ListItemIcon>
             <ListItemText primary="Papers List" />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/app/notes"
+            onClick={() => isMobile && setMobileOpen(false)}
+          >
+            <ListItemIcon>
+              <NotesIcon />
+            </ListItemIcon>
+            <ListItemText primary="Notes" />
           </ListItemButton>
         </ListItem>
 

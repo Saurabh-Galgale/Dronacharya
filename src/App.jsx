@@ -11,6 +11,7 @@ import Layout from "./layout/MainLayout";
 import Dashboard from "./pages/Dashboard";
 import VideoLectures from "./pages/VideoLectures";
 import QuestionPaper from "./pages/QuestionPaper";
+import Notes from "./pages/Notes";
 // import UploadPaper from "./pages/UploadPaper";
 import List from "./pages/List";
 import Profile from "./pages/Profile";
@@ -44,6 +45,7 @@ function App() {
                     <Route path="ca" element={<CurrentAffair />} />
                     <Route path="list" element={<List />} />
                     <Route path="list/:paperId" element={<QuestionPaper />} />
+                    <Route path="notes" element={<Notes />} />
                     {/* <Route path="upload" element={<UploadPaper />} /> */}
                     <Route path="about" element={<About />} />
                     <Route path="profile" element={<Profile />} />
