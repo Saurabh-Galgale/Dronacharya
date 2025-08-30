@@ -61,34 +61,29 @@ export default function CurrentAffairs() {
     try {
       const query = topicQueryMap[topic] || "India";
 
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        .toISOString()
-        .split("T")[0];
-      const today = now.toISOString().split("T")[0];
-
-      const newsRes = await fetch(
-        `https://newsapi.org/v2/everything?q=${encodeURIComponent(
-          query
-        )}&language=en&from=${startOfMonth}&to=${today}&sortBy=publishedAt&pageSize=12&apiKey=${
-          import.meta.env.VITE_NEWS_API_KEY
-        }`
+      // ✅ GNews API fetch
+      const gnewsRes = await fetch(
+        `https://gnews.io/api/v4/top-headlines?token=${
+          import.meta.env.VITE_GNEWS_API_KEY
+        }&q=${encodeURIComponent(query)}&lang=en&country=in&max=12`
       );
 
-      const newsData = await newsRes.json();
-      if (!newsData.articles || newsData.articles.length === 0) {
+      const gnewsData = await gnewsRes.json();
+
+      if (!gnewsData.articles || gnewsData.articles.length === 0) {
         setContent("⚠️ या महिन्यातील कोणतीही ताजी बातमी मिळाली नाही.");
         setLoading(false);
         return;
       }
 
-      const headlines = newsData.articles
+      const headlines = gnewsData.articles
         .map(
           (a, i) =>
-            `${i + 1}. ${a.title} - ${a.description || ""} (${a.source?.name})`
+            `${i + 1}. ${a.title} - ${a.description || ""} (${a.source.name})`
         )
         .join("\n\n");
 
+      // ✅ AI Marathi summarization
       const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {

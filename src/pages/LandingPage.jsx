@@ -23,15 +23,15 @@ const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
 // ✅ point to public folder images
 const images = [
-  "/images/slide1.png",
-  "/images/slide2.png",
-  "/images/slide3.png",
-  "/images/slide4.png",
-  "/images/slide5.png",
-  "/images/slide6.png",
-  "/images/slide7.png",
-  "/images/slide8.png",
-  "/images/slide9.png",
+  "/images/slide1.jpg",
+  "/images/slide2.jpg",
+  "/images/slide3.jpg",
+  "/images/slide4.jpg",
+  "/images/slide5.jpg",
+  "/images/slide6.jpg",
+  "/images/slide7.jpg",
+  "/images/slide8.jpg",
+  "/images/slide9.jpg",
 ];
 
 const LandingPage = () => {
@@ -251,7 +251,7 @@ const LandingPage = () => {
 
         <Box
           position="absolute"
-          bottom={isMobile ? 80 : 40} // just above the login button
+          bottom={isMobile ? 90 : 40} // just above the login button
           left="50%"
           zIndex={15}
           sx={{
@@ -338,7 +338,7 @@ const LandingPage = () => {
         PaperProps={{
           sx: {
             borderRadius: "20px 20px 0 0",
-            height: "40%",
+            height: "55%",
             backgroundColor: "rgba(0,0,0,0.3)", // 🔥 transparent black overlay
             backdropFilter: "blur(6px)", // 🔥 frosted glass effect
             boxShadow: "none", // remove default shadow

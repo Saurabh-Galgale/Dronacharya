@@ -246,6 +246,8 @@ export default function Layout({ children }) {
             </IconButton>
           )}
           <Typography
+            component={Link}
+            to="/app/dashboard"
             variant={isMobile ? "h6" : "h4"}
             fontWeight="bold"
             sx={{
@@ -327,7 +329,7 @@ export default function Layout({ children }) {
         onClose={toggleChat}
         sx={{
           "& .MuiDrawer-paper": {
-            height: "80vh",
+            height: "70vh",
             borderTopLeftRadius: "16px",
             borderTopRightRadius: "16px",
             p: 2,
@@ -408,7 +410,7 @@ export default function Layout({ children }) {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
           />
-          <IconButton color="primary" onClick={sendMessage}>
+          <IconButton color="secondary" onClick={sendMessage}>
             <SendIcon />
           </IconButton>
         </Box>

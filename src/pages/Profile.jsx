@@ -60,18 +60,18 @@ const ProfileCard = () => {
       sx={{
         display: "flex",
         justifyContent: "center",
-        minHeight: "95vh",
-        mt: 5,
-        px: 2,
+        minHeight: "90vh",
+        mt: { xs: 2, sm: 5 }, // responsive top margin
+        px: 2, // horizontal padding
       }}
     >
       <Card
         sx={{
-          maxWidth: 900,
-          minWidth: 400,
+          width: "100%", // take full width of parent Box
+          maxWidth: 500, // limit max width on large screens
           borderRadius: 3,
           boxShadow: 6,
-          p: 2,
+          p: { xs: 2, sm: 3 }, // responsive padding
           textAlign: "center",
         }}
       >
