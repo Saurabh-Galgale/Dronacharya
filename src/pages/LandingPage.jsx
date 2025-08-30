@@ -23,15 +23,15 @@ const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
 // ✅ point to public folder images
 const images = [
-  "/images/slide1.jpg",
-  "/images/slide2.jpg",
-  "/images/slide3.jpg",
-  "/images/slide4.jpg",
-  "/images/slide5.jpg",
-  "/images/slide6.jpg",
-  "/images/slide7.jpg",
-  "/images/slide8.jpg",
-  "/images/slide9.jpg",
+  "/images/slide1.webp",
+  "/images/slide2.webp",
+  "/images/slide3.webp",
+  "/images/slide4.webp",
+  "/images/slide5.webp",
+  "/images/slide6.webp",
+  "/images/slide7.webp",
+  "/images/slide8.webp",
+  "/images/slide9.webp",
 ];
 
 const LandingPage = () => {
