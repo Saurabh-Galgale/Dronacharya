@@ -222,7 +222,7 @@ const LandingPage = () => {
           }}
         >
           <img
-            src="/images/logo.png" // ✅ your logo path
+            src="/images/logo.jpeg" // ✅ your logo path
             alt="Logo"
             style={{
               height: isMobile ? "30px" : "56px", // responsive size

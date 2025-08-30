@@ -3,8 +3,8 @@ import { Box, Typography, Button, Paper, Grid } from "@mui/material";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-// 🔹 तुमचा लोगो import करा (उदा. /assets/logo.png मध्ये असेल तर)
-import logo from "/images/logo.png";
+// 🔹 तुमचा लोगो import करा (उदा. /assets/logo.jpeg मध्ये असेल तर)
+import logo from "/images/logo.jpeg";
 
 const topics = [
   "राष्ट्रीय घडामोडी",
