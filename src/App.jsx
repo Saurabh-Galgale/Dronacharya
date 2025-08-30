@@ -18,6 +18,7 @@ import Profile from "./pages/Profile";
 import CurrentAffair from "./pages/CurrentAffair";
 import LandingPage from "./pages/LandingPage";
 import About from "./pages/About";
+import StudentsTable from "./pages/StudentsTable";
 
 function App() {
   // 🔹 Check user credentials in localStorage
@@ -47,6 +48,7 @@ function App() {
                     <Route path="list/:paperId" element={<QuestionPaper />} />
                     <Route path="notes" element={<Notes />} />
                     {/* <Route path="upload" element={<UploadPaper />} /> */}
+                    <Route path="students" element={<StudentsTable />} />
                     <Route path="about" element={<About />} />
                     <Route path="profile" element={<Profile />} />
                   </Routes>

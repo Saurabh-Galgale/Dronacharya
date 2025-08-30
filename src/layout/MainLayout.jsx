@@ -30,6 +30,7 @@ import NotesIcon from "@mui/icons-material/Notes";
 import ChatIcon from "@mui/icons-material/Chat";
 import SendIcon from "@mui/icons-material/Send";
 import SchoolIcon from "@mui/icons-material/School";
+import GroupsIcon from "@mui/icons-material/Groups";
 import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import ReactMarkdown from "react-markdown";
@@ -191,6 +192,19 @@ export default function Layout({ children }) {
               <UploadFileIcon />
             </ListItemIcon>
             <ListItemText primary="Upload Paper" />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/app/students"
+            onClick={() => isMobile && setMobileOpen(false)}
+          >
+            <ListItemIcon>
+              <GroupsIcon />
+            </ListItemIcon>
+            <ListItemText primary="Students" />
           </ListItemButton>
         </ListItem>
 
