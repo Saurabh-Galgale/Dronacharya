@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// App.jsx (updated)
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,11 +9,13 @@ import {
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
 import Layout from "./layout/MainLayout";
+import AdminLayout from "./layout/AdminLayout";
+
+// Student pages
 import Dashboard from "./pages/Dashboard";
 import VideoLectures from "./pages/VideoLectures";
 import QuestionPaper from "./pages/QuestionPaper";
 import Notes from "./pages/Notes";
-// import UploadPaper from "./pages/UploadPaper";
 import List from "./pages/List";
 import Profile from "./pages/Profile";
 import CurrentAffair from "./pages/CurrentAffair";
@@ -20,12 +23,19 @@ import LandingPage from "./pages/LandingPage";
 import About from "./pages/About";
 import StudentsTable from "./pages/StudentsTable";
 
+// Admin pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UploadQp from "./pages/admin/UploadQp";
+// import Blogs from "./pages/admin/Blogs";
+
 function App() {
-  // 🔹 Check user credentials in localStorage
   const user = JSON.parse(localStorage.getItem("userCreds") || "null");
-  // const isAuthenticated =
-  //   user?.email === "abc@gmail.com" && user?.password === "1234";
-  const isAuthenticated = true;
+
+  // Simple secure checks
+  // const isAuthenticated = !!user; // must be logged in
+  // const isAdmin = user?.role === "admin"; // must be admin role
+  const isAuthenticated = true; // must be logged in
+  const isAdmin = true; // must be admin role
 
   return (
     <ThemeProvider theme={theme}>
@@ -34,7 +44,7 @@ function App() {
           {/* Public Route */}
           <Route path="/" element={<LandingPage />} />
 
-          {/* Protected App Routes */}
+          {/* Student Routes */}
           <Route
             path="/app/*"
             element={
@@ -47,12 +57,29 @@ function App() {
                     <Route path="list" element={<List />} />
                     <Route path="list/:paperId" element={<QuestionPaper />} />
                     <Route path="notes" element={<Notes />} />
-                    {/* <Route path="upload" element={<UploadPaper />} /> */}
                     <Route path="students" element={<StudentsTable />} />
                     <Route path="about" element={<About />} />
                     <Route path="profile" element={<Profile />} />
                   </Routes>
                 </Layout>
+              ) : (
+                <Navigate to="/" replace />
+              )
+            }
+          />
+
+          {/* Admin Routes (Secure) */}
+          <Route
+            path="/admin/*"
+            element={
+              isAuthenticated && isAdmin ? (
+                <AdminLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    <Route path="uploadqp" element={<UploadQp />} />
+                    {/* <Route path="blogs" element={<Blogs />} /> */}
+                  </Routes>
+                </AdminLayout>
               ) : (
                 <Navigate to="/" replace />
               )

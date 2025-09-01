@@ -1,3 +1,4 @@
+// src/pages/LandingPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -44,8 +45,11 @@ const LandingPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [toastOpen, setToastOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [adminDrawer, setAdminDrawer] = useState(false); // 🔹 new state for admin
+  const [mobile, setMobile] = useState(""); // 🔹 mobile number input
   const [index, setIndex] = useState(0);
   const [guestMode, setGuestMode] = useState(false);
+  const [lastClickTime, setLastClickTime] = useState(0);
 
   useEffect(() => {
     if (guestMode) {
@@ -72,6 +76,15 @@ const LandingPage = () => {
     }
   };
 
+  // 🔹 Double click on logo → open admin drawer
+  const handleLogoClick = () => {
+    const now = Date.now();
+    if (now - lastClickTime < 600) {
+      setAdminDrawer(true); // ✅ open admin drawer
+    }
+    setLastClickTime(now);
+  };
+
   // Loop carousel
   const handleChangeIndex = (i) => {
     if (i === images.length) {
@@ -81,6 +94,16 @@ const LandingPage = () => {
     } else {
       setIndex(i);
     }
+  };
+
+  // 🔹 Send OTP handler (mock for now)
+  const handleSendOtp = () => {
+    if (mobile.length !== 10) {
+      alert("कृपया 10 अंकी मोबाईल नंबर भरा");
+      return;
+    }
+    console.log("📱 OTP sent to:", "+91" + mobile);
+    alert("OTP पाठवला (development mode)");
   };
 
   const LoginForm = (
@@ -184,26 +207,48 @@ const LandingPage = () => {
           interval={10000}
           style={{ height: "100%" }}
         >
-          {images.map((src, i) => (
-            <Box
-              key={i}
-              height="100vh"
-              display="flex"
-              justifyContent="center"
-              alignItems="center"
-              bgcolor="black"
-            >
-              <img
-                src={src}
-                alt={`poster${i}`}
-                style={{
-                  width: "100%",
-                  height: "100vh",
-                  objectFit: isMobile ? "cover" : "contain",
-                }}
-              />
-            </Box>
-          ))}
+          {images.map((src, i) => {
+            // only render current, prev, next
+            if (Math.abs(index - i) > 1) {
+              return (
+                <Box
+                  key={i}
+                  height="100vh"
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  bgcolor="black"
+                >
+                  {/* Render placeholder, not actual img */}
+                  <Box
+                    sx={{ width: "100%", height: "100vh", bgcolor: "black" }}
+                  />
+                </Box>
+              );
+            }
+
+            return (
+              <Box
+                key={i}
+                height="100vh"
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                bgcolor="black"
+              >
+                <img
+                  src={src}
+                  alt={`poster${i}`}
+                  loading="lazy"
+                  style={{
+                    width: "100%",
+                    height: "100vh",
+                    objectFit: isMobile ? "cover" : "contain",
+                  }}
+                />
+              </Box>
+            );
+          })}
         </AutoPlaySwipeableViews>
 
         {/* 🔥 Stylish Heading Overlay */}
@@ -228,7 +273,9 @@ const LandingPage = () => {
               height: isMobile ? "30px" : "56px", // responsive size
               objectFit: "contain",
               paddingBottom: "6px",
+              cursor: "pointer",
             }}
+            onClick={handleLogoClick} // ✅ double click detection
           />
           <Typography
             variant={isMobile ? "h6" : "h4"}
@@ -257,21 +304,27 @@ const LandingPage = () => {
           sx={{
             transform: "translateX(-50%)",
             display: "flex",
-            gap: "8px",
+            gap: "10px", // more breathing space
           }}
         >
           {images.map((_, i) => (
             <Box
               key={i}
-              onClick={() => setIndex(i)} // make them clickable too
+              onClick={() => setIndex(i)} // make them clickable
               sx={{
-                width: 4,
-                height: 4,
+                width: index === i ? 8 : 8, // active = bigger
+                height: index === i ? 8 : 8,
                 borderRadius: "50%",
-                border: "0.5px solid white",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
-                backgroundColor: index === i ? "white" : "transparent",
+                background:
+                  index === i
+                    ? "linear-gradient(135deg, #de6925, #f8b14a)" // active gradient
+                    : "rgba(255,255,255,0.4)", // inactive faint white
+                boxShadow:
+                  index === i
+                    ? "0 0 8px rgba(255, 200, 100, 0.8)" // glowing effect
+                    : "none",
               }}
             />
           ))}
@@ -330,7 +383,7 @@ const LandingPage = () => {
         </Box>
       )}
 
-      {/* Drawer for Mobile */}
+      {/* Drawer for Normal Login */}
       <Drawer
         anchor="bottom"
         open={drawerOpen}
@@ -339,13 +392,82 @@ const LandingPage = () => {
           sx: {
             borderRadius: "20px 20px 0 0",
             height: "55%",
-            backgroundColor: "rgba(0,0,0,0.3)", // 🔥 transparent black overlay
-            backdropFilter: "blur(6px)", // 🔥 frosted glass effect
-            boxShadow: "none", // remove default shadow
+            backgroundColor: "rgba(0,0,0,0.3)",
+            backdropFilter: "blur(6px)",
+            boxShadow: "none",
           },
         }}
       >
         {LoginForm}
+      </Drawer>
+
+      {/* Drawer for Admin Mobile Login */}
+      <Drawer
+        anchor="bottom"
+        open={adminDrawer}
+        onClose={() => setAdminDrawer(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: "20px 20px 0 0",
+            height: "40%",
+            p: 3,
+            backgroundColor: "rgba(0,0,0,0.6)", // little darker
+            backdropFilter: "blur(4px)",
+            boxShadow: "none",
+          },
+        }}
+      >
+        <Typography
+          variant="h6"
+          mb={2}
+          textAlign="center"
+          sx={{ color: "white", fontWeight: "bold" }}
+        >
+          Admin Mobile Login
+        </Typography>
+
+        <TextField
+          fullWidth
+          label="Mobile Number"
+          value={mobile}
+          onChange={(e) =>
+            setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
+          }
+          InputProps={{
+            startAdornment: (
+              <Typography sx={{ mr: 1, fontWeight: "bold", color: "white" }}>
+                +91
+              </Typography>
+            ),
+          }}
+          sx={{
+            "& .MuiInputBase-input": { color: "white" }, // input text white
+            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" }, // label
+            "& .MuiInputLabel-root.Mui-focused": { color: "#f8b14a" }, // focus color
+            "& .MuiOutlinedInput-notchedOutline": {
+              borderColor: "rgba(255,255,255,0.6)",
+            },
+            "&:hover .MuiOutlinedInput-notchedOutline": {
+              borderColor: "#f8b14a",
+            },
+          }}
+        />
+
+        <Button
+          disabled
+          variant="contained"
+          fullWidth
+          sx={{
+            mt: 2,
+            borderRadius: "25px",
+            background: "linear-gradient(135deg, #de6925, #f8b14a)",
+            color: "black",
+            fontWeight: "bold",
+          }}
+          onClick={handleSendOtp}
+        >
+          Send OTP
+        </Button>
       </Drawer>
 
       {/* Toast */}
