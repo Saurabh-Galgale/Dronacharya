@@ -1,3 +1,4 @@
+// src/layout/MainLayout.jsx
 import React, { useState, useEffect } from "react";
 import {
   AppBar,
@@ -17,7 +18,15 @@ import {
   Paper,
   Avatar,
   TextField,
+  Divider,
+  ListSubheader,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
+
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
@@ -31,17 +40,28 @@ import ChatIcon from "@mui/icons-material/Chat";
 import SendIcon from "@mui/icons-material/Send";
 import SchoolIcon from "@mui/icons-material/School";
 import GroupsIcon from "@mui/icons-material/Groups";
-import { Link } from "react-router-dom";
+import SubscriptionsIcon from "@mui/icons-material/Subscriptions";
+
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import StorefrontIcon from "@mui/icons-material/Storefront";
+import TodayIcon from "@mui/icons-material/Today";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import Badge from "@mui/material/Badge";
+
+import { Link, useLocation } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-const drawerWidth = 220;
+const drawerWidth = 240;
 
 export default function Layout({ children }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // active route
+  const location = useLocation();
 
   // 🚫 Disable right click
   useEffect(() => {
@@ -55,6 +75,17 @@ export default function Layout({ children }) {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  // =========================
+  // 🔔 Notifications
+  // =========================
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: "नवीन अभ्यास साहित्य अपलोड केले आहे." },
+    { id: 2, text: "आपल्या हजेरीचा अहवाल तयार आहे." },
+    { id: 3, text: "नवीन सराव प्रश्नपत्रिका उपलब्ध आहे." },
+  ]);
+  const unreadCount = notifications.length;
 
   // =========================
   // 🔹 AI Chat State
@@ -109,49 +140,60 @@ export default function Layout({ children }) {
     setLoading(false);
   };
 
+  // helper to mark active
+  const isActive = (path) => {
+    if (!path) return false;
+    // exact match or startsWith for nested routes
+    return (
+      location.pathname === path || location.pathname.startsWith(path + "/")
+    );
+  };
+
   // =========================
   // 🔹 Sidebar Drawer Content
   // =========================
   const drawerContent = (
-    <Box sx={{ overflow: "auto" }}>
-      <Toolbar />
-      <List>
+    <Box sx={{ overflow: "auto", height: "100%" }}>
+      <Toolbar
+        sx={{
+          px: 2,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          justifyContent: "space-between",
+        }}
+      />
+      <List
+        component="nav"
+        aria-label="main mailbox folders"
+        subheader={
+          <ListSubheader
+            component="div"
+            sx={{
+              bgcolor: "transparent",
+              fontWeight: 700,
+              fontSize: 14,
+              py: 1,
+            }}
+          >
+            मुख्य मेनू
+          </ListSubheader>
+        }
+      >
         <ListItem disablePadding>
           <ListItemButton
             component={Link}
             to="/app/dashboard"
             onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/dashboard")}
+            sx={listButtonSx}
           >
             <ListItemIcon>
-              <DashboardIcon />
+              <DashboardIcon
+                color={isActive("/app/dashboard") ? "primary" : "inherit"}
+              />
             </ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItemButton>
-        </ListItem>
-
-        <ListItem disablePadding>
-          <ListItemButton
-            component={Link}
-            to="/app/lectures"
-            onClick={() => isMobile && setMobileOpen(false)}
-          >
-            <ListItemIcon>
-              <VideoLibraryIcon />
-            </ListItemIcon>
-            <ListItemText primary="Video Lectures" />
-          </ListItemButton>
-        </ListItem>
-
-        <ListItem disablePadding>
-          <ListItemButton
-            component={Link}
-            to="/app/ca"
-            onClick={() => isMobile && setMobileOpen(false)}
-          >
-            <ListItemIcon>
-              <ArticleIcon />
-            </ListItemIcon>
-            <ListItemText primary="Current Affairs" />
+            <ListItemText primary="मुख्यपृष्ठ" />
           </ListItemButton>
         </ListItem>
 
@@ -160,51 +202,157 @@ export default function Layout({ children }) {
             component={Link}
             to="/app/list"
             onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/list")}
+            sx={listButtonSx}
           >
             <ListItemIcon>
-              <ListIcon />
+              <ListIcon color={isActive("/app/list") ? "primary" : "inherit"} />
             </ListItemIcon>
-            <ListItemText primary="Papers List" />
+            <ListItemText primary="सराव प्रश्नपत्रिका" />
           </ListItemButton>
         </ListItem>
 
         <ListItem disablePadding>
           <ListItemButton
             component={Link}
-            to="/app/notes"
+            to="/app/ca"
             onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/ca")}
+            sx={listButtonSx}
           >
             <ListItemIcon>
-              <NotesIcon />
+              <ArticleIcon
+                color={isActive("/app/ca") ? "primary" : "inherit"}
+              />
             </ListItemIcon>
-            <ListItemText primary="Notes" />
-          </ListItemButton>
-        </ListItem>
-
-        <ListItem disablePadding>
-          <ListItemButton
-            disabled
-            component={Link}
-            to="/app/upload"
-            onClick={() => isMobile && setMobileOpen(false)}
-          >
-            <ListItemIcon>
-              <UploadFileIcon />
-            </ListItemIcon>
-            <ListItemText primary="Upload Paper" />
+            <ListItemText primary="चालू घडामोडी" />
           </ListItemButton>
         </ListItem>
 
         <ListItem disablePadding>
           <ListItemButton
             component={Link}
-            to="/app/students"
+            to="/app/pet"
             onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/pet")}
+            sx={listButtonSx}
           >
             <ListItemIcon>
-              <GroupsIcon />
+              <FitnessCenterIcon
+                color={isActive("/app/pet") ? "primary" : "inherit"}
+              />
             </ListItemIcon>
-            <ListItemText primary="Students" />
+            <ListItemText primary="शारीरिक चाचणी" />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/app/blogs"
+            onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/blogs")}
+            sx={listButtonSx}
+          >
+            <ListItemIcon>
+              <ArticleIcon
+                color={isActive("/app/blogs") ? "primary" : "inherit"}
+              />
+            </ListItemIcon>
+            <ListItemText primary="लेख" />
+          </ListItemButton>
+        </ListItem>
+      </List>
+
+      <Divider sx={{ my: 1 }} />
+
+      <List
+        component="nav"
+        aria-label="secondary menu"
+        subheader={
+          <ListSubheader
+            component="div"
+            sx={{
+              bgcolor: "transparent",
+              fontWeight: 700,
+              fontSize: 13,
+              py: 1,
+            }}
+          >
+            उपयुक्तता
+          </ListSubheader>
+        }
+      >
+        {/* New Main Menus: Products, Attendance */}
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/app/shop"
+            onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/shop")}
+            sx={listButtonSx}
+          >
+            <ListItemIcon>
+              <StorefrontIcon
+                color={isActive("/app/shop") ? "primary" : "inherit"}
+              />
+            </ListItemIcon>
+            <ListItemText primary="उत्पादने" />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/app/attendance"
+            onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/attendance")}
+            sx={listButtonSx}
+          >
+            <ListItemIcon>
+              <TodayIcon
+                color={isActive("/app/attendance") ? "primary" : "inherit"}
+              />
+            </ListItemIcon>
+            <ListItemText primary="हजेरी" />
+          </ListItemButton>
+        </ListItem>
+      </List>
+
+      <Divider sx={{ my: 1 }} />
+
+      <List
+        component="nav"
+        aria-label="info & account"
+        subheader={
+          <ListSubheader
+            component="div"
+            sx={{
+              bgcolor: "transparent",
+              fontWeight: 700,
+              fontSize: 13,
+              py: 1,
+            }}
+          >
+            माहिती व खाते
+          </ListSubheader>
+        }
+      >
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/app/subscription"
+            onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/subscription")}
+            sx={listButtonSx}
+          >
+            <ListItemIcon>
+              <SubscriptionsIcon
+                color={isActive("/app/subscription") ? "primary" : "inherit"}
+              />
+            </ListItemIcon>
+            <ListItemText primary="सदस्यता" />
           </ListItemButton>
         </ListItem>
 
@@ -213,11 +361,15 @@ export default function Layout({ children }) {
             component={Link}
             to="/app/about"
             onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/about")}
+            sx={listButtonSx}
           >
             <ListItemIcon>
-              <SchoolIcon />
+              <SchoolIcon
+                color={isActive("/app/about") ? "primary" : "inherit"}
+              />
             </ListItemIcon>
-            <ListItemText primary="About" />
+            <ListItemText primary="आमच्याबद्दल" />
           </ListItemButton>
         </ListItem>
 
@@ -226,11 +378,15 @@ export default function Layout({ children }) {
             component={Link}
             to="/app/profile"
             onClick={() => isMobile && setMobileOpen(false)}
+            selected={isActive("/app/profile")}
+            sx={listButtonSx}
           >
             <ListItemIcon>
-              <PersonIcon />
+              <PersonIcon
+                color={isActive("/app/profile") ? "primary" : "inherit"}
+              />
             </ListItemIcon>
-            <ListItemText primary="Profile" />
+            <ListItemText primary="माझे खाते" />
           </ListItemButton>
         </ListItem>
 
@@ -239,11 +395,15 @@ export default function Layout({ children }) {
             component={Link}
             to="/"
             onClick={() => isMobile && setMobileOpen(false)}
+            sx={{
+              ...listButtonSx,
+              color: "error.main",
+            }}
           >
             <ListItemIcon>
-              <LogoutIcon />
+              <LogoutIcon sx={{ color: "error.main" }} />
             </ListItemIcon>
-            <ListItemText primary="Log Out" />
+            <ListItemText primary="बाहेर पडा" />
           </ListItemButton>
         </ListItem>
       </List>
@@ -262,7 +422,7 @@ export default function Layout({ children }) {
           background: "linear-gradient(135deg, #de6925, #f8b14a)",
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ justifyContent: "space-between" }}>
           {isMobile && (
             <IconButton
               color="inherit"
@@ -288,10 +448,18 @@ export default function Layout({ children }) {
                 "linear-gradient(135deg,rgb(255, 255, 255),rgb(255, 230, 176))",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              textDecoration: "none",
             }}
           >
             द्रोणाचार्य करिअर अकॅडमी
           </Typography>
+
+          {/* 🔔 Notification Icon */}
+          <IconButton color="inherit" onClick={() => setNotifOpen(true)}>
+            <Badge badgeContent={unreadCount} color="error">
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
         </Toolbar>
       </AppBar>
 
@@ -306,6 +474,8 @@ export default function Layout({ children }) {
             "& .MuiDrawer-paper": {
               width: drawerWidth,
               boxSizing: "border-box",
+              borderTopRightRadius: 8,
+              borderBottomRightRadius: 8,
             },
           }}
         >
@@ -320,6 +490,7 @@ export default function Layout({ children }) {
             "& .MuiDrawer-paper": {
               width: drawerWidth,
               boxSizing: "border-box",
+              borderRight: "1px solid rgba(0,0,0,0.06)",
             },
           }}
         >
@@ -338,10 +509,107 @@ export default function Layout({ children }) {
       >
         <Toolbar />
         {children}
+        {/* ---------- Footer (policy links) ---------- */}
+        <Box
+          component="footer"
+          sx={{
+            mt: 4,
+            py: 2,
+            px: { xs: 2, sm: 3 },
+            borderTop: "1px solid",
+            borderColor: "divider",
+            bgcolor: "background.paper",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 1,
+            flexWrap: "wrap",
+          }}
+        >
+          <Typography variant="caption" sx={{ mr: 1 }}>
+            © {new Date().getFullYear()} द्रोणाचार्य करिअर अकॅडमी
+          </Typography>
+
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              alignItems: "center",
+              flexWrap: "wrap",
+            }}
+          >
+            <Link
+              to="/terms"
+              target="_blank"
+              style={{ textDecoration: "none" }}
+            >
+              <Typography variant="caption">Terms & Conditions</Typography>
+            </Link>
+
+            <Typography variant="caption">|</Typography>
+
+            <Link
+              to="/privacy"
+              target="_blank"
+              style={{ textDecoration: "none" }}
+            >
+              <Typography variant="caption">Privacy</Typography>
+            </Link>
+
+            <Typography variant="caption">|</Typography>
+
+            <Link
+              to="/refunds"
+              target="_blank"
+              style={{ textDecoration: "none" }}
+            >
+              <Typography variant="caption">Cancellation & Refunds</Typography>
+            </Link>
+
+            <Typography variant="caption">|</Typography>
+
+            <Link
+              to="/shipping"
+              target="_blank"
+              style={{ textDecoration: "none" }}
+            >
+              <Typography variant="caption">Shipping</Typography>
+            </Link>
+
+            <Typography variant="caption">|</Typography>
+          </Box>
+        </Box>
       </Box>
 
+      {/* Notification Modal */}
+      <Dialog
+        open={notifOpen}
+        onClose={() => setNotifOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>सूचना</DialogTitle>
+        <DialogContent dividers>
+          {notifications.length === 0 ? (
+            <Typography>कोणतीही नवीन सूचना नाहीत.</Typography>
+          ) : (
+            notifications.map((n) => (
+              <Paper key={n.id} sx={{ p: 1.5, mb: 1 }}>
+                {n.text}
+              </Paper>
+            ))
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setNotifications([])}>
+            सर्व वाचले म्हणून चिन्हांकित करा
+          </Button>
+          <Button onClick={() => setNotifOpen(false)}>बंद करा</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Floating AI Assistant */}
-      {!chatOpen && (
+      {/* {!chatOpen && (
         <Fab
           color="primary"
           sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2000 }}
@@ -349,7 +617,7 @@ export default function Layout({ children }) {
         >
           <ChatIcon />
         </Fab>
-      )}
+      )} */}
 
       <Drawer
         anchor="bottom"
@@ -446,3 +714,19 @@ export default function Layout({ children }) {
     </Box>
   );
 }
+
+/* ---------- Small style helpers outside component ---------- */
+const listButtonSx = {
+  px: 2,
+  py: { xs: 1, sm: 1.1 },
+  borderRadius: 1.5,
+  mb: 0.5,
+  "&.Mui-selected": {
+    background: "linear-gradient(135deg, #fcb69f, #ffecd2)",
+    "& .MuiListItemIcon-root": { color: "primary.main" },
+  },
+  "&:hover": {
+    background: "rgba(11,92,255,0.06)",
+    transform: "translateY(-1px)",
+  },
+};

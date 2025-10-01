@@ -23,8 +23,11 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import UploadFileIcon from "@mui/icons-material/UploadFile";
 import ChatIcon from "@mui/icons-material/Chat";
 import SendIcon from "@mui/icons-material/Send";
-import { Link } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
+import GroupsIcon from "@mui/icons-material/Groups";
+import ArticleIcon from "@mui/icons-material/Article";
+
+import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -129,6 +132,66 @@ export default function Layout({ children }) {
             </ListItemIcon>
             <ListItemText
               primary="अपलोड प्रश्नपत्रिका"
+              primaryTypographyProps={{
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                fontFamily: "'Gotu', sans-serif",
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/admin/blogs"
+            onClick={() => isMobile && setMobileOpen(false)}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              px: 2,
+              "&:hover": {
+                background: "linear-gradient(135deg, #ffecd2, #fcb69f)",
+                transform: "scale(1.02)",
+                transition: "all 0.3s ease",
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <ArticleIcon sx={{ color: "#de6925" }} />
+            </ListItemIcon>
+            <ListItemText
+              primary="लेख"
+              primaryTypographyProps={{
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                fontFamily: "'Gotu', sans-serif",
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+
+        <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/admin/adm-students"
+            onClick={() => isMobile && setMobileOpen(false)}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              px: 2,
+              "&:hover": {
+                background: "linear-gradient(135deg, #ffecd2, #fcb69f)",
+                transform: "scale(1.02)",
+                transition: "all 0.3s ease",
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <GroupsIcon sx={{ color: "#de6925" }} />
+            </ListItemIcon>
+            <ListItemText
+              primary="विद्यार्थी"
               primaryTypographyProps={{
                 fontWeight: 600,
                 fontSize: "0.95rem",

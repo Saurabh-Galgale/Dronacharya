@@ -1,28 +1,25 @@
 // src/pages/LandingPage.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import GoogleOneClick from "../component/GoogleOneClick";
 import {
   Box,
-  TextField,
-  Button,
-  IconButton,
-  InputAdornment,
   Typography,
   Snackbar,
   Alert,
-  useMediaQuery,
-  Switch,
-  FormControlLabel,
   Drawer,
+  useMediaQuery,
+  Button,
 } from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
 import SwipeableViews from "react-swipeable-views";
 import { autoPlay } from "react-swipeable-views-utils";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 
+import { signInWithGoogle, signInAdmin } from "../services/authService";
+
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
-// ✅ point to public folder images
+// images (public folder)
 const images = [
   "/images/slide1.webp",
   "/images/slide2.webp",
@@ -35,223 +32,211 @@ const images = [
   "/images/slide9.webp",
 ];
 
+// preload cache
+const imageCache = new Map();
+
 const LandingPage = () => {
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [toastOpen, setToastOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [adminDrawer, setAdminDrawer] = useState(false); // 🔹 new state for admin
-  const [mobile, setMobile] = useState(""); // 🔹 mobile number input
+  // carousel state
   const [index, setIndex] = useState(0);
-  const [guestMode, setGuestMode] = useState(false);
-  const [lastClickTime, setLastClickTime] = useState(0);
 
+  // drawer states
+  const [adminDrawer, setAdminDrawer] = useState(false);
+
+  // click ref for double-click detection
+  const lastClickRef = useRef(0);
+
+  // loading / error states
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [adminGoogleLoading, setAdminGoogleLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [toastOpen, setToastOpen] = useState(false);
+
+  // whether Google Identity SDK appears available
+  const [googleSdkReady, setGoogleSdkReady] = useState(false);
+
+  // Preload current + next carousel images
   useEffect(() => {
-    if (guestMode) {
-      setEmail("abc@gmail.com");
-      setPassword("1234");
-    } else {
-      setEmail("");
-      setPassword("");
-    }
-  }, [guestMode]);
+    const preload = (src) => {
+      if (!src || imageCache.has(src)) return;
+      const img = new Image();
+      img.src = src;
+      img.onload = () => imageCache.set(src, true);
+      img.onerror = () => imageCache.set(src, false);
+    };
+    preload(images[index]);
+    const nextIndex = (index + 1) % images.length;
+    preload(images[nextIndex]);
+  }, [index]);
 
-  const handleLogin = () => {
-    const loginEmail = guestMode ? "abc@gmail.com" : email;
-    const loginPassword = guestMode ? "1234" : password;
+  // Try detect Google Identity SDK readiness. Retry a few times in early life-cycle.
+  useEffect(() => {
+    let tries = 0;
+    const maxTries = 6;
+    const interval = 800; // ms
 
-    if (loginEmail === "abc@gmail.com" && loginPassword === "1234") {
-      localStorage.setItem(
-        "userCreds",
-        JSON.stringify({ email: loginEmail, password: loginPassword })
+    const check = () => {
+      tries += 1;
+      const ok = !!(
+        window.google &&
+        window.google.accounts &&
+        window.google.accounts.id
       );
-      navigate("/app/dashboard");
-    } else {
-      setToastOpen(true);
-    }
-  };
+      if (ok) {
+        setGoogleSdkReady(true);
+      } else if (tries < maxTries) {
+        setTimeout(check, interval);
+      } else {
+        setGoogleSdkReady(false);
+        // leave it false — fallback button will show
+        console.warn(
+          "Google Identity SDK not detected after retries. Ensure <script src='https://accounts.google.com/gsi/client' async defer></script> is present in index.html and client id configured."
+        );
+      }
+    };
+    check();
+  }, []);
 
-  // 🔹 Double click on logo → open admin drawer
-  const handleLogoClick = () => {
-    const now = Date.now();
-    if (now - lastClickTime < 600) {
-      setAdminDrawer(true); // ✅ open admin drawer
-    }
-    setLastClickTime(now);
-  };
-
-  // Loop carousel
-  const handleChangeIndex = (i) => {
-    if (i === images.length) {
-      setIndex(0); // reset back to first image
-    } else if (i < 0) {
-      setIndex(images.length - 1); // go to last if swiping backwards
-    } else {
-      setIndex(i);
-    }
-  };
-
-  // 🔹 Send OTP handler (mock for now)
-  const handleSendOtp = () => {
-    if (mobile.length !== 10) {
-      alert("कृपया 10 अंकी मोबाईल नंबर भरा");
-      return;
-    }
-    console.log("📱 OTP sent to:", "+91" + mobile);
-    alert("OTP पाठवला (development mode)");
-  };
-
-  const LoginForm = (
-    <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      flexDirection="column"
-      p={4}
-      sx={{
-        width: isMobile ? "100vw" : "100%",
-        height: isMobile ? "100%" : "auto",
-        backgroundColor: "transparent !important", // force transparent
-        boxShadow: "none !important", // remove shadow
-        border: "none", // remove border if any
-      }}
-    >
-      <Typography variant="h5" gutterBottom color="primary">
-        Login
-      </Typography>
-
-      <TextField
-        fullWidth
-        margin="normal"
-        label="Email"
-        value={email}
-        color="secondary"
-        onChange={(e) => !guestMode && setEmail(e.target.value)}
-        variant="outlined"
-        sx={{
-          backgroundColor: "rgba(255,255,255,0.1)",
-          borderRadius: 2,
-          input: { color: "#fff" }, // input text white
-          "& .MuiInputLabel-root": { color: "#fff" }, // label white
-          "& .MuiInputLabel-root.Mui-focused": { color: "#90caf9" }, // label on focus
-        }}
-      />
-
-      <TextField
-        fullWidth
-        margin="normal"
-        type={showPassword ? "text" : "password"}
-        label="Password"
-        value={password}
-        onChange={(e) => !guestMode && setPassword(e.target.value)}
-        variant="outlined"
-        color="secondary"
-        sx={{
-          backgroundColor: "rgba(255,255,255,0.1)",
-          borderRadius: 2,
-          input: { color: "#fff" },
-          "& .MuiInputLabel-root": { color: "#fff" },
-          "& .MuiInputLabel-root.Mui-focused": { color: "#90caf9" },
-        }}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={() => setShowPassword(!showPassword)}
-                color="primary"
-              >
-                {showPassword ? <VisibilityOff /> : <Visibility />}
-              </IconButton>
-            </InputAdornment>
-          ),
-        }}
-      />
-
-      <FormControlLabel
-        control={
-          <Switch
-            checked={guestMode}
-            onChange={() => setGuestMode(!guestMode)}
-            color="secondary"
-          />
-        }
-        label="Guest Mode"
-        sx={{ color: "#fff", mt: 2 }}
-      />
-
-      <Button
-        fullWidth
-        variant="contained"
-        color="primary"
-        sx={{ mt: 2 }}
-        onClick={handleLogin}
-      >
-        Log In
-      </Button>
-    </Box>
+  // user sign-in handler (Google id token)
+  const handleGoogleIdToken = useCallback(
+    async (idToken) => {
+      try {
+        setGoogleLoading(true);
+        setErrorMsg(null);
+        await signInWithGoogle(idToken);
+        navigate("/app/dashboard");
+      } catch (err) {
+        console.error("Google sign-in failed:", err);
+        setErrorMsg(err.message || "Sign-in failed");
+      } finally {
+        setGoogleLoading(false);
+      }
+    },
+    [navigate]
   );
 
+  // admin sign-in handler (same UI, different backend endpoint)
+  const handleAdminGoogleIdToken = useCallback(
+    async (idToken) => {
+      try {
+        setAdminGoogleLoading(true);
+        setErrorMsg(null);
+        await signInAdmin(idToken);
+        navigate("/admin/dashboard");
+      } catch (err) {
+        console.error("Admin Google sign-in failed:", err);
+        setErrorMsg(err.message || "Admin sign-in failed");
+      } finally {
+        setAdminGoogleLoading(false);
+      }
+    },
+    [navigate]
+  );
+
+  // manual fallback action when Google button isn't available
+  const onFallbackSignInClick = () => {
+    // helpful diagnostics for dev — you can replace with any UI (e.g. ask user to reload)
+    alert(
+      'Google sign-in not available.\n\nChecklist:\n1) Ensure the Google Identity script is included in public/index.html:\n   <script src="https://accounts.google.com/gsi/client" async defer></script>\n2) Ensure your Google client ID is set in environment variables and accessible to the frontend.\n3) Check browser console for errors and network tab for accounts.google.com requests.\n\nOpen console for details (Ctrl+Shift+J / Cmd+Option+J).'
+    );
+    console.warn(
+      "Fallback Google sign-in pressed. window.google:",
+      window.google
+    );
+  };
+
+  // logo double click → open admin drawer
+  const handleLogoClick = () => {
+    const now = Date.now();
+    if (now - lastClickRef.current < 600) {
+      setAdminDrawer(true);
+    }
+    lastClickRef.current = now;
+  };
+
+  // carousel controls
+  const handleChangeIndex = useCallback(
+    (i) => {
+      if (i === images.length) setIndex(0);
+      else if (i < 0) setIndex(images.length - 1);
+      else setIndex(i);
+    },
+    [images.length]
+  );
+
+  // render either GoogleOneClick (if sdk ready) or fallback visible button
+  function RenderGoogleButton({ isAdmin = false, loading = false }) {
+    if (googleSdkReady) {
+      // same component used for admin or user, but handler differs
+      return (
+        <GoogleOneClick
+          onSuccess={isAdmin ? handleAdminGoogleIdToken : handleGoogleIdToken}
+          loading={loading}
+        />
+      );
+    }
+    // fallback visible button
+    return (
+      <Button
+        variant="contained"
+        onClick={onFallbackSignInClick}
+        sx={{
+          background: "linear-gradient(135deg, #de6925, #f8b14a)",
+          color: "black",
+          px: 3,
+          py: 1,
+          borderRadius: "30px",
+        }}
+      >
+        Sign in with Google
+      </Button>
+    );
+  }
+
   return (
-    <Box display="flex" height="100vh" position="relative">
-      {/* Carousel Background with smooth drag */}
+    <Box
+      display="flex"
+      height="100vh"
+      position="relative"
+      sx={{ overflow: "hidden" }}
+    >
+      {/* Carousel Background */}
       <Box flex={1} height="100%" position="relative">
         <AutoPlaySwipeableViews
           index={index}
           onChangeIndex={handleChangeIndex}
           enableMouseEvents
-          interval={10000}
+          interval={9000}
           style={{ height: "100%" }}
         >
-          {images.map((src, i) => {
-            // only render current, prev, next
-            if (Math.abs(index - i) > 1) {
-              return (
-                <Box
-                  key={i}
-                  height="100vh"
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  bgcolor="black"
-                >
-                  {/* Render placeholder, not actual img */}
-                  <Box
-                    sx={{ width: "100%", height: "100vh", bgcolor: "black" }}
-                  />
-                </Box>
-              );
-            }
-
-            return (
-              <Box
-                key={i}
-                height="100vh"
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                bgcolor="black"
-              >
-                <img
-                  src={src}
-                  alt={`poster${i}`}
-                  loading="lazy"
-                  style={{
-                    width: "100%",
-                    height: "100vh",
-                    objectFit: isMobile ? "cover" : "contain",
-                  }}
-                />
-              </Box>
-            );
-          })}
+          {images.map((src, i) => (
+            <Box
+              key={i}
+              height="100vh"
+              display="flex"
+              justifyContent="center"
+              alignItems="center"
+              bgcolor="black"
+              sx={{ display: Math.abs(index - i) > 1 ? "none" : "flex" }}
+            >
+              <img
+                src={src}
+                alt={`Slide ${i + 1}`}
+                loading="lazy"
+                style={{
+                  width: "100%",
+                  height: "100vh",
+                  objectFit: isMobile ? "cover" : "contain",
+                }}
+              />
+            </Box>
+          ))}
         </AutoPlaySwipeableViews>
 
-        {/* 🔥 Stylish Heading Overlay */}
+        {/* Logo + Title (double-click to open admin sign-in drawer) */}
         <Box
           position="absolute"
           top={20}
@@ -261,21 +246,22 @@ const LandingPage = () => {
           sx={{
             transform: "translateX(-50%)",
             textAlign: "center",
-            display: "flex", // ✅ align logo + text
-            alignItems: "center", // ✅ vertically center
-            gap: 1.5, // ✅ spacing between logo & text
+            display: "flex",
+            alignItems: "center",
+            gap: 1.5,
+            px: 2,
           }}
         >
           <img
-            src="/images/logo.jpeg" // ✅ your logo path
-            alt="Logo"
+            src="/images/logo.jpeg"
+            alt="Dronacharya Logo"
             style={{
-              height: isMobile ? "30px" : "56px", // responsive size
+              height: isMobile ? 30 : 56,
               objectFit: "contain",
-              paddingBottom: "6px",
+              paddingBottom: 6,
               cursor: "pointer",
             }}
-            onClick={handleLogoClick} // ✅ double click detection
+            onClick={handleLogoClick}
           />
           <Typography
             variant={isMobile ? "h6" : "h4"}
@@ -296,75 +282,61 @@ const LandingPage = () => {
           </Typography>
         </Box>
 
+        {/* Carousel dots */}
         <Box
           position="absolute"
-          bottom={isMobile ? 90 : 40} // just above the login button
+          bottom={isMobile ? 80 : 40}
           left="50%"
           zIndex={15}
-          sx={{
-            transform: "translateX(-50%)",
-            display: "flex",
-            gap: "10px", // more breathing space
-          }}
+          sx={{ transform: "translateX(-50%)", display: "flex", gap: "10px" }}
         >
           {images.map((_, i) => (
             <Box
               key={i}
-              onClick={() => setIndex(i)} // make them clickable
+              onClick={() => setIndex(i)}
               sx={{
-                width: index === i ? 8 : 8, // active = bigger
-                height: index === i ? 8 : 8,
+                width: 8,
+                height: 8,
                 borderRadius: "50%",
                 cursor: "pointer",
                 transition: "all 0.3s ease",
                 background:
                   index === i
-                    ? "linear-gradient(135deg, #de6925, #f8b14a)" // active gradient
-                    : "rgba(255,255,255,0.4)", // inactive faint white
+                    ? "linear-gradient(135deg, #de6925, #f8b14a)"
+                    : "rgba(255,255,255,0.4)",
                 boxShadow:
-                  index === i
-                    ? "0 0 8px rgba(255, 200, 100, 0.8)" // glowing effect
-                    : "none",
+                  index === i ? "0 0 8px rgba(255, 200, 100, 0.8)" : "none",
               }}
             />
           ))}
         </Box>
 
-        {/* Mobile login button */}
+        {/* Mobile CTA area with single Google button (guaranteed visible via fallback) */}
         {isMobile && (
           <Box
             position="absolute"
             bottom={20}
             left="50%"
-            zIndex={10}
+            zIndex={30}
             maxWidth="100%"
-            sx={{ transform: "translateX(-50%)" }}
+            sx={{
+              transform: "translateX(-50%)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 1.5,
+            }}
           >
-            <Button
-              variant="contained"
-              sx={{
-                px: 6,
-                py: 1.5,
-                borderRadius: "30px",
-                fontWeight: "bold",
-                background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                color: "black",
-                minWidth: "300px",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  background: "black",
-                  color: "black",
-                },
-              }}
-              onClick={() => setDrawerOpen(true)}
-            >
-              Login
-            </Button>
+            {googleLoading ? (
+              <Typography sx={{ color: "white" }}>Signing in…</Typography>
+            ) : (
+              <RenderGoogleButton isAdmin={false} loading={googleLoading} />
+            )}
           </Box>
         )}
       </Box>
 
-      {/* Tablet / Desktop login side */}
+      {/* Right side panel for desktop/tablet: contains same single Google button */}
       {!isMobile && (
         <Box
           flex={1}
@@ -373,35 +345,49 @@ const LandingPage = () => {
           justifyContent="center"
           zIndex={5}
           sx={{
-            backgroundColor: "rgb(0, 0, 0)", // 🔥 semi-transparent black overlay
-            backdropFilter: "blur(6px)", // 🔥 frosted blur effect
-            WebkitBackdropFilter: "blur(6px)", // Safari support
-            boxShadow: "none", // remove default shadow
+            backgroundColor: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            px: 4,
+            position: "relative",
           }}
         >
-          {LoginForm}
+          <Box sx={{ textAlign: "center", width: "100%", maxWidth: 420 }}>
+            <Typography
+              variant="h5"
+              gutterBottom
+              sx={{ color: "white", mb: 2 }}
+            >
+              Welcome — Sign in with Google
+            </Typography>
+
+            {googleLoading ? (
+              <Typography sx={{ color: "white", mb: 2 }}>
+                Signing in…
+              </Typography>
+            ) : (
+              <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+                {<RenderGoogleButton isAdmin={false} loading={googleLoading} />}
+              </Box>
+            )}
+
+            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
+              Sign in to access question papers, current affairs and mock tests.
+            </Typography>
+          </Box>
+
+          {/* small floating google button bottom-left */}
+          <Box sx={{ position: "absolute", bottom: 24, left: 24 }}>
+            {googleLoading ? (
+              <Typography sx={{ color: "white" }}>Signing in…</Typography>
+            ) : (
+              <RenderGoogleButton isAdmin={false} loading={googleLoading} />
+            )}
+          </Box>
         </Box>
       )}
 
-      {/* Drawer for Normal Login */}
-      <Drawer
-        anchor="bottom"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: "20px 20px 0 0",
-            height: "55%",
-            backgroundColor: "rgba(0,0,0,0.3)",
-            backdropFilter: "blur(6px)",
-            boxShadow: "none",
-          },
-        }}
-      >
-        {LoginForm}
-      </Drawer>
-
-      {/* Drawer for Admin Mobile Login */}
+      {/* Admin Drawer (double-click logo opens this) — contains same Google button but calls admin endpoint */}
       <Drawer
         anchor="bottom"
         open={adminDrawer}
@@ -409,80 +395,55 @@ const LandingPage = () => {
         PaperProps={{
           sx: {
             borderRadius: "20px 20px 0 0",
-            height: "40%",
+            height: "20%",
             p: 3,
-            backgroundColor: "rgba(0,0,0,0.6)", // little darker
+            backgroundColor: "rgba(0,0,0,0.6)",
             backdropFilter: "blur(4px)",
-            boxShadow: "none",
           },
         }}
       >
-        <Typography
-          variant="h6"
-          mb={2}
-          textAlign="center"
-          sx={{ color: "white", fontWeight: "bold" }}
-        >
-          Admin Mobile Login
-        </Typography>
-
-        <TextField
-          fullWidth
-          label="Mobile Number"
-          value={mobile}
-          onChange={(e) =>
-            setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
-          }
-          InputProps={{
-            startAdornment: (
-              <Typography sx={{ mr: 1, fontWeight: "bold", color: "white" }}>
-                +91
-              </Typography>
-            ),
-          }}
+        <Box
           sx={{
-            "& .MuiInputBase-input": { color: "white" }, // input text white
-            "& .MuiInputLabel-root": { color: "rgba(255,255,255,0.7)" }, // label
-            "& .MuiInputLabel-root.Mui-focused": { color: "#f8b14a" }, // focus color
-            "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: "rgba(255,255,255,0.6)",
-            },
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#f8b14a",
-            },
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
           }}
-        />
-
-        <Button
-          disabled
-          variant="contained"
-          fullWidth
-          sx={{
-            mt: 2,
-            borderRadius: "25px",
-            background: "linear-gradient(135deg, #de6925, #f8b14a)",
-            color: "black",
-            fontWeight: "bold",
-          }}
-          onClick={handleSendOtp}
         >
-          Send OTP
-        </Button>
+          <Typography variant="h6" sx={{ mb: 2, color: "white" }}>
+            Admin Sign In
+          </Typography>
+
+          {adminGoogleLoading ? (
+            <Typography sx={{ color: "white" }}>Signing in…</Typography>
+          ) : (
+            <RenderGoogleButton isAdmin={true} loading={adminGoogleLoading} />
+          )}
+        </Box>
       </Drawer>
 
-      {/* Toast */}
+      {/* Toast / Snackbar */}
       <Snackbar
-        open={toastOpen}
-        autoHideDuration={3000}
-        onClose={() => setToastOpen(false)}
+        open={toastOpen || !!errorMsg}
+        autoHideDuration={4000}
+        onClose={() => {
+          setToastOpen(false);
+          setErrorMsg(null);
+        }}
         anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
-          severity="error"
-          onClose={() => setToastOpen(false)}
+          severity={toastOpen ? "error" : "info"}
+          onClose={() => {
+            setToastOpen(false);
+            setErrorMsg(null);
+          }}
           sx={{ width: "100%" }}
         >
-          Invalid email or password!
+          {toastOpen
+            ? "Invalid action"
+            : errorMsg || "Signed out or not authorized"}
         </Alert>
       </Snackbar>
     </Box>
