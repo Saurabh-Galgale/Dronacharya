@@ -1,7 +1,8 @@
 // src/services/authService.js
 // Lightweight auth + API helper without external jwt-decode dependency.
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+// const API_BASE = import.meta.env.VITE_API_BASE_URL || "";
+const API_BASE = import.meta.env.VITE_AWS_API_BASE_URL || "";
 
 // token storage
 let tokenInMemory = null;
