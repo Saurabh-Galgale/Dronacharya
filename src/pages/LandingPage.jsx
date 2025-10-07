@@ -1,6 +1,12 @@
 // src/pages/LandingPage.jsx
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import GoogleOneClick from "../component/GoogleOneClick";
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  Suspense,
+  lazy,
+} from "react";
 import {
   Box,
   Typography,
@@ -9,13 +15,18 @@ import {
   Drawer,
   useMediaQuery,
   Button,
+  CircularProgress,
 } from "@mui/material";
+import LoginIcon from "@mui/icons-material/Login";
 import SwipeableViews from "react-swipeable-views";
 import { autoPlay } from "react-swipeable-views-utils";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@mui/material/styles";
 
 import { signInWithGoogle, signInAdmin } from "../services/authService";
+
+// lazy load GoogleOneClick so it does not mount / load unless needed
+const GoogleOneClick = lazy(() => import("../component/GoogleOneClick"));
 
 const AutoPlaySwipeableViews = autoPlay(SwipeableViews);
 
@@ -45,6 +56,7 @@ const LandingPage = () => {
 
   // drawer states
   const [adminDrawer, setAdminDrawer] = useState(false);
+  const [userDrawer, setUserDrawer] = useState(false); // <-- user drawer
 
   // click ref for double-click detection
   const lastClickRef = useRef(0);
@@ -72,7 +84,7 @@ const LandingPage = () => {
     preload(images[nextIndex]);
   }, [index]);
 
-  // Try detect Google Identity SDK readiness. Retry a few times in early life-cycle.
+  // Detect Google Identity SDK readiness. Retry a few times in early life-cycle.
   useEffect(() => {
     let tries = 0;
     const maxTries = 6;
@@ -91,7 +103,6 @@ const LandingPage = () => {
         setTimeout(check, interval);
       } else {
         setGoogleSdkReady(false);
-        // leave it false — fallback button will show
         console.warn(
           "Google Identity SDK not detected after retries. Ensure <script src='https://accounts.google.com/gsi/client' async defer></script> is present in index.html and client id configured."
         );
@@ -107,6 +118,7 @@ const LandingPage = () => {
         setGoogleLoading(true);
         setErrorMsg(null);
         await signInWithGoogle(idToken);
+        setUserDrawer(false); // close drawer on success
         navigate("/app/dashboard");
       } catch (err) {
         console.error("Google sign-in failed:", err);
@@ -125,6 +137,7 @@ const LandingPage = () => {
         setAdminGoogleLoading(true);
         setErrorMsg(null);
         await signInAdmin(idToken);
+        setAdminDrawer(false);
         navigate("/admin/dashboard");
       } catch (err) {
         console.error("Admin Google sign-in failed:", err);
@@ -138,7 +151,6 @@ const LandingPage = () => {
 
   // manual fallback action when Google button isn't available
   const onFallbackSignInClick = () => {
-    // helpful diagnostics for dev — you can replace with any UI (e.g. ask user to reload)
     alert(
       'Google sign-in not available.\n\nChecklist:\n1) Ensure the Google Identity script is included in public/index.html:\n   <script src="https://accounts.google.com/gsi/client" async defer></script>\n2) Ensure your Google client ID is set in environment variables and accessible to the frontend.\n3) Check browser console for errors and network tab for accounts.google.com requests.\n\nOpen console for details (Ctrl+Shift+J / Cmd+Option+J).'
     );
@@ -170,12 +182,14 @@ const LandingPage = () => {
   // render either GoogleOneClick (if sdk ready) or fallback visible button
   function RenderGoogleButton({ isAdmin = false, loading = false }) {
     if (googleSdkReady) {
-      // same component used for admin or user, but handler differs
+      // lazy-loaded component used for admin or user, but handler differs
       return (
-        <GoogleOneClick
-          onSuccess={isAdmin ? handleAdminGoogleIdToken : handleGoogleIdToken}
-          loading={loading}
-        />
+        <Suspense fallback={<CircularProgress size={24} />}>
+          <GoogleOneClick
+            onSuccess={isAdmin ? handleAdminGoogleIdToken : handleGoogleIdToken}
+            loading={loading}
+          />
+        </Suspense>
       );
     }
     // fallback visible button
@@ -209,7 +223,7 @@ const LandingPage = () => {
           index={index}
           onChangeIndex={handleChangeIndex}
           enableMouseEvents
-          interval={9000}
+          interval={10000}
           style={{ height: "100%" }}
         >
           {images.map((src, i) => (
@@ -311,7 +325,7 @@ const LandingPage = () => {
           ))}
         </Box>
 
-        {/* Mobile CTA area with single Google button (guaranteed visible via fallback) */}
+        {/* Mobile CTA area: show a simple Log In button that opens user drawer (no Google component mounted here) */}
         {isMobile && (
           <Box
             position="absolute"
@@ -327,16 +341,28 @@ const LandingPage = () => {
               gap: 1.5,
             }}
           >
-            {googleLoading ? (
-              <Typography sx={{ color: "white" }}>Signing in…</Typography>
-            ) : (
-              <RenderGoogleButton isAdmin={false} loading={googleLoading} />
-            )}
+            <Button
+              variant="contained"
+              onClick={() => setUserDrawer(true)}
+              startIcon={<LoginIcon sx={{ color: "black" }} />}
+              sx={{
+                background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                color: "black",
+                px: 4,
+                py: 0.8,
+                borderRadius: "30px",
+                fontWeight: "600",
+                letterSpacing: 0.5,
+                fontSize: "1rem",
+              }}
+            >
+              साइन इन
+            </Button>
           </Box>
         )}
       </Box>
 
-      {/* Right side panel for desktop/tablet: contains same single Google button */}
+      {/* Right side panel for desktop/tablet: simplified — a Log In button that opens the user drawer */}
       {!isMobile && (
         <Box
           flex={1}
@@ -358,36 +384,36 @@ const LandingPage = () => {
               gutterBottom
               sx={{ color: "white", mb: 2 }}
             >
-              Welcome — Sign in with Google
+              Welcome
             </Typography>
 
-            {googleLoading ? (
-              <Typography sx={{ color: "white", mb: 2 }}>
-                Signing in…
-              </Typography>
-            ) : (
-              <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-                {<RenderGoogleButton isAdmin={false} loading={googleLoading} />}
-              </Box>
-            )}
-
-            <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
+            <Typography
+              variant="body1"
+              sx={{ color: "rgba(255,255,255,0.9)", mb: 2 }}
+            >
               Sign in to access question papers, current affairs and mock tests.
             </Typography>
-          </Box>
 
-          {/* small floating google button bottom-left */}
-          <Box sx={{ position: "absolute", bottom: 24, left: 24 }}>
-            {googleLoading ? (
-              <Typography sx={{ color: "white" }}>Signing in…</Typography>
-            ) : (
-              <RenderGoogleButton isAdmin={false} loading={googleLoading} />
-            )}
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+              <Button
+                variant="contained"
+                onClick={() => setUserDrawer(true)}
+                sx={{
+                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                  color: "black",
+                  px: 3,
+                  py: 1,
+                  borderRadius: "30px",
+                }}
+              >
+                साइन इन
+              </Button>
+            </Box>
           </Box>
         </Box>
       )}
 
-      {/* Admin Drawer (double-click logo opens this) — contains same Google button but calls admin endpoint */}
+      {/* Admin Drawer (unchanged) — contains same Google button but calls admin endpoint */}
       <Drawer
         anchor="bottom"
         open={adminDrawer}
@@ -412,7 +438,7 @@ const LandingPage = () => {
           }}
         >
           <Typography variant="h6" sx={{ mb: 2, color: "white" }}>
-            Admin Sign In
+            प्रशासक साइन इन
           </Typography>
 
           {adminGoogleLoading ? (
@@ -420,6 +446,49 @@ const LandingPage = () => {
           ) : (
             <RenderGoogleButton isAdmin={true} loading={adminGoogleLoading} />
           )}
+        </Box>
+      </Drawer>
+
+      {/* User Drawer — GoogleOneClick mounts only here when user opens drawer */}
+      <Drawer
+        anchor="bottom"
+        open={userDrawer}
+        onClose={() => setUserDrawer(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: "20px 20px 0 0",
+            height: "30%", // a bit larger for user drawer
+            p: 3,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            backdropFilter: "blur(4px)",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2, color: "white" }}>
+            साइन इन
+          </Typography>
+
+          {googleLoading ? (
+            <Typography sx={{ color: "white" }}>Signing in…</Typography>
+          ) : (
+            <RenderGoogleButton isAdmin={false} loading={googleLoading} />
+          )}
+
+          <Typography
+            variant="body2"
+            sx={{ color: "rgba(255,255,255,0.7)", mt: 1 }}
+          >
+            Use your Google account to sign in.
+          </Typography>
         </Box>
       </Drawer>
 

@@ -1,5 +1,5 @@
 // src/App.jsx
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,39 +8,49 @@ import {
 } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
-import Layout from "./layout/MainLayout";
-import AdminLayout from "./layout/AdminLayout";
 
-// Student pages
-import Dashboard from "./pages/Dashboard";
-import VideoLectures from "./pages/VideoLectures";
-import QuestionPaper from "./pages/QuestionPaper";
-import Notes from "./pages/Notes";
-import List from "./pages/List";
-import Profile from "./pages/Profile";
-import CurrentAffairs from "./pages/CurrentAffairs";
+// Eager (small, public) pages — keep these eager for snappy first load
 import LandingPage from "./pages/LandingPage";
-import About from "./pages/About";
-import StudentsTable from "./pages/StudentsTable";
-import BlogsPage from "./pages/BlogsPage";
-import BlogDetail from "./pages/BlogDetail";
-import Attendance from "./pages/Attendance";
-import Shop from "./pages/Shop";
-import Pet from "./pages/Pet";
-import Subscription from "./pages/Subscription";
-import Payment from "./pages/Payment";
-// Admin pages
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import UploadQp from "./pages/admin/UploadQp";
-import AdminStudentsTable from "./pages/admin/AdminStudentsTable";
-import BlogsAdminPage from "./pages/admin/BlogsAdminPage";
-// Policy pages (new)
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Refunds from "./pages/Refunds";
 import Shipping from "./pages/Shipping";
-// auth helpers
+
+// Auth helpers remain eager (they are small and synchronous)
 import { getToken, getUserFromToken } from "./services/authService";
+
+/**
+ * Lazy-loaded pieces (big / rarely needed on first paint)
+ * - Layouts and most pages are lazy to avoid downloading their bundles on landing page
+ */
+const Layout = lazy(() => import("./layout/MainLayout"));
+const AdminLayout = lazy(() => import("./layout/AdminLayout"));
+
+// Student pages (lazy)
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const VideoLectures = lazy(() => import("./pages/VideoLectures"));
+const QuestionPaper = lazy(() => import("./pages/QuestionPaper"));
+const Notes = lazy(() => import("./pages/Notes"));
+const List = lazy(() => import("./pages/List"));
+const Profile = lazy(() => import("./pages/Profile"));
+const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
+const About = lazy(() => import("./pages/About"));
+const StudentsTable = lazy(() => import("./pages/StudentsTable"));
+const BlogsPage = lazy(() => import("./pages/BlogsPage"));
+const BlogDetail = lazy(() => import("./pages/BlogDetail"));
+const Attendance = lazy(() => import("./pages/Attendance"));
+const Shop = lazy(() => import("./pages/Shop"));
+const Pet = lazy(() => import("./pages/Pet"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const Payment = lazy(() => import("./pages/Payment"));
+
+// Admin pages (lazy)
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const UploadQp = lazy(() => import("./pages/admin/UploadQp"));
+const AdminStudentsTable = lazy(() =>
+  import("./pages/admin/AdminStudentsTable")
+);
+const BlogsAdminPage = lazy(() => import("./pages/admin/BlogsAdminPage"));
 
 /**
  * Simple auth guard using token presence and role from token.
@@ -58,9 +68,15 @@ function RequireAuth({ children, requiredRole }) {
   return children;
 }
 
+/**
+ * Small, unobtrusive Suspense wrapper used for route-level fallbacks.
+ * Keep it tiny to avoid large layout shifts; you can replace with a spinner component if desired.
+ */
+function RouteSuspense({ children, fallback = null }) {
+  return <Suspense fallback={fallback}>{children}</Suspense>;
+}
+
 function App() {
-  // do NOT rely on localStorage.userCreds for auth — use token/cookie
-  // but keep compatibility with legacy flows if needed.
   return (
     <ThemeProvider theme={theme}>
       <Router>
@@ -68,9 +84,9 @@ function App() {
           {/* Public */}
           <Route path="/" element={<LandingPage />} />
 
-          {/* Policy pages - public (crawlable) */}
+          {/* Policy pages - public (keep these eager for SEO/readability) */}
           <Route path="/terms" element={<Terms />} />
-          <Route path="privacy" element={<Privacy />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/refunds" element={<Refunds />} />
           <Route path="/shipping" element={<Shipping />} />
 
@@ -79,30 +95,148 @@ function App() {
             path="/app/*"
             element={
               <RequireAuth>
-                <Layout>
-                  <Routes>
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="blogs" element={<BlogsPage />} />
-                    <Route path="blogs/:id" element={<BlogDetail />} />
-                    <Route path="lectures" element={<VideoLectures />} />
-                    <Route path="ca" element={<CurrentAffairs />} />
-                    <Route path="list" element={<List />} />
-                    <Route path="list/:paperId" element={<QuestionPaper />} />
-                    <Route path="notes" element={<Notes />} />
-                    <Route path="students" element={<StudentsTable />} />
-                    <Route path="about" element={<About />} />
-                    <Route path="profile" element={<Profile />} />
-                    <Route path="attendance" element={<Attendance />} />
-                    <Route path="/shop" element={<Shop />} />
-                    <Route path="/pet" element={<Pet />} />
-                    <Route path="/subscription" element={<Subscription />} />
-                    <Route
-                      index
-                      element={<Navigate to="dashboard" replace />}
-                    />
-                    <Route path="/payment" element={<Payment />} />
-                  </Routes>
-                </Layout>
+                {/* Lazy load the main layout only when /app is hit */}
+                <RouteSuspense fallback={<div />}>
+                  <Layout>
+                    <Routes>
+                      {/* All child pages lazy — these components will only download when navigated to */}
+                      <Route
+                        path="dashboard"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Dashboard />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="blogs"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <BlogsPage />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="blogs/:id"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <BlogDetail />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="lectures"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <VideoLectures />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="ca"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <CurrentAffairs />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="list"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <List />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="list/:paperId"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <QuestionPaper />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="notes"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Notes />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="students"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <StudentsTable />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="about"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <About />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="profile"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Profile />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="attendance"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Attendance />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="shop"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Shop />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="pet"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Pet />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="subscription"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Subscription />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="payment"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Payment />
+                          </RouteSuspense>
+                        }
+                      />
+
+                      {/* default to /app/dashboard */}
+                      <Route
+                        index
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                    </Routes>
+                  </Layout>
+                </RouteSuspense>
               </RequireAuth>
             }
           />
@@ -112,23 +246,64 @@ function App() {
             path="/admin/*"
             element={
               <RequireAuth requiredRole="ADMIN">
-                <AdminLayout>
-                  <Routes>
-                    <Route path="dashboard" element={<AdminDashboard />} />
-                    <Route path="blogs" element={<BlogsAdminPage />} />
-                    <Route path="blogs/:id" element={<BlogDetail />} />
-                    <Route path="uploadqp" element={<UploadQp />} />
-                    <Route
-                      path="adm-students"
-                      element={<AdminStudentsTable />}
-                    />
-                    <Route
-                      index
-                      element={<Navigate to="dashboard" replace />}
-                    />
-                    <Route path="attendance" element={<Attendance />} />
-                  </Routes>
-                </AdminLayout>
+                <RouteSuspense fallback={<div />}>
+                  <AdminLayout>
+                    <Routes>
+                      <Route
+                        path="dashboard"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <AdminDashboard />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="blogs"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <BlogsAdminPage />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="blogs/:id"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <BlogDetail />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="uploadqp"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <UploadQp />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="adm-students"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <AdminStudentsTable />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        index
+                        element={<Navigate to="dashboard" replace />}
+                      />
+                      <Route
+                        path="attendance"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <Attendance />
+                          </RouteSuspense>
+                        }
+                      />
+                    </Routes>
+                  </AdminLayout>
+                </RouteSuspense>
               </RequireAuth>
             }
           />
