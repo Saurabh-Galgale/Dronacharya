@@ -21,7 +21,6 @@ import { getToken, getUserFromToken } from "./services/authService";
 
 /**
  * Lazy-loaded pieces (big / rarely needed on first paint)
- * - Layouts and most pages are lazy to avoid downloading their bundles on landing page
  */
 const Layout = lazy(() => import("./layout/MainLayout"));
 const AdminLayout = lazy(() => import("./layout/AdminLayout"));
@@ -53,8 +52,30 @@ const AdminStudentsTable = lazy(() =>
 const BlogsAdminPage = lazy(() => import("./pages/admin/BlogsAdminPage"));
 
 /**
+ * Small helper to determine if a stored token appears still valid.
+ * - Uses getToken() and getUserFromToken() (your existing helpers).
+ * - If token has exp claim, ensures it's in the future.
+ * - Returns boolean.
+ */
+function isTokenValid() {
+  const token = getToken();
+  if (!token) return false;
+
+  const payload = getUserFromToken();
+  if (!payload) return false;
+
+  // if `exp` present (seconds since epoch), ensure not expired
+  if (payload.exp && typeof payload.exp === "number") {
+    const expiryMs = payload.exp * 1000;
+    if (Date.now() >= expiryMs) return false;
+  }
+
+  // optionally you could check issued-at (iat), notBefore, etc.
+  return true;
+}
+
+/**
  * Simple auth guard using token presence and role from token.
- * This keeps your previous structure while using real auth state.
  */
 function RequireAuth({ children, requiredRole }) {
   const token = getToken();
@@ -69,20 +90,32 @@ function RequireAuth({ children, requiredRole }) {
 }
 
 /**
- * Small, unobtrusive Suspense wrapper used for route-level fallbacks.
- * Keep it tiny to avoid large layout shifts; you can replace with a spinner component if desired.
+ * Small Suspense wrapper for route-level fallback.
  */
 function RouteSuspense({ children, fallback = null }) {
   return <Suspense fallback={fallback}>{children}</Suspense>;
 }
 
 function App() {
+  // On the public root route, if a valid token exists in storage, redirect to /app/dashboard.
+  // This solves the "close tab, open new tab, landing page shown even though token exists" issue.
+  const redirectToAppIfAuthed = isTokenValid();
+
   return (
     <ThemeProvider theme={theme}>
       <Router>
         <Routes>
-          {/* Public */}
-          <Route path="/" element={<LandingPage />} />
+          {/* Public - redirect to /app/dashboard when token in storage is valid */}
+          <Route
+            path="/"
+            element={
+              redirectToAppIfAuthed ? (
+                <Navigate to="/app/dashboard" replace />
+              ) : (
+                <LandingPage />
+              )
+            }
+          />
 
           {/* Policy pages - public (keep these eager for SEO/readability) */}
           <Route path="/terms" element={<Terms />} />
@@ -95,11 +128,9 @@ function App() {
             path="/app/*"
             element={
               <RequireAuth>
-                {/* Lazy load the main layout only when /app is hit */}
                 <RouteSuspense fallback={<div />}>
                   <Layout>
                     <Routes>
-                      {/* All child pages lazy — these components will only download when navigated to */}
                       <Route
                         path="dashboard"
                         element={
