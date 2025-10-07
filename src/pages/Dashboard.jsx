@@ -1,3 +1,4 @@
+// src/pages/Dashboard.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Grid,
@@ -6,6 +7,8 @@ import {
   Typography,
   Box,
   useMediaQuery,
+  Avatar,
+  Stack,
 } from "@mui/material";
 import {
   PieChart,
@@ -24,6 +27,10 @@ import {
 } from "recharts";
 import mockData from "../mockData";
 import { useTheme } from "@mui/material/styles";
+import {
+  getStoredUserProfile,
+  getUserFromToken,
+} from "../services/authService";
 
 // Playlist of dashboard videos (keep in public/videos/)
 const videoList = [
@@ -34,9 +41,13 @@ const videoList = [
   "/videos/DashVid05.mp4",
 ];
 
+const DEFAULT_AVATAR =
+  "https://png.pngtree.com/png-clipart/20250104/original/pngtree-smiling-male-avatar-with-glasses-and-stylish-mustache-for-profile-icons-png-image_20072133.png";
+
 export default function Dashboard() {
   const [currentVideo, setCurrentVideo] = useState(0);
   const [stats, setStats] = useState([]);
+  const [profile, setProfile] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 
@@ -44,10 +55,38 @@ export default function Dashboard() {
     setCurrentVideo((prev) => (prev + 1) % videoList.length);
   };
 
-  // load data from localStorage
+  // load data from localStorage for stats
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem("papersStats")) || [];
     setStats(stored);
+  }, []);
+
+  // load profile (once) from localStorage or token
+  useEffect(() => {
+    let user = getStoredUserProfile();
+    if (!user) {
+      const tokenUser = getUserFromToken();
+      if (tokenUser) {
+        user = {
+          id: tokenUser.id || null,
+          name: tokenUser.name || tokenUser.fullName || "",
+          email: tokenUser.email || "",
+          picture: tokenUser.picture || "",
+        };
+      }
+    }
+    if (!user) {
+      // fallback minimal profile
+      user = { name: "", picture: DEFAULT_AVATAR };
+    } else {
+      // normalize picture (protocol relative -> https)
+      if (user.picture?.startsWith("//"))
+        user.picture = "https:" + user.picture;
+      if (user.picture?.startsWith("http://"))
+        user.picture = user.picture.replace(/^http:\/\//i, "https://");
+      if (!user.picture) user.picture = DEFAULT_AVATAR;
+    }
+    setProfile(user);
   }, []);
 
   // aggregate summary
@@ -63,9 +102,9 @@ export default function Dashboard() {
       totalQs = 0;
 
     stats.forEach((p) => {
-      totalCorrect += p.correct;
-      totalAttemptedQs += p.attempted;
-      totalQs += p.totalQuestions;
+      totalCorrect += p.correct || 0;
+      totalAttemptedQs += p.attempted || 0;
+      totalQs += p.totalQuestions || 0;
     });
 
     const avgAccuracy = totalAttemptedQs
@@ -75,9 +114,9 @@ export default function Dashboard() {
     const avgScore = totalQs ? Math.round((totalCorrect / totalQs) * 100) : 0;
 
     const bestScore =
-      stats.length > 0 ? Math.max(...stats.map((p) => p.scorePercent)) : 0;
+      stats.length > 0 ? Math.max(...stats.map((p) => p.scorePercent || 0)) : 0;
     const worstScore =
-      stats.length > 0 ? Math.min(...stats.map((p) => p.scorePercent)) : 0;
+      stats.length > 0 ? Math.min(...stats.map((p) => p.scorePercent || 0)) : 0;
 
     // subject-wise performance
     const subjectMap = {};
@@ -85,8 +124,8 @@ export default function Dashboard() {
       if (!subjectMap[p.subject]) {
         subjectMap[p.subject] = { subject: p.subject, correct: 0, total: 0 };
       }
-      subjectMap[p.subject].correct += p.correct;
-      subjectMap[p.subject].total += p.totalQuestions;
+      subjectMap[p.subject].correct += p.correct || 0;
+      subjectMap[p.subject].total += p.totalQuestions || 0;
     });
 
     const subjectsPerf =
@@ -151,8 +190,54 @@ export default function Dashboard() {
       </Box>
 
       {/* ===== Foreground Content (scrollable) ===== */}
-      {/* ===== Foreground Content (scrollable) ===== */}
       <Box sx={{ position: "relative", zIndex: 1, py: 4, px: 2 }}>
+        {/* ===== Header: Marathi welcome with avatar + moving icon ===== */}
+        <Box
+          sx={{
+            width: "100%",
+            maxWidth: 1200,
+            mx: "auto",
+            mb: 3,
+            px: { xs: 2, sm: 3 },
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              p: 1,
+              borderRadius: 1,
+              bgcolor: "rgba(255,255,255,0.08)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              boxShadow: 2,
+            }}
+          >
+            <Avatar
+              src={profile?.picture || DEFAULT_AVATAR}
+              alt={profile?.name || "User"}
+              sx={{ width: 64, height: 64 }}
+              imgProps={{ referrerPolicy: "no-referrer" }}
+            />
+
+            <Box sx={{ flex: 1, display: "flex", alignItems: "center" }}>
+              <Typography
+                variant={isMobile ? "body" : "h5"}
+                sx={{
+                  fontWeight: 600,
+                  color: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+                {profile?.name ? `नमस्कार, ${profile.name}!` : "नमस्कार!"}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
         {/* Stats Cards */}
         <Box
           sx={{

@@ -53,6 +53,8 @@ import { useTheme } from "@mui/material/styles";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { clearToken } from "../services/authService";
+
 const drawerWidth = 240;
 
 export default function Layout({ children }) {
@@ -86,6 +88,35 @@ export default function Layout({ children }) {
     { id: 3, text: "नवीन सराव प्रश्नपत्रिका उपलब्ध आहे." },
   ]);
   const unreadCount = notifications.length;
+
+  // Logout dialog state
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  const handleLogoutClick = () => {
+    setLogoutDialogOpen(true);
+  };
+
+  const handleConfirmLogout = () => {
+    try {
+      // Clear in-memory token (function kept as-is)
+      try {
+        clearToken?.();
+      } catch (err) {
+        // defensive: clearToken may throw in some edge-cases
+        console.warn("clearToken() threw an error:", err);
+      }
+      setLogoutDialogOpen(false);
+      window.location.assign("/");
+    } catch (err) {
+      // Very defensive fallback: still navigate to root
+      console.error("Unexpected error during logout:", err);
+      window.location.assign("/");
+    }
+  };
+
+  const handleCancelLogout = () => {
+    setLogoutDialogOpen(false);
+  };
 
   // =========================
   // 🔹 AI Chat State
@@ -392,13 +423,8 @@ export default function Layout({ children }) {
 
         <ListItem disablePadding>
           <ListItemButton
-            component={Link}
-            to="/"
-            onClick={() => isMobile && setMobileOpen(false)}
-            sx={{
-              ...listButtonSx,
-              color: "error.main",
-            }}
+            onClick={handleLogoutClick}
+            sx={{ ...listButtonSx, color: "error.main" }}
           >
             <ListItemIcon>
               <LogoutIcon sx={{ color: "error.main" }} />
@@ -605,6 +631,33 @@ export default function Layout({ children }) {
             सर्व वाचले म्हणून चिन्हांकित करा
           </Button>
           <Button onClick={() => setNotifOpen(false)}>बंद करा</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* 🔸 Logout confirmation dialog */}
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={handleCancelLogout}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>खात्यातून बाहेर पडायचे आहे का?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            आपण नक्की बाहेर पडू इच्छिता का? कृपया खात्री करा.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelLogout} color="inherit">
+            रद्द करा
+          </Button>
+          <Button
+            onClick={handleConfirmLogout}
+            color="error"
+            variant="contained"
+          >
+            होय, बाहेर पडा
+          </Button>
         </DialogActions>
       </Dialog>
 
