@@ -1,7 +1,12 @@
 const mockData = [
   {
     id: "पेपर 01",
-    title: "पेपर 01 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    name: "महाराष्ट्र पोलीस भरती सराव पेपर 01",
+    subject: "सामान्य",
+    totalQuestions: 100,
+    totalMarks: 100,
+    durationMinutes: 90,
+    tag: "mockMixed",
     questions: [
       {
         id: 1,
@@ -860,7 +865,12 @@ const mockData = [
   },
   {
     id: "पेपर 02",
-    title: "पेपर 02 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    name: "पेपर 02 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    subject: "महाराष्ट्र पोलीस भरती",
+    totalQuestions: 100,
+    totalMarks: 100,
+    durationMinutes: 90,
+    tag: "mockMixed",
     questions: [
       {
         id: 1,
@@ -1715,7 +1725,12 @@ const mockData = [
   },
   {
     id: "पेपर 03",
-    title: "पेपर 03 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    name: "पेपर 03 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    subject: "महाराष्ट्र पोलीस भरती",
+    totalQuestions: 100,
+    totalMarks: 100,
+    durationMinutes: 90,
+    tag: "mockMixed",
     questions: [
       {
         id: 1,
@@ -2580,7 +2595,12 @@ const mockData = [
   },
   {
     id: "पेपर 04",
-    title: "पेपर 04 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    name: "पेपर 04 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    subject: "महाराष्ट्र पोलीस भरती",
+    totalQuestions: 100,
+    totalMarks: 100,
+    durationMinutes: 90,
+    tag: "mockMixed",
     questions: [
       {
         id: 1,
@@ -3432,7 +3452,12 @@ const mockData = [
   },
   {
     id: "पेपर 05",
-    title: "पेपर 05 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    name: "पेपर 05 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    subject: "महाराष्ट्र पोलीस भरती",
+    totalQuestions: 100,
+    totalMarks: 100,
+    durationMinutes: 90,
+    tag: "mockMixed",
     questions: [
       {
         id: 1,
@@ -4293,7 +4318,12 @@ const mockData = [
   },
   {
     id: "पेपर 6",
-    title: "पेपर 6 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    name: "पेपर 6 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    subject: "महाराष्ट्र पोलीस भरती",
+    totalQuestions: 100,
+    totalMarks: 100,
+    durationMinutes: 90,
+    tag: "mockMixed",
     questions: [
       {
         id: 1,
@@ -5121,7 +5151,12 @@ const mockData = [
   },
   {
     id: "पेपर 07",
-    title: "पेपर 07 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    name: "पेपर 07 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    subject: "महाराष्ट्र पोलीस भरती",
+    totalQuestions: 100,
+    totalMarks: 100,
+    durationMinutes: 90,
+    tag: "mockMixed",
     questions: [
       {
         id: 1,
@@ -5899,7 +5934,12 @@ const mockData = [
   },
   {
     id: "पेपर 08",
-    title: "पेपर 08 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    name: "पेपर 08 - महाराष्ट्र पोलीस भरती सराव पेपर",
+    subject: "महाराष्ट्र पोलीस भरती",
+    totalQuestions: 100,
+    totalMarks: 100,
+    durationMinutes: 90,
+    tag: "mockMixed",
     questions: [
       {
         id: 1,

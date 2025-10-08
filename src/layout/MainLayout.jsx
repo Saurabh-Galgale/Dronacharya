@@ -536,7 +536,7 @@ export default function Layout({ children }) {
         <Toolbar />
         {children}
         {/* ---------- Footer (policy links) ---------- */}
-        <Box
+        {/* <Box
           component="footer"
           sx={{
             mt: 4,
@@ -604,7 +604,7 @@ export default function Layout({ children }) {
 
             <Typography variant="caption">|</Typography>
           </Box>
-        </Box>
+        </Box> */}
       </Box>
 
       {/* Notification Modal */}

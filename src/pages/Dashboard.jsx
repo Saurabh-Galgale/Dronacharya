@@ -190,7 +190,7 @@ export default function Dashboard() {
       </Box>
 
       {/* ===== Foreground Content (scrollable) ===== */}
-      <Box sx={{ position: "relative", zIndex: 1, py: 4, px: 2 }}>
+      <Box sx={{ position: "relative", zIndex: 1, py: 3, px: 0.4 }}>
         {/* ===== Header: Marathi welcome with avatar + moving icon ===== */}
         <Box
           sx={{

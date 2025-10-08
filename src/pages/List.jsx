@@ -1,7 +1,13 @@
-// src/pages/PapersList.js
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, Typography, Box, Button } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Box,
+  Button,
+  Divider,
+} from "@mui/material";
 import mockData from "../mockData";
 
 const PapersList = () => {
@@ -18,9 +24,8 @@ const PapersList = () => {
     setStats(storedStats);
   }, []);
 
-  const getStatsForPaper = (paperId) => {
-    return stats.find((s) => s.paperId === paperId);
-  };
+  const getStatsForPaper = (paperId) =>
+    stats.find((s) => s.paperId === paperId);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -35,7 +40,7 @@ const PapersList = () => {
           lineHeight: 1.6,
           display: "inline-block",
           background: (theme) =>
-            `linear-gradient(135deg,rgb(0, 0, 0),rgb(0, 0, 0))`,
+            `linear-gradient(135deg, rgb(0, 0, 0), rgb(0, 0, 0))`,
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
         }}
@@ -44,46 +49,119 @@ const PapersList = () => {
       </Typography>
 
       {papers.length === 0 ? (
-        <Typography>No papers available yet. Please upload one.</Typography>
+        <Typography>सध्या कोणतीही परीक्षा उपलब्ध नाही.</Typography>
       ) : (
         papers.map((paper) => {
           const stat = getStatsForPaper(paper.id);
+
+          const name = paper.Name || paper.name || "Untitled Paper";
+          const duration = paper.durationMinutes ?? paper.duration ?? 0;
+          const subject = paper.subject || "-";
+          const totalQuestions =
+            paper.totalQuestions ??
+            (Array.isArray(paper.questions) ? paper.questions.length : 0);
+          const totalMarks = paper.totalMarks ?? "-";
 
           return (
             <Card
               key={paper.id}
               sx={{
                 mb: 2,
-                position: "relative", // to position stats at bottom-right
+                position: "relative",
+                borderRadius: "12px",
+                overflow: "hidden",
               }}
             >
-              <CardContent>
-                <Typography fontWeight="bold" variant="h6">
-                  {paper.title}
-                </Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                  {paper.questions.length} Questions
+              {/* Gradient top accent stripe */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  background:
+                    "linear-gradient(135deg,rgba(222, 105, 37, 0.6),rgba(248, 178, 74, 0.6))",
+                  zIndex: 0,
+                  borderTopLeftRadius: "12px",
+                  borderTopRightRadius: "12px",
+                  clipPath: "polygon(0 60%, 0 0, 45% 0)",
+                }}
+              />
+
+              <CardContent sx={{ position: "relative", zIndex: 1, pb: 7 }}>
+                {/* Top left - Name */}
+                <Box width={"70%"}>
+                  <Typography fontWeight="bold" variant="body">
+                    {name}
+                  </Typography>
+                </Box>
+
+                <Divider
+                  sx={{
+                    my: 1,
+                    width: "100%",
+                    ml: 0,
+                    mr: "auto",
+                    borderColor: "black",
+                  }}
+                  variant="fullWidth"
+                />
+
+                {/* Top right - Duration */}
+                <Typography
+                  variant="body2"
+                  sx={{
+                    position: "absolute",
+                    top: 18,
+                    right: 16,
+                    color: "#000",
+                    fontWeight: 600,
+                  }}
+                >
+                  {duration} मिनिटे
                 </Typography>
 
+                {/* Subject, Total Questions, Total Marks */}
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    विषय: <strong>{subject}</strong>
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    प्रश्नसंख्या: <strong>{totalQuestions}</strong>
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    एकूण गुण: <strong>{totalMarks}</strong>
+                  </Typography>
+                </Box>
+
+                {/* ✅ Start Paper button (bottom-right corner) */}
                 <Button
                   variant="contained"
-                  sx={{
-                    background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                    color: "#fff",
-                  }}
                   component={Link}
                   to={`/app/list/${paper.id}`}
+                  sx={{
+                    position: "absolute",
+                    bottom: 12,
+                    right: 16,
+                    background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                    color: "#fff",
+                    borderRadius: "20px",
+                    textTransform: "none",
+                    px: 2.5,
+                    py: 0.6,
+                  }}
                 >
                   Start Paper
                 </Button>
 
-                {/* ✅ Correct answers stat bottom-right */}
+                {/* ✅ Correct answers stat (bottom-left) */}
                 {stat && (
                   <Box
                     sx={{
                       position: "absolute",
-                      bottom: 8,
-                      right: 12,
+                      bottom: 14,
+                      left: 16,
                       fontSize: "0.85rem",
                       color: "text.secondary",
                     }}
