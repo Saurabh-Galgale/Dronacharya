@@ -180,7 +180,7 @@ function App() {
                         }
                       />
                       <Route
-                        path="list/:paperId"
+                        path="list/:paperId/view"
                         element={
                           <RouteSuspense fallback={<div />}>
                             <QuestionPaper />
