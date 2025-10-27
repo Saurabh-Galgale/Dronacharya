@@ -17,6 +17,11 @@ import {
   Paper,
   Avatar,
   TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -26,10 +31,12 @@ import SendIcon from "@mui/icons-material/Send";
 import { useTheme } from "@mui/material/styles";
 import GroupsIcon from "@mui/icons-material/Groups";
 import ArticleIcon from "@mui/icons-material/Article";
+import PaymentsIcon from "@mui/icons-material/Payments";
 
 import { Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { clearToken } from "../services/authService";
 
 const drawerWidth = 220;
 
@@ -104,6 +111,38 @@ export default function Layout({ children }) {
     setLoading(false);
   };
 
+  // -------------------------
+  // Logout dialog state & handlers (added, minimal)
+  // -------------------------
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+
+  const handleLogoutClick = () => {
+    setLogoutDialogOpen(true);
+    if (isMobile) {
+      setMobileOpen(false);
+    }
+  };
+
+  const handleConfirmLogout = () => {
+    try {
+      // defensive: clearToken may or may not exist / may throw
+      try {
+        clearToken?.();
+      } catch (err) {
+        console.warn("clearToken() threw an error:", err);
+      }
+      setLogoutDialogOpen(false);
+      window.location.assign("/");
+    } catch (err) {
+      console.error("Unexpected error during logout:", err);
+      window.location.assign("/");
+    }
+  };
+
+  const handleCancelLogout = () => {
+    setLogoutDialogOpen(false);
+  };
+
   // =========================
   // 🔹 Sidebar Drawer Content
   // =========================
@@ -112,6 +151,36 @@ export default function Layout({ children }) {
       <Toolbar />
       <List>
         <ListItem disablePadding>
+          <ListItemButton
+            component={Link}
+            to="/admin/teachers-payment"
+            onClick={() => isMobile && setMobileOpen(false)}
+            sx={{
+              borderRadius: 2,
+              mb: 1,
+              px: 2,
+              "&:hover": {
+                background: "linear-gradient(135deg, #ffecd2, #fcb69f)",
+                transform: "scale(1.02)",
+                transition: "all 0.3s ease",
+              },
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 32 }}>
+              <PaymentsIcon sx={{ color: "#de6925" }} />
+            </ListItemIcon>
+            <ListItemText
+              primary="शिक्षकांचे पगार"
+              primaryTypographyProps={{
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                fontFamily: "'Gotu', sans-serif",
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
+
+        {/* <ListItem disablePadding>
           <ListItemButton
             component={Link}
             to="/admin/uploadqp"
@@ -199,13 +268,11 @@ export default function Layout({ children }) {
               }}
             />
           </ListItemButton>
-        </ListItem>
+        </ListItem> */}
 
         <ListItem disablePadding>
           <ListItemButton
-            component={Link}
-            to="/"
-            onClick={() => isMobile && setMobileOpen(false)}
+            onClick={handleLogoutClick} // <-- changed to open confirmation dialog
             sx={{
               borderRadius: 2,
               mb: 1,
@@ -355,7 +422,7 @@ export default function Layout({ children }) {
       </Box>
 
       {/* Floating AI Assistant */}
-      {!chatOpen && (
+      {/* {!chatOpen && (
         <Fab
           color="primary"
           sx={{ position: "fixed", bottom: 16, right: 16, zIndex: 2000 }}
@@ -363,7 +430,7 @@ export default function Layout({ children }) {
         >
           <ChatIcon />
         </Fab>
-      )}
+      )} */}
 
       <Drawer
         anchor="bottom"
@@ -457,6 +524,33 @@ export default function Layout({ children }) {
           </IconButton>
         </Box>
       </Drawer>
+
+      {/* Logout confirmation dialog (added) */}
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={handleCancelLogout}
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>खात्यातून बाहेर पडायचे आहे का?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            आपण खरेच बाहेर पडू इच्छिता का? कृपया खात्री करा.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelLogout} color="inherit">
+            रद्द करा
+          </Button>
+          <Button
+            onClick={handleConfirmLogout}
+            color="error"
+            variant="contained"
+          >
+            होय, बाहेर पडा
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

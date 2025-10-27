@@ -1,6 +1,6 @@
 // src/pages/PapersList.jsx
 import React, { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -15,7 +15,9 @@ import {
   DialogActions,
   DialogContent,
   Grid,
+  IconButton,
 } from "@mui/material";
+import LockIcon from "@mui/icons-material/Lock";
 import api from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
 
@@ -143,6 +145,104 @@ const PapersList = () => {
     return `सध्याच्या फिल्टरप्रमाणे कोणतीही ${typeLabel} उपलब्ध नाही.`;
   };
 
+  // Render locked placeholder cards (count)
+  const renderLockedPlaceholders = (count = 10) => {
+    return (
+      <Grid container spacing={2} sx={{ mt: 1 }}>
+        {Array.from({ length: count }).map((_, i) => (
+          <Grid item xs={12} sm={6} md={4} key={`ph-${i}`}>
+            <Box
+              sx={{
+                position: "relative",
+                borderRadius: 2,
+                overflow: "hidden",
+                height: 140,
+                display: "flex",
+                alignItems: "stretch",
+                // subtle border to separate
+                border: "1px solid rgba(0,0,0,0.06)",
+                background:
+                  "linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))",
+              }}
+            >
+              {/* blurred overlay */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  inset: 0,
+                  backdropFilter: "blur(6px)",
+                  WebkitBackdropFilter: "blur(6px)",
+                  background:
+                    "linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))",
+                }}
+              />
+
+              {/* content */}
+              <Box
+                sx={{
+                  position: "relative",
+                  zIndex: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  p: 2,
+                  width: "100%",
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 1,
+                  }}
+                >
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: 700, opacity: 0.9 }}
+                  >
+                    Mock Paper - Locked
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    sx={{
+                      bgcolor: "rgba(0, 0, 0, 0.43)",
+                      color: "rgba(255,255,255,0.9)",
+                      "&:hover": { bgcolor: "rgba(0,0,0,0.08)" },
+                    }}
+                    onClick={() => {
+                      navigate("/app/subscription");
+                    }}
+                  >
+                    <LockIcon />
+                  </IconButton>
+                </Box>
+
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", mb: 1 }}
+                >
+                  सदस्यता आवश्यक आहे — संपूर्ण पेपर पाहण्यासाठी सदस्यताच मिळवा.
+                </Typography>
+
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => navigate("/app/subscription")}
+                    sx={{ textTransform: "none" }}
+                  >
+                    सदस्यता घ्या
+                  </Button>
+                </Box>
+              </Box>
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
+    );
+  };
+
   return (
     <Box sx={{ py: 2, px: 1 }}>
       {/* Filters */}
@@ -214,8 +314,8 @@ const PapersList = () => {
       {!isSubscribed && (
         <Box sx={{ mb: 2 }}>
           <Typography variant="body2" color="text.secondary">
-            नोंद: तुम्ही सध्या सदस्यता घेतलेले नाही. त्यामुळे फक्त{" "}
-            <strong>isFree: true</strong> पेपर दिसतील.
+            नोंद: तुम्ही सध्या सदस्यता घेतलेले नाही. त्यामुळे काही पेपर लॉक
+            केलेले दिसतील.
           </Typography>
         </Box>
       )}
@@ -231,266 +331,287 @@ const PapersList = () => {
             पुन्हा प्रयत्न करा
           </Button>
         </Box>
-      ) : papers.length === 0 ? (
-        <Box sx={{ textAlign: "center", mt: 6 }}>
-          <Typography variant="h6">{emptyMessageFor()}</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            फिल्टर बदलून पुन्हा शोधा.
-          </Typography>
-        </Box>
       ) : (
-        papers.map((paper) => {
-          const name = paper.Name || paper.name || "Untitled Paper";
-          const duration = paper.durationMinutes ?? paper.duration ?? 0;
-          const subject = paper.subject || "-";
-          const totalQuestions =
-            paper.totalQuestions ??
-            (Array.isArray(paper.questions) ? paper.questions.length : 0);
-          const totalMarks = paper.totalMarks ?? "-";
-          const paperId = paper.id || paper._id;
+        <>
+          {/* If there are no papers from API, show empty message (even for non-subscribed) */}
+          {papers.length === 0 ? (
+            <Box sx={{ textAlign: "center", mt: 6 }}>
+              <Typography variant="h6">{emptyMessageFor()}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                फिल्टर बदलून पुन्हा शोधा.
+              </Typography>
+            </Box>
+          ) : (
+            /* show API data always */
+            <Box>
+              {papers.map((paper) => {
+                const name = paper.Name || paper.name || "Untitled Paper";
+                const duration = paper.durationMinutes ?? paper.duration ?? 0;
+                const subject = paper.subject || "-";
+                const totalQuestions =
+                  paper.totalQuestions ??
+                  (Array.isArray(paper.questions) ? paper.questions.length : 0);
+                const totalMarks = paper.totalMarks ?? "-";
+                const paperId = paper.id || paper._id;
 
-          // Determine if we are rendering in the "solved" listing
-          const isSolvedListing = solved === true;
+                // Determine if we are rendering in the "solved" listing
+                const isSolvedListing = solved === true;
 
-          // check for result fields that might exist in solved payload
-          const percent =
-            paper.percent ?? paper.scorePercent ?? paper.averagePercent ?? null;
-          const obtained =
-            paper.totalMarksObtained ?? paper.obtainedMarks ?? null;
+                // check for result fields that might exist in solved payload
+                const percent =
+                  paper.percent ??
+                  paper.scorePercent ??
+                  paper.averagePercent ??
+                  null;
+                const obtained =
+                  paper.totalMarksObtained ?? paper.obtainedMarks ?? null;
 
-          // For solved listing we render a different visual and CTA
-          if (isSolvedListing) {
-            return (
-              <Card
-                key={paperId}
-                sx={{
-                  mb: 2,
-                  position: "relative",
-                  borderRadius: "12px",
-                  overflow: "hidden",
-                }}
-              >
-                {/* Green/teal top accent stripe for solved papers */}
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    background:
-                      "linear-gradient(135deg, rgba(46, 204, 113, 0.14), rgba(16, 185, 129, 0.08))",
-                    zIndex: 0,
-                    borderTopLeftRadius: "12px",
-                    borderTopRightRadius: "12px",
-                    clipPath: "polygon(0 60%, 0 0, 45% 0)",
-                  }}
-                />
+                // For solved listing we render a different visual and CTA
+                if (isSolvedListing) {
+                  return (
+                    <Card
+                      key={paperId}
+                      sx={{
+                        mb: 2,
+                        position: "relative",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      {/* Green/teal top accent stripe for solved papers */}
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 0,
+                          left: 0,
+                          width: "100%",
+                          height: "100%",
+                          background:
+                            "linear-gradient(135deg, rgba(46, 204, 113, 0.14), rgba(16, 185, 129, 0.08))",
+                          zIndex: 0,
+                          borderTopLeftRadius: "12px",
+                          borderTopRightRadius: "12px",
+                          clipPath: "polygon(0 60%, 0 0, 45% 0)",
+                        }}
+                      />
 
-                <CardContent sx={{ position: "relative", zIndex: 1, pb: 7 }}>
-                  <Box width={"70%"}>
-                    <Typography fontWeight="bold" variant="body">
-                      {name}
-                    </Typography>
-                  </Box>
+                      <CardContent
+                        sx={{ position: "relative", zIndex: 1, pb: 7 }}
+                      >
+                        <Box width={"70%"}>
+                          <Typography fontWeight="bold" variant="body">
+                            {name}
+                          </Typography>
+                        </Box>
 
-                  <Divider
+                        <Divider
+                          sx={{
+                            my: 1,
+                            width: "100%",
+                            ml: 0,
+                            mr: "auto",
+                            borderColor: "black",
+                          }}
+                          variant="fullWidth"
+                        />
+
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            position: "absolute",
+                            top: 18,
+                            right: 16,
+                            color: "#000",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {duration} मिनिटे
+                        </Typography>
+
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>
+                            विषय: <strong>{subject}</strong>
+                          </Typography>
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>
+                            प्रश्नसंख्या: <strong>{totalQuestions}</strong>
+                          </Typography>
+                          <Typography variant="body2" sx={{ mb: 1 }}>
+                            एकूण गुण: <strong>{totalMarks}</strong>
+                          </Typography>
+
+                          {/* show obtained / percent if available */}
+                          {(percent !== null || obtained !== null) && (
+                            <Box sx={{ mt: 1 }}>
+                              {percent !== null && (
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                  आकलन: <strong>{Math.round(percent)}%</strong>
+                                </Typography>
+                              )}
+                              {obtained !== null && (
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                  मिळालेले गुण: <strong>{obtained}</strong>
+                                </Typography>
+                              )}
+                            </Box>
+                          )}
+                        </Box>
+
+                        {/* CTA for solved - direct review */}
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            // Go directly to review view (no confirm)
+                            navigate(`/app/list/${paperId}/view?view=review`);
+                          }}
+                          sx={{
+                            position: "absolute",
+                            bottom: 12,
+                            right: 16,
+                            borderRadius: "20px",
+                            textTransform: "none",
+                            px: 2.5,
+                            py: 0.6,
+                            fontWeight: 1000,
+                            borderColor: "rgba(16,185,129,0.9)",
+                            color: "rgba(16,185,129,0.95)",
+                            background: "transparent",
+                            transition:
+                              "background .18s ease, border-color .12s ease, color .12s ease",
+                            "&:hover": {
+                              background: "rgba(16,185,129,0.06)",
+                              borderColor: "rgba(16,185,129,1)",
+                              color: "rgba(16,185,129,1)",
+                            },
+                            "&:active": {
+                              transform: "translateY(1px)",
+                            },
+                            "& .MuiTouchRipple-root": {
+                              color: "rgba(16,185,129,0.2)",
+                            },
+                          }}
+                        >
+                          Review Paper
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+
+                // Default (unsolved / interactive) card
+                return (
+                  <Card
+                    key={paperId}
                     sx={{
-                      my: 1,
-                      width: "100%",
-                      ml: 0,
-                      mr: "auto",
-                      borderColor: "black",
-                    }}
-                    variant="fullWidth"
-                  />
-
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      position: "absolute",
-                      top: 18,
-                      right: 16,
-                      color: "#000",
-                      fontWeight: 600,
+                      mb: 2,
+                      position: "relative",
+                      borderRadius: "12px",
+                      overflow: "hidden",
                     }}
                   >
-                    {duration} मिनिटे
-                  </Typography>
+                    {/* Gradient top accent stripe */}
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        background:
+                          "linear-gradient(135deg,rgba(222, 105, 37, 0.6),rgba(248, 178, 74, 0.6))",
+                        zIndex: 0,
+                        borderTopLeftRadius: "12px",
+                        borderTopRightRadius: "12px",
+                        clipPath: "polygon(0 60%, 0 0, 45% 0)",
+                      }}
+                    />
 
-                  <Box sx={{ mt: 1 }}>
-                    <Typography variant="body2" sx={{ mb: 0.5 }}>
-                      विषय: <strong>{subject}</strong>
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 0.5 }}>
-                      प्रश्नसंख्या: <strong>{totalQuestions}</strong>
-                    </Typography>
-                    <Typography variant="body2" sx={{ mb: 1 }}>
-                      एकूण गुण: <strong>{totalMarks}</strong>
-                    </Typography>
-
-                    {/* show obtained / percent if available */}
-                    {(percent !== null || obtained !== null) && (
-                      <Box sx={{ mt: 1 }}>
-                        {percent !== null && (
-                          <Typography variant="body2" sx={{ mb: 0.5 }}>
-                            आकलन: <strong>{Math.round(percent)}%</strong>
-                          </Typography>
-                        )}
-                        {obtained !== null && (
-                          <Typography variant="body2" sx={{ mb: 0.5 }}>
-                            मिळालेले गुण: <strong>{obtained}</strong>
-                          </Typography>
-                        )}
+                    <CardContent
+                      sx={{ position: "relative", zIndex: 1, pb: 7 }}
+                    >
+                      {/* Top left - Name */}
+                      <Box width={"70%"}>
+                        <Typography fontWeight="bold" variant="body">
+                          {name}
+                        </Typography>
                       </Box>
-                    )}
-                  </Box>
 
-                  {/* CTA for solved - direct review */}
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      // Go directly to review view (no confirm)
-                      navigate(`/app/list/${paperId}/view?view=review`);
-                    }}
-                    sx={{
-                      position: "absolute",
-                      bottom: 12,
-                      right: 16,
-                      borderRadius: "20px",
-                      textTransform: "none",
-                      px: 2.5,
-                      py: 0.6,
-                      fontWeight: 1000,
-                      borderColor: "rgba(16,185,129,0.9)",
-                      color: "rgba(16,185,129,0.95)",
-                      background: "transparent",
-                      transition:
-                        "background .18s ease, border-color .12s ease, color .12s ease",
-                      "&:hover": {
-                        background: "rgba(16,185,129,0.06)",
-                        borderColor: "rgba(16,185,129,1)",
-                        color: "rgba(16,185,129,1)",
-                      },
-                      "&:active": {
-                        transform: "translateY(1px)",
-                      },
-                      "& .MuiTouchRipple-root": {
-                        color: "rgba(16,185,129,0.2)",
-                      },
-                    }}
-                  >
-                    Review Paper
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          }
+                      <Divider
+                        sx={{
+                          my: 1,
+                          width: "100%",
+                          ml: 0,
+                          mr: "auto",
+                          borderColor: "black",
+                        }}
+                        variant="fullWidth"
+                      />
 
-          // Default (unsolved / interactive) card - kept unchanged from your previous design
-          return (
-            <Card
-              key={paperId}
-              sx={{
-                mb: 2,
-                position: "relative",
-                borderRadius: "12px",
-                overflow: "hidden",
-              }}
-            >
-              {/* Gradient top accent stripe */}
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%",
-                  background:
-                    "linear-gradient(135deg,rgba(222, 105, 37, 0.6),rgba(248, 178, 74, 0.6))",
-                  zIndex: 0,
-                  borderTopLeftRadius: "12px",
-                  borderTopRightRadius: "12px",
-                  clipPath: "polygon(0 60%, 0 0, 45% 0)",
-                }}
-              />
+                      {/* Top right - Duration */}
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          position: "absolute",
+                          top: 18,
+                          right: 16,
+                          color: "#000",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {duration} मिनिटे
+                      </Typography>
 
-              <CardContent sx={{ position: "relative", zIndex: 1, pb: 7 }}>
-                {/* Top left - Name */}
-                <Box width={"70%"}>
-                  <Typography fontWeight="bold" variant="body">
-                    {name}
-                  </Typography>
-                </Box>
+                      {/* Subject, Total Questions, Total Marks */}
+                      <Box sx={{ mt: 1 }}>
+                        <Typography variant="body2" sx={{ mb: 0.5 }}>
+                          विषय: <strong>{subject}</strong>
+                        </Typography>
+                        <Typography variant="body2" sx={{ mb: 0.5 }}>
+                          प्रश्नसंख्या: <strong>{totalQuestions}</strong>
+                        </Typography>
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                          एकूण गुण: <strong>{totalMarks}</strong>
+                        </Typography>
+                      </Box>
 
-                <Divider
-                  sx={{
-                    my: 1,
-                    width: "100%",
-                    ml: 0,
-                    mr: "auto",
-                    borderColor: "black",
-                  }}
-                  variant="fullWidth"
-                />
+                      {/* ✅ Start Paper button (bottom-right corner) */}
+                      <Button
+                        variant="contained"
+                        onClick={() =>
+                          openConfirmModal({
+                            id: paperId,
+                            name,
+                            duration,
+                            totalQuestions,
+                            totalMarks,
+                          })
+                        }
+                        sx={{
+                          position: "absolute",
+                          bottom: 12,
+                          right: 16,
+                          background:
+                            "linear-gradient(135deg, #de6925, #f8b14a)",
+                          color: "#fff",
+                          borderRadius: "20px",
+                          textTransform: "none",
+                          px: 2.5,
+                          py: 0.6,
+                        }}
+                      >
+                        Start Paper
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
 
-                {/* Top right - Duration */}
-                <Typography
-                  variant="body2"
-                  sx={{
-                    position: "absolute",
-                    top: 18,
-                    right: 16,
-                    color: "#000",
-                    fontWeight: 600,
-                  }}
-                >
-                  {duration} मिनिटे
-                </Typography>
-
-                {/* Subject, Total Questions, Total Marks */}
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="body2" sx={{ mb: 0.5 }}>
-                    विषय: <strong>{subject}</strong>
-                  </Typography>
-                  <Typography variant="body2" sx={{ mb: 0.5 }}>
-                    प्रश्नसंख्या: <strong>{totalQuestions}</strong>
-                  </Typography>
-                  <Typography variant="body2" sx={{ mb: 1 }}>
-                    एकूण गुण: <strong>{totalMarks}</strong>
-                  </Typography>
-                </Box>
-
-                {/* ✅ Start Paper button (bottom-right corner) */}
-                <Button
-                  variant="contained"
-                  onClick={() =>
-                    openConfirmModal({
-                      id: paperId,
-                      name,
-                      duration,
-                      totalQuestions,
-                      totalMarks,
-                    })
-                  }
-                  sx={{
-                    position: "absolute",
-                    bottom: 12,
-                    right: 16,
-                    background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                    color: "#fff",
-                    borderRadius: "20px",
-                    textTransform: "none",
-                    px: 2.5,
-                    py: 0.6,
-                  }}
-                >
-                  Start Paper
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        })
+              {/* Append 10 locked placeholders ONLY when user is NOT subscribed AND listing is unsolved (solved === false) */}
+              {!isSubscribed &&
+                solved === false &&
+                renderLockedPlaceholders(10)}
+            </Box>
+          )}
+        </>
       )}
 
       {/* Confirmation dialog for starting unsolved paper */}

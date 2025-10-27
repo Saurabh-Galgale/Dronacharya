@@ -26,6 +26,7 @@ const PLANS = [
     label: "One month",
     marathiLabel: "एक महिना",
     price: 150,
+    originalPrice: 250,
     months: 1,
     bonusMonths: 0,
     tagline:
@@ -36,6 +37,7 @@ const PLANS = [
     label: "Semester",
     marathiLabel: "सेमिस्टर (1 महिना मोफत)",
     price: 900,
+    originalPrice: 1500,
     months: 6,
     bonusMonths: 1, // 6 months paid -> 7 months access
     tagline: "Get one month extra — full platform access",
@@ -45,6 +47,7 @@ const PLANS = [
     label: "Yearly",
     marathiLabel: "वार्षिक (2 महिने मोफत)",
     price: 1800,
+    originalPrice: 3000,
     months: 12,
     bonusMonths: 2, // 12 -> 14
     tagline: "Get two months extra — best value",
@@ -160,6 +163,17 @@ export default function Subscription() {
     flexDirection: "column",
   };
 
+  // Helper to compute display original price (fallback to 25% markup if originalPrice not provided)
+  const getOriginalPrice = (plan) =>
+    plan.originalPrice ?? Math.round(plan.price * 1.25);
+
+  // Savings percent
+  const getSavingsPercent = (plan) => {
+    const orig = getOriginalPrice(plan);
+    if (!orig || orig <= plan.price) return 0;
+    return Math.round(((orig - plan.price) / orig) * 100);
+  };
+
   return (
     <Box
       sx={{
@@ -273,6 +287,8 @@ export default function Subscription() {
         >
           {PLANS.map((plan) => {
             const selected = selectedPlanId === plan.id;
+            const origPrice = getOriginalPrice(plan);
+            const savings = getSavingsPercent(plan);
             return (
               <Grid
                 item
@@ -350,13 +366,49 @@ export default function Subscription() {
                         )}
                       </Box>
 
-                      <Typography
-                        variant="h5"
-                        sx={{ color: "white", fontWeight: 900 }}
+                      <Box
+                        sx={{ display: "flex", alignItems: "center", gap: 1 }}
                       >
-                        ₹ {plan.price.toLocaleString("en-IN")}
-                      </Typography>
+                        {origPrice > plan.price && (
+                          <Box
+                            sx={{
+                              position: "relative",
+                              display: "inline-block",
+                              lineHeight: 1,
+                              mr: 1,
+                              // the price text itself (keeps it visible but dimmed)
+                              "& .origPriceText": {
+                                color: "rgba(255,255,255,0.45)",
+                                fontWeight: 900,
+                              },
+                              // diagonal line overlay
+                              "&::after": {
+                                content: '""',
+                                position: "absolute",
+                                left: "-6%",
+                                right: "-6%",
+                                top: "50%",
+                                height: 2, // line thickness
+                                bgcolor: "rgba(255, 255, 255, 0.4)",
+                                transform: "rotate(-18deg)",
+                                transformOrigin: "center",
+                                pointerEvents: "none",
+                              },
+                            }}
+                          >
+                            <Typography variant="h5" className="origPriceText">
+                              ₹ {origPrice.toLocaleString("en-IN")}
+                            </Typography>
+                          </Box>
+                        )}
 
+                        <Typography
+                          variant="h5"
+                          sx={{ color: "white", fontWeight: 900 }}
+                        >
+                          ₹ {plan.price.toLocaleString("en-IN")}
+                        </Typography>
+                      </Box>
                       <Typography
                         variant="body2"
                         sx={{ color: "rgba(255,255,255,0.7)" }}

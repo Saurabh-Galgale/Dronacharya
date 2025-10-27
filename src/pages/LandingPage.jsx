@@ -138,7 +138,7 @@ const LandingPage = () => {
         setErrorMsg(null);
         await signInAdmin(idToken);
         setAdminDrawer(false);
-        navigate("/admin/dashboard");
+        navigate("/admin/teachers-payment");
       } catch (err) {
         console.error("Admin Google sign-in failed:", err);
         setErrorMsg(err.message || "Admin sign-in failed");

@@ -50,6 +50,9 @@ const AdminStudentsTable = lazy(() =>
   import("./pages/admin/AdminStudentsTable")
 );
 const BlogsAdminPage = lazy(() => import("./pages/admin/BlogsAdminPage"));
+const TeachersPaymentPage = lazy(() =>
+  import("./pages/admin/TeachersPaymentPage")
+);
 
 /**
  * Small helper to determine if a stored token appears still valid.
@@ -285,6 +288,14 @@ function App() {
                         element={
                           <RouteSuspense fallback={<div />}>
                             <AdminDashboard />
+                          </RouteSuspense>
+                        }
+                      />
+                      <Route
+                        path="teachers-payment"
+                        element={
+                          <RouteSuspense fallback={<div />}>
+                            <TeachersPaymentPage />
                           </RouteSuspense>
                         }
                       />
