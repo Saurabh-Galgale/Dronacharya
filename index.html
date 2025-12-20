@@ -2,8 +2,15 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+
+    <!-- App Identity -->
+    <title>द्रोणाचार्य अकादमी</title>
     <link rel="icon" type="image/svg+xml" href="/images/logo.jpeg" />
+
+    <!-- Mobile-first viewport (DO NOT CHANGE) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Fonts (REQUIRED – unchanged) -->
     <link
       href="https://fonts.googleapis.com/css2?family=Caveat&display=swap"
       rel="stylesheet"
@@ -12,64 +19,130 @@
       href="https://fonts.googleapis.com/css2?family=Gotu&display=swap"
       rel="stylesheet"
     />
-    <!-- <style>
-      @media (min-width: 560px) {
+
+    <style>
+      /* Default hidden message */
+      .desktop-restriction {
+        display: none;
+      }
+
+      @media (min-width: 650px) {
+        /* Hide the actual app content */
         #root {
-          display: none;
+          display: none !important;
+        }
+
+        /* Show the restriction message on a clean white background */
+        html,
+        body {
+          background: white !important;
         }
 
         body {
-          margin: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
           height: 100vh;
+          margin: 0;
         }
 
-        body::before {
-          content: "This site is best viewed on screens smaller than 560px.";
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .desktop-restriction {
+          display: block;
+          color: black;
+          font-family: sans-serif;
           text-align: center;
-          height: 100vh;
-          width: 100vw;
-          font-size: 1.2rem;
           padding: 2rem;
-          box-sizing: border-box;
+          font-size: 1.2rem;
+        }
+      }
+
+      /* Mobile Styles */
+      @media (max-width: 649px) {
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          height: 100%;
+          background: #000; /* side black bars */
+        }
+
+        body {
+          display: flex;
+          justify-content: center;
+          align-items: stretch;
+          overflow-x: hidden;
+        }
+
+        #root {
+          width: 100%;
+          max-width: 560px; /* mobile frame */
+          min-height: 100vh;
+          background: #000; /* app background remains controlled by React */
         }
       }
     </style>
-    <script>
-      function checkScreen() {
-        if (window.innerWidth >= 560) {
-          // disable right click
-          document.addEventListener("contextmenu", (e) => e.preventDefault());
 
-          // disable ALL keyboard keys
-          document.addEventListener("keydown", (e) => {
-            e.preventDefault();
-            return false;
-          });
+    <!-- ===================================================== -->
+    <!-- Content Security Policy -->
+    <!-- DEV + PROD SAFE (tightenable later) -->
+    <!-- ===================================================== -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self' data: https:;
+        script-src
+          'self'
+          'unsafe-inline'
+          'unsafe-eval'
+          https://accounts.google.com
+          https://apis.google.com;
+        style-src
+          'self'
+          'unsafe-inline'
+          https://fonts.googleapis.com;
+        font-src
+          'self'
+          https://fonts.gstatic.com;
+        img-src
+          'self'
+          data:
+          https:;
+        connect-src
+          'self'
+          http://localhost:5050
+          https://accounts.google.com
+          https://oauth2.googleapis.com
+          https://www.googleapis.com
+          https://*;
+        frame-src
+          'self'
+          https://accounts.google.com
+          https://*.googleusercontent.com;
+      "
+    />
 
-          document.addEventListener("keypress", (e) => {
-            e.preventDefault();
-            return false;
-          });
-
-          document.addEventListener("keyup", (e) => {
-            e.preventDefault();
-            return false;
-          });
-        }
-      }
-
-      // run on load + resize
-      checkScreen();
-      window.addEventListener("resize", checkScreen);
-    </script> -->
+    <!-- Google Identity SDK (load once) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <title>द्रोणाचार्य अकादमी</title>
   </head>
+
   <body>
+    <div id="restriction-msg" class="desktop-restriction" style="display: none">
+      This app is not optimized for desktops or tablets. Please use a mobile
+      device.
+    </div>
+
     <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+
+    <script type="module">
+      // Check screen width immediately
+      const isMobile = window.innerWidth < 650;
+
+      if (isMobile) {
+        // ONLY load the app if it's mobile
+        import("/src/main.jsx");
+      } else {
+        document.getElementById("restriction-msg").style.display = "block";
+      }
+    </script>
   </body>
 </html>

@@ -1,259 +1,300 @@
 // src/services/authService.js
-// Lightweight auth + API helper without external jwt-decode dependency.
+import api from "./api";
 
-// const API_BASE = import.meta.env.VITE_API_BASE_URL || ""; //keeping for quick DEV check
-const API_BASE = import.meta.env.VITE_AWS_API_BASE_URL || "";
+/* ================= STORAGE KEYS ================= */
+const TOKEN_KEY = "auth_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
+const USER_KEY = "user_profile";
 
-// token storage
-let tokenInMemory = null;
-const TOKEN_KEY = "token";
-const DEVICE_KEY = "device_id";
-const USER_PROFILE_KEY = "userProfile";
+/* ================= TOKEN (memory + localStorage) ================= */
+let memoryToken = null;
+let memoryRefreshToken = null;
 
-// ===== small JWT payload decoder (no verification) =====
-function base64UrlDecode(str) {
-  if (!str) return null;
-  str = str.replace(/-/g, "+").replace(/_/g, "/");
-  const pad = str.length % 4;
-  if (pad) {
-    str += "=".repeat(4 - pad);
+export function setToken(token) {
+  if (!token) {
+    console.warn("⚠️ Attempted to set empty token");
+    return;
   }
+  memoryToken = token;
   try {
-    const decoded = atob(str);
-    try {
-      return decodeURIComponent(
-        decoded
-          .split("")
-          .map((c) => {
-            return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
-          })
-          .join("")
-      );
-    } catch {
-      return decoded;
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch (error) {
+    console.error("Failed to store token:", error);
+  }
+}
+
+export function getToken() {
+  if (memoryToken) {
+    return memoryToken;
+  }
+
+  try {
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (storedToken) {
+      memoryToken = storedToken;
     }
-  } catch (e) {
+    return memoryToken;
+  } catch (error) {
+    console.error("Failed to retrieve token:", error);
     return null;
   }
 }
 
-function decodeJwt(token) {
-  if (!token || typeof token !== "string") return null;
-  const parts = token.split(".");
-  if (parts.length < 2) return null;
-  const payload = parts[1];
-  const json = base64UrlDecode(payload);
-  if (!json) return null;
-  try {
-    return JSON.parse(json);
-  } catch (e) {
-    return null;
-  }
-}
-
-// ===== Token Handling =====
-export function setToken(token, persist = true) {
-  tokenInMemory = token;
-  if (persist) {
-    try {
-      localStorage.setItem(TOKEN_KEY, token);
-    } catch (e) {
-      // ignore
-    }
-  }
-}
 export function clearToken() {
-  tokenInMemory = null;
+  memoryToken = null;
   try {
     localStorage.removeItem(TOKEN_KEY);
-  } catch (e) {}
-}
-export function loadTokenFromStorage() {
-  if (!tokenInMemory) {
-    try {
-      tokenInMemory = localStorage.getItem(TOKEN_KEY);
-    } catch (e) {
-      tokenInMemory = null;
-    }
+  } catch (error) {
+    console.error("Failed to clear token:", error);
   }
-  return tokenInMemory;
-}
-export function getToken() {
-  return tokenInMemory || loadTokenFromStorage();
-}
-export function getUserFromToken() {
-  const t = getToken();
-  if (!t) return null;
-  return decodeJwt(t);
 }
 
-// ===== Device Handling =====
-export function getDeviceId() {
+/* ================= REFRESH TOKEN ================= */
+export function setRefreshToken(token) {
+  if (!token) return;
+  memoryRefreshToken = token;
   try {
-    let id = localStorage.getItem(DEVICE_KEY);
-    if (!id) {
-      id = cryptoRandomUUID();
-      localStorage.setItem(DEVICE_KEY, id);
+    localStorage.setItem(REFRESH_TOKEN_KEY, token);
+  } catch (error) {
+    console.error("Failed to store refresh token:", error);
+  }
+}
+
+export function getRefreshToken() {
+  if (memoryRefreshToken) {
+    return memoryRefreshToken;
+  }
+
+  try {
+    const storedToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (storedToken) {
+      memoryRefreshToken = storedToken;
     }
-    return id;
-  } catch {
-    return cryptoRandomUUID();
+    return memoryRefreshToken;
+  } catch (error) {
+    console.error("Failed to retrieve refresh token:", error);
+    return null;
   }
 }
-function cryptoRandomUUID() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
+
+export function clearRefreshToken() {
+  memoryRefreshToken = null;
+  try {
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
+  } catch (error) {
+    console.error("Failed to clear refresh token:", error);
   }
-  return "dev-" + Math.random().toString(36).slice(2, 10);
 }
 
-// ===== Local userProfile helpers =====
-function transformServerUser(serverUser) {
-  if (!serverUser) return null;
-
-  // convert permissions array to boolean flags
-  const permFlags = {};
-  if (Array.isArray(serverUser.permissions)) {
-    serverUser.permissions.forEach((p) => {
-      if (p && p.key) {
-        // create a safe camelCase key
-        const key = p.key.replace(/[^a-zA-Z0-9]/g, "");
-        permFlags[key] = !!p.allowed;
-      }
-    });
+/* ================= USER PROFILE ================= */
+export function setStoredUserProfile(profile) {
+  if (!profile) return;
+  try {
+    localStorage.setItem(USER_KEY, JSON.stringify(profile));
+  } catch (error) {
+    console.error("Failed to store user profile:", error);
   }
-
-  return {
-    id: serverUser.id || null,
-    name: serverUser.name || "",
-    email: serverUser.email || "",
-    picture: serverUser.picture || serverUser.avatar || "",
-    role: serverUser.role || serverUser.userType || "",
-    // flattened permission booleans (example keys from your payload)
-    canSeeBlogs: !!permFlags.canSeeBlogs,
-    canSeeQp: !!permFlags.canSeeQp,
-    canSeeCa: !!permFlags.canSeeCa,
-    // subscription simplified to boolean (active or not)
-    subscription: !!(serverUser.subscription && serverUser.subscription.active),
-    // optional useful metadata
-    createdAt: serverUser.createdAt || new Date().toISOString(),
-    phone: serverUser.phone || "",
-    // keep raw permissions if you ever need them
-    _rawPermissions: serverUser.permissions || [],
-  };
 }
 
 export function getStoredUserProfile() {
   try {
-    const raw = localStorage.getItem(USER_PROFILE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
-  } catch {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (error) {
+    console.error("Failed to retrieve user profile:", error);
     return null;
-  }
-}
-
-export function setStoredUserProfile(profile) {
-  try {
-    localStorage.setItem(USER_PROFILE_KEY, JSON.stringify(profile));
-  } catch (e) {
-    // ignore
   }
 }
 
 export function clearStoredUserProfile() {
   try {
-    localStorage.removeItem(USER_PROFILE_KEY);
-  } catch {}
+    localStorage.removeItem(USER_KEY);
+  } catch (error) {
+    console.error("Failed to clear user profile:", error);
+  }
 }
 
-// ===== API Calls =====
+/* ================= CLEAR AUTH ================= */
+export function clearAuth() {
+  clearToken();
+  clearRefreshToken();
+  clearStoredUserProfile();
+}
+
+/* ================= INTERNAL HELPERS ================= */
+function handleAuthSuccess(res) {
+  // Backend returns: { success, message, data: { accessToken, refreshToken, user } }
+  if (!res?.data?.success) {
+    throw new Error("Authentication failed");
+  }
+
+  const { accessToken, refreshToken, user } = res.data.data;
+
+  if (!accessToken) {
+    throw new Error(
+      "Authentication failed. Token missing from server response."
+    );
+  }
+
+  // Set tokens
+  setToken(accessToken);
+
+  if (refreshToken) {
+    setRefreshToken(refreshToken);
+  }
+
+  // Store user profile
+  if (user) {
+    setStoredUserProfile(user);
+  }
+
+  return res.data.data;
+}
+
+/* ================= AUTH APIs ================= */
+
+/**
+ * Register new user with email and password
+ * POST /api/auth/register
+ */
+export async function registerUser(payload) {
+  if (!payload?.name || !payload?.email || !payload?.password) {
+    throw new Error("Name, email and password are required");
+  }
+
+  if (payload.password.length < 8) {
+    throw new Error("Password must be at least 8 characters long");
+  }
+
+  try {
+    const res = await api.post("/api/auth/register", payload);
+
+    // Backend returns user but NOT tokens on registration
+    // User needs to login after registration
+    return res.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message;
+    throw new Error(message || "Registration failed. Please try again.");
+  }
+}
+
+/**
+ * Login user with email and password
+ * POST /api/auth/login
+ */
+export async function emailLogin(payload) {
+  if (!payload?.email || !payload?.password) {
+    throw new Error("Email and password are required");
+  }
+
+  try {
+    const res = await api.post("/api/auth/login", payload);
+    return handleAuthSuccess(res);
+  } catch (error) {
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message;
+    throw new Error(message || "Login failed. Please check your credentials.");
+  }
+}
+
+/**
+ * Google Sign-In
+ * POST /api/auth/google
+ */
 export async function signInWithGoogle(idToken) {
-  const payload = {
-    idToken,
-    deviceId: getDeviceId(),
-    userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "node",
-  };
-  const res = await fetch(`${API_BASE}/api/auth/google`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Sign-in failed");
-  }
-  const data = await res.json();
-  if (data.token) setToken(data.token, true);
-
-  // if server returns user object, transform and persist simplified profile
-  if (data.user) {
-    const transformed = transformServerUser(data.user);
-    setStoredUserProfile(transformed);
+  if (!idToken) {
+    throw new Error("Google sign-in failed. No token received.");
   }
 
-  return data;
+  try {
+    const res = await api.post("/api/auth/google", { idToken });
+    return handleAuthSuccess(res);
+  } catch (error) {
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message;
+    throw new Error(message || "Google sign-in failed. Please try again.");
+  }
 }
 
-export async function signInAdmin(idToken) {
-  const payload = {
-    idToken,
-    deviceId: getDeviceId(),
-    userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "node",
-  };
-  const res = await fetch(`${API_BASE}/api/auth/google/admin`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Admin sign-in failed");
-  }
-  const data = await res.json();
-  if (data.token) setToken(data.token, true);
+/* ================= PASSWORD RESET ================= */
 
-  if (data.user) {
-    const transformed = transformServerUser(data.user);
-    setStoredUserProfile(transformed);
+/**
+ * Request password reset email
+ * POST /api/auth/forgot-password
+ */
+export async function forgotPassword(email) {
+  if (!email) {
+    throw new Error("Email is required");
   }
 
-  return data;
+  try {
+    const res = await api.post("/api/auth/forgot-password", { email });
+    return res.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message;
+    throw new Error(message || "Failed to send reset email. Please try again.");
+  }
 }
 
-export async function apiFetch(path, opts = {}) {
+/**
+ * Reset password with token
+ * POST /api/auth/reset-password/:token
+ */
+export async function resetPassword(token, payload) {
+  if (!token) {
+    throw new Error("Reset token is missing");
+  }
+
+  if (!payload?.password || !payload?.confirmPassword) {
+    throw new Error("Password and confirmation are required");
+  }
+
+  if (payload.password !== payload.confirmPassword) {
+    throw new Error("Passwords do not match");
+  }
+
+  if (payload.password.length < 8) {
+    throw new Error("Password must be at least 8 characters long");
+  }
+
+  try {
+    const res = await api.post(`/api/auth/reset-password/${token}`, payload);
+    return res.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.error ||
+      error.response?.data?.message ||
+      error.message;
+    throw new Error(message || "Password reset failed. Link may be expired.");
+  }
+}
+
+/* ================= TOKEN VALIDATION ================= */
+export async function validateToken() {
   const token = getToken();
-  const headers = { ...(opts.headers || {}) };
-  if (token) headers["Authorization"] = "Bearer " + token;
-  const res = await fetch(`${API_BASE}${path}`, { ...opts, headers });
-  if (res.status === 401) {
-    clearToken();
-    clearStoredUserProfile();
-    throw new Error("Unauthorized");
+  if (!token) {
+    return false;
   }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || `HTTP ${res.status}`);
+  try {
+    // Token exists and is stored properly
+    return true;
+  } catch (error) {
+    clearAuth();
+    return false;
   }
-  return res.json().catch(() => null);
 }
 
-// export transformer for external use
-export { transformServerUser };
-
-export default {
-  setToken,
-  clearToken,
-  loadTokenFromStorage,
-  getToken,
-  getUserFromToken,
-  getDeviceId,
-  signInWithGoogle,
-  signInAdmin,
-  apiFetch,
-  // profile helpers
-  getStoredUserProfile,
-  setStoredUserProfile,
-  clearStoredUserProfile,
-  transformServerUser,
-};
+/* ================= UTIL ================= */
+export function isAuthenticated() {
+  return !!getToken();
+}
