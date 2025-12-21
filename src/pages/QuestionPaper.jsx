@@ -16,6 +16,7 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  buttonBaseClasses,
 } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -24,6 +25,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import TimerIcon from "@mui/icons-material/Timer";
 import CloseIcon from "@mui/icons-material/Close";
+import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import { getPaperWithQuestions } from "../services/api";
 
 const QuestionPaper = () => {
@@ -50,9 +52,15 @@ const QuestionPaper = () => {
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
 
+  const [maxVisitedPage, setMaxVisitedPage] = useState(1);
+
   const paperType = window.location.pathname.includes("/mock/")
     ? "mock"
     : "pyq";
+
+  // submit button enabling logic
+  const isLastPage = currentQuestionPage === totalQuestionPages;
+  const allPagesVisited = maxVisitedPage >= totalQuestionPages;
 
   useEffect(() => {
     loadPaper();
@@ -63,6 +71,10 @@ const QuestionPaper = () => {
       loadQuestions();
     }
   }, [currentQuestionPage, paper]);
+
+  useEffect(() => {
+    setMaxVisitedPage((prev) => Math.max(prev, currentQuestionPage));
+  }, [currentQuestionPage]);
 
   useEffect(() => {
     if (timerActive && timeRemaining > 0) {
@@ -195,50 +207,92 @@ const QuestionPaper = () => {
       pages.push(i);
     }
 
+    // Allow free navigation only after all pages visited
+    const allVisited = maxVisitedPage >= totalQuestionPages;
+
     return (
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          width: "100%",
+          minWidth: 0,
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 2,
+          bgcolor: "black",
+        }}
+      >
+        {/* Left Arrow */}
         <IconButton
           size="small"
           onClick={() => handlePageChange(currentQuestionPage - 1)}
           disabled={currentQuestionPage === 1 || loadingQuestions}
-          sx={{ color: "white", p: 0.5 }}
+          sx={{ color: "white", p: 0.5, flex: "0 0 auto" }}
         >
           <ChevronLeftIcon fontSize="small" />
         </IconButton>
 
-        {pages.map((page) => (
-          <Button
-            key={page}
-            onClick={() => handlePageChange(page)}
-            size="small"
-            disabled={loadingQuestions}
-            sx={{
-              minWidth: 28,
-              height: 28,
-              p: 0,
-              color: currentQuestionPage === page ? "#000" : "white",
-              bgcolor: currentQuestionPage === page ? "white" : "transparent",
-              fontWeight: 700,
-              fontSize: "0.8rem",
-              "&:hover": {
-                bgcolor:
-                  currentQuestionPage === page
-                    ? "white"
-                    : "rgba(255,255,255,0.1)",
-              },
-            }}
-          >
-            {page}
-          </Button>
-        ))}
+        {/* Page Numbers - horizontally scrollable */}
+        <Box
+          sx={{
+            display: "flex",
+            overflowX: "auto",
+            flex: 1,
+            mx: 1,
+            gap: 0.5,
+            scrollbarWidth: "thin",
+            "&::-webkit-scrollbar": { height: 0.2 },
+          }}
+        >
+          {pages.map((page) => {
+            // Sequential navigation logic
+            const canClick =
+              allVisited ||
+              page === currentQuestionPage ||
+              page === currentQuestionPage + 1 ||
+              page <= maxVisitedPage;
 
+            return (
+              <Button
+                key={page}
+                onClick={() => canClick && handlePageChange(page)}
+                size="small"
+                disabled={loadingQuestions || !canClick}
+                sx={{
+                  minWidth: 28,
+                  height: 28,
+                  my: 0.4,
+                  color: currentQuestionPage === page ? "#fff" : "#de6925",
+                  background:
+                    currentQuestionPage === page
+                      ? "linear-gradient(135deg, #de6925, #f8b14a)"
+                      : "#1a1a1a",
+                  fontWeight: 700,
+                  fontSize: "0.8rem",
+                  opacity: canClick ? 1 : 0.5,
+                  pointerEvents: canClick ? "auto" : "none",
+                  "&:hover": {
+                    bgcolor:
+                      currentQuestionPage === page
+                        ? "white"
+                        : "rgba(255,255,255,0.1)",
+                  },
+                }}
+              >
+                {page}
+              </Button>
+            );
+          })}
+        </Box>
+
+        {/* Right Arrow */}
         <IconButton
           size="small"
           onClick={() => handlePageChange(currentQuestionPage + 1)}
           disabled={
             currentQuestionPage === totalQuestionPages || loadingQuestions
           }
-          sx={{ color: "white", p: 0.5 }}
+          sx={{ color: "white", p: 0.5, flex: "0 0 auto" }}
         >
           <ChevronRightIcon fontSize="small" />
         </IconButton>
@@ -338,7 +392,7 @@ const QuestionPaper = () => {
           position: "absolute",
           inset: 0,
           p: 2,
-          pt: 3,
+          pt: 1.4,
           overflow: "auto",
           pb: `${drawerHeight}vh`,
         }}
@@ -347,41 +401,40 @@ const QuestionPaper = () => {
         <Box sx={{ mb: 3 }}>
           <Box
             sx={{
+              position: "relative",
               display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              mb: 2,
+              alignItems: "center",
+              justifyContent: "center",
+              minHeight: 56,
+              mb: 1,
             }}
           >
-            <Box>
-              <Typography
-                variant="body1"
-                sx={{ fontWeight: 700, mb: 0.5, mt: 4.6 }}
-              >
-                {paper.name || "Untitled Paper"}
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.7 }}>
-                {allQuestions.length} प्रश्न
-              </Typography>
-            </Box>
-
-            <Box
+            {/* Back Arrow on the left */}
+            <IconButton
+              onClick={() => navigate(-1)}
               sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 0.5,
-                px: 1.5,
-                py: 0.8,
-                borderRadius: 2,
-                bgcolor:
-                  timeRemaining < 300 ? "#d32f2f" : "rgba(255,255,255,0.1)",
+                position: "absolute",
+                left: 0,
+                color: "white",
+                bgcolor: "rgba(255,255,255,0.08)",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.18)" },
+              }}
+              size="large"
+            >
+              <KeyboardBackspaceIcon />
+            </IconButton>
+            {/* Centered Paper Name */}
+            <Typography
+              variant="body1"
+              sx={{
+                fontWeight: 700,
+                mx: "auto",
+                textAlign: "center",
+                width: "100%",
               }}
             >
-              <TimerIcon sx={{ fontSize: 18 }} />
-              <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                {formatTime(timeRemaining)}
-              </Typography>
-            </Box>
+              {paper.name || "Untitled Paper"}
+            </Typography>
           </Box>
         </Box>
 
@@ -407,9 +460,9 @@ const QuestionPaper = () => {
       {/* Bottom Drawer */}
       <Box
         ref={drawerRef}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
+        // onTouchStart={handleTouchStart}
+        // onTouchMove={handleTouchMove}
+        // onTouchEnd={handleTouchEnd}
         sx={{
           position: "absolute",
           left: 0,
@@ -458,17 +511,18 @@ const QuestionPaper = () => {
             display: "flex",
             alignItems: "center",
             px: 2,
-            py: 0.2,
+            pt: 0.2,
             gap: 1,
-            // borderBottom: "1px solid rgba(255,255,255,0.1)",
+            pb: 1,
+            borderBottom: "1px solid rgba(255,255,255,0.1)",
           }}
         >
           <IconButton
-            size="small"
             onClick={toggleDrawer}
             sx={{
               bgcolor: "rgba(255,255,255,0.1)",
               color: "white",
+              p: 0.4,
               "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
             }}
           >
@@ -481,19 +535,23 @@ const QuestionPaper = () => {
 
           {renderPagination()}
 
-          <Box sx={{ flex: 1 }} />
-
-          <IconButton
-            size="small"
-            onClick={() => setGridOpen(true)}
+          <Box
             sx={{
-              bgcolor: "rgba(255,255,255,0.1)",
-              color: "white",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+              display: "flex",
+              alignItems: "center",
+              gap: 0.5,
+              px: 1.5,
+              py: 0.8,
+              borderRadius: 2,
+              bgcolor:
+                timeRemaining < 300 ? "#d32f2f" : "rgba(255,255,255,0.1)",
             }}
           >
-            <GridViewIcon fontSize="small" />
-          </IconButton>
+            {/* <TimerIcon sx={{ fontSize: 14 }} /> */}
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {formatTime(timeRemaining)}
+            </Typography>
+          </Box>
         </Box>
 
         {/* Questions Content */}
@@ -554,7 +612,7 @@ const QuestionPaper = () => {
                       ))}
                     </RadioGroup>
 
-                    {q.category && (
+                    {/* {q.category && (
                       <Box
                         sx={{
                           mt: 1.5,
@@ -569,10 +627,10 @@ const QuestionPaper = () => {
                           variant="caption"
                           sx={{ color: "#f8b14a", fontWeight: 600 }}
                         >
-                          विभाग: {q.category}
+                          {q.category}
                         </Typography>
                       </Box>
-                    )}
+                    )} */}
                   </CardContent>
                 </Card>
               );
@@ -588,35 +646,72 @@ const QuestionPaper = () => {
             borderTop: "1px solid rgba(255,255,255,0.1)",
             display: "flex",
             alignItems: "center",
+            justifyContent: "space-between",
             gap: 2,
             bgcolor: "#1a1a1a",
           }}
         >
-          <Button
-            variant="contained"
-            onClick={() => alert("सबमिट करण्याचे कार्य लवकरच उपलब्ध होईल!")}
-            disabled={attemptedCount === 0}
-            sx={{
-              background: "linear-gradient(135deg, #de6925, #f8b14a)",
-              color: "#fff",
-              fontWeight: 700,
-              px: 3,
-              "&:disabled": {
-                background: "rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.3)",
-              },
-            }}
-          >
-            सबमिट
-          </Button>
+          {/* Show Next Page button until all pages are visited, then show Submit */}
+          {!allPagesVisited ? (
+            <Button
+              variant="contained"
+              onClick={() => handlePageChange(currentQuestionPage + 1)}
+              disabled={
+                isLastPage ||
+                loadingQuestions ||
+                currentQuestionPage >= maxVisitedPage + 1 // Prevent skipping ahead
+              }
+              sx={{
+                background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                color: "#fff",
+                fontWeight: 700,
+                px: 3,
+                "&:disabled": {
+                  background: "rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.3)",
+                },
+              }}
+            >
+              पुढील पृष्ठ {/* "Next Page" in Marathi */}
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              onClick={() => alert("सबमिट करण्याचे कार्य लवकरच उपलब्ध होईल!")}
+              disabled={attemptedCount === 0}
+              sx={{
+                background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                color: "#fff",
+                fontWeight: 700,
+                px: 3,
+                "&:disabled": {
+                  background: "rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.3)",
+                },
+              }}
+            >
+              सबमिट
+            </Button>
+          )}
 
-          <Box sx={{ flex: 1 }} />
-
-          <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)" }}>
+          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
             प्रयत्न:{" "}
             <strong style={{ color: "white" }}>{attemptedCount}</strong> /{" "}
-            {allQuestions.length}
+            {paper.totalQuestions || allQuestions.length}
           </Typography>
+
+          <IconButton
+            size="small"
+            onClick={() => setGridOpen(true)}
+            sx={{
+              p: 1,
+              bgcolor: "rgba(255,255,255,0.1)",
+              color: "white",
+              "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+            }}
+          >
+            <GridViewIcon fontSize="medium" />
+          </IconButton>
         </Box>
       </Box>
 
@@ -661,8 +756,8 @@ const QuestionPaper = () => {
                   <Paper
                     elevation={0}
                     sx={{
-                      width: 48,
-                      height: 48,
+                      width: 38,
+                      height: 38,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",

@@ -104,20 +104,43 @@ export async function getPYQPapers(page = 1, limit = 20) {
  * @param {number} questionPage - Question page number
  * @param {number} questionLimit - Questions per page
  */
+
+const PAPER_CACHE_PREFIX = "paper_questions_cache_";
+
 export async function getPaperWithQuestions(
   type,
   paperId,
   questionPage = 1,
   questionLimit = 10
 ) {
+  const cacheKey = `${PAPER_CACHE_PREFIX}${type}_${paperId}_${questionPage}_${questionLimit}`;
+  // Try sessionStorage first
+  const cached = sessionStorage.getItem(cacheKey);
+  if (cached) {
+    try {
+      return JSON.parse(cached);
+    } catch {
+      // Ignore parse error, fallback to API
+    }
+  }
+
   try {
     const res = await api.get(`/api/papers/${type}/${paperId}`, {
       params: { page: questionPage, limit: questionLimit },
     });
-    return res.data.data; // { paper: {}, questions: [], totalPages, currentPage }
+    const data = res.data.data; // { paper: {}, questions: [], totalPages, currentPage }
+    sessionStorage.setItem(cacheKey, JSON.stringify(data));
+    return data;
   } catch (error) {
     throw new Error(error.message || "Failed to fetch paper");
   }
+}
+
+// Optional: Call this on logout/session end to clear all cached papers
+export function clearPaperQuestionsCache() {
+  Object.keys(sessionStorage)
+    .filter((key) => key.startsWith(PAPER_CACHE_PREFIX))
+    .forEach((key) => sessionStorage.removeItem(key));
 }
 
 export default api;

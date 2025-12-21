@@ -48,10 +48,11 @@ const listButtonSx = {
   mb: 0.8,
   transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
   "&.Mui-selected": {
-    background: "linear-gradient(135deg, #de6925, #f8b14a)",
+    background:
+      "linear-gradient(135deg,rgba(222, 105, 37, 0.6),rgba(248, 178, 74, 0.6))",
     boxShadow: "0px 4px 12px rgba(222, 105, 37, 0.25)",
-    "& .MuiListItemIcon-root": { color: "white" },
-    "& .MuiListItemText-primary": { fontWeight: "bold", color: "white" },
+    "& .MuiListItemIcon-root": { color: "black" },
+    "& .MuiListItemText-primary": { fontWeight: "bold", color: "black" },
     "&:hover": {
       background: "linear-gradient(135deg, #de6925, #f8b14a)",
     },
@@ -94,28 +95,9 @@ export default function Layout({ children }) {
 
   const drawerContent = (
     <Box sx={{ height: "100%", bgcolor: "background.paper" }}>
-      <Toolbar>
-        <Typography
-          variant="h6"
-          sx={{
-            color: "#de6925",
-            fontWeight: "bold",
-            fontFamily: "'Gotu', sans-serif",
-          }}
-        >
-          मेनू
-        </Typography>
-      </Toolbar>
-      <Divider />
-
+      <Toolbar />
       {/* मुख्य मेनू Section */}
-      <List
-        subheader={
-          <ListSubheader sx={{ bgcolor: "transparent", fontWeight: 700 }}>
-            मुख्य मेनू
-          </ListSubheader>
-        }
-      >
+      <List>
         {menuItems.map((item) => (
           <ListItem key={item.path} disablePadding>
             <ListItemButton
@@ -138,17 +120,9 @@ export default function Layout({ children }) {
           </ListItem>
         ))}
       </List>
-
       <Divider sx={{ my: 1, mx: 2 }} />
-
       {/* माहिती व खाते Section */}
-      <List
-        subheader={
-          <ListSubheader sx={{ bgcolor: "transparent", fontWeight: 700 }}>
-            माहिती व खाते
-          </ListSubheader>
-        }
-      >
+      <List>
         {accountItems.map((item) => (
           <ListItem key={item.path} disablePadding>
             <ListItemButton
@@ -200,7 +174,14 @@ export default function Layout({ children }) {
           boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
         }}
       >
-        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+        <Toolbar
+          sx={{
+            minHeight: 44,
+            height: 44,
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
           {/* Left: Mobile Toggle */}
           <Box sx={{ width: 48 }}>
             {isMobile && (

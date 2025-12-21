@@ -53,6 +53,23 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
 
+            <Route
+              path="/mock/:paperId"
+              element={
+                <PrivateRoute>
+                  <QuestionPaper />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/pyq/:paperId"
+              element={
+                <PrivateRoute>
+                  <QuestionPaper />
+                </PrivateRoute>
+              }
+            />
+
             {/* Protected Routes */}
             <Route
               path="/*"
@@ -64,11 +81,11 @@ export default function App() {
 
                       {/* Mock Papers */}
                       <Route path="mock" element={<MockPapers />} />
-                      <Route path="mock/:paperId" element={<QuestionPaper />} />
+                      {/* <Route path="mock/:paperId" element={<QuestionPaper />} /> */}
 
                       {/* PYQ Papers */}
                       <Route path="pyq" element={<PYQPapers />} />
-                      <Route path="pyq/:paperId" element={<QuestionPaper />} />
+                      {/* <Route path="pyq/:paperId" element={<QuestionPaper />} /> */}
 
                       {/* Other Pages */}
                       <Route path="ca" element={<CurrentAffairs />} />

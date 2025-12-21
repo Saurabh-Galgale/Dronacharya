@@ -15,6 +15,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Chip,
+  Icon,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -373,29 +374,21 @@ const MockPapers = () => {
                       gap: 1,
                     }}
                   >
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      {isFree ? (
-                        <Chip
-                          icon={<StarIcon />}
-                          label="विनामूल्य"
-                          size="small"
-                          sx={{
-                            bgcolor: "success.main",
-                            color: "white",
-                            fontWeight: 600,
-                          }}
-                        />
-                      ) : (
-                        <Chip
-                          icon={<LockIcon />}
-                          label="सदस्यता"
-                          size="small"
-                          sx={{
-                            bgcolor: "warning.main",
-                            color: "white",
-                            fontWeight: 600,
-                          }}
-                        />
+                    <Box>
+                      {!isFree && (
+                        <>
+                          <IconButton
+                            size="medium"
+                            sx={{
+                              color: "white",
+                              background:
+                                "linear-gradient(135deg,rgba(222, 105, 37, 0.9),rgba(248, 178, 74, 0.9))",
+                              backdropFilter: "blur(10px)",
+                            }}
+                          >
+                            <LockIcon fontSize="medium" />
+                          </IconButton>
+                        </>
                       )}
                     </Box>
 
