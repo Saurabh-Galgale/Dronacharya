@@ -67,34 +67,35 @@ api.interceptors.response.use(
 /* ================= PAPERS API ================= */
 
 /**
- * Get Mock Papers (paginated)
- * GET /api/papers/mock?page=1&limit=20
+ * Generic paper fetcher
+ * @param {string} type - 'mock' or 'pyq'
+ * @param {string} filter - 'solved' or 'unsolved'
+ * @param {number} page
+ * @param {number} limit
  */
-export async function getMockPapers(page = 1, limit = 20) {
+async function fetchPapers(type, filter = "unsolved", page = 1, limit = 20) {
+  const url = `/api/papers/${type}/${filter}`;
   try {
-    const res = await api.get(`/api/papers/mock`, {
-      params: { page, limit },
-    });
+    const res = await api.get(url, { params: { page, limit } });
     return res.data.data; // { papers: [], totalPages, currentPage }
   } catch (error) {
-    throw new Error(error.message || "Failed to fetch mock papers");
+    throw new Error(
+      error.message || `Failed to fetch ${filter} ${type} papers`
+    );
   }
 }
 
-/**
- * Get PYQ Papers (paginated)
- * GET /api/papers/pyq?page=1&limit=20
- */
-export async function getPYQPapers(page = 1, limit = 20) {
-  try {
-    const res = await api.get(`/api/papers/pyq`, {
-      params: { page, limit },
-    });
-    return res.data.data; // { papers: [], totalPages, currentPage }
-  } catch (error) {
-    throw new Error(error.message || "Failed to fetch PYQ papers");
-  }
-}
+// Mock Papers
+export const getSolvedMockPapers = (page, limit) =>
+  fetchPapers("mock", "solved", page, limit);
+export const getUnsolvedMockPapers = (page, limit) =>
+  fetchPapers("mock", "unsolved", page, limit);
+
+// PYQ Papers
+export const getSolvedPYQPapers = (page, limit) =>
+  fetchPapers("pyq", "solved", page, limit);
+export const getUnsolvedPYQPapers = (page, limit) =>
+  fetchPapers("pyq", "unsolved", page, limit);
 
 /**
  * Get Single Paper with Questions (paginated)
@@ -104,43 +105,20 @@ export async function getPYQPapers(page = 1, limit = 20) {
  * @param {number} questionPage - Question page number
  * @param {number} questionLimit - Questions per page
  */
-
-const PAPER_CACHE_PREFIX = "paper_questions_cache_";
-
 export async function getPaperWithQuestions(
   type,
   paperId,
   questionPage = 1,
   questionLimit = 10
 ) {
-  const cacheKey = `${PAPER_CACHE_PREFIX}${type}_${paperId}_${questionPage}_${questionLimit}`;
-  // Try sessionStorage first
-  const cached = sessionStorage.getItem(cacheKey);
-  if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch {
-      // Ignore parse error, fallback to API
-    }
-  }
-
   try {
     const res = await api.get(`/api/papers/${type}/${paperId}`, {
       params: { page: questionPage, limit: questionLimit },
     });
-    const data = res.data.data; // { paper: {}, questions: [], totalPages, currentPage }
-    sessionStorage.setItem(cacheKey, JSON.stringify(data));
-    return data;
+    return res.data.data; // { paper: {}, questions: [], totalPages, currentPage }
   } catch (error) {
     throw new Error(error.message || "Failed to fetch paper");
   }
-}
-
-// Optional: Call this on logout/session end to clear all cached papers
-export function clearPaperQuestionsCache() {
-  Object.keys(sessionStorage)
-    .filter((key) => key.startsWith(PAPER_CACHE_PREFIX))
-    .forEach((key) => sessionStorage.removeItem(key));
 }
 
 /**

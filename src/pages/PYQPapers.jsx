@@ -21,7 +21,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LockIcon from "@mui/icons-material/Lock";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import StarIcon from "@mui/icons-material/Star";
-import { getPYQPapers } from "../services/api";
+import { getSolvedPYQPapers, getUnsolvedPYQPapers } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
 
 const PYQPapers = () => {
@@ -47,7 +47,11 @@ const PYQPapers = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getPYQPapers(currentPage, limit);
+      const fetcher =
+        filter === "solved"
+          ? getSolvedPYQPapers
+          : getUnsolvedPYQPapers;
+      const data = await fetcher(currentPage, limit);
       setPapers(data.papers || []);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -66,7 +70,11 @@ const PYQPapers = () => {
       return;
     }
 
-    navigate(`/pyq/${paper._id}`);
+    if (filter === "solved") {
+      navigate(`/pyq/${paper._id}`, { state: { viewMode: true } });
+    } else {
+      navigate(`/pyq/${paper._id}`);
+    }
   };
 
   const handleFilterChange = (event, newFilter) => {
