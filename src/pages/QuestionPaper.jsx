@@ -1,6 +1,6 @@
 // src/pages/QuestionPaper.jsx
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -28,12 +28,18 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
-import { getPaperWithQuestions, submitPaper } from "../services/api";
+import {
+  getPaperWithQuestions,
+  submitPaper,
+  getPaperSubmissions,
+} from "../services/api";
+import { getCachedPaper, setCachedPaper } from "../services/paperCache";
 import Analysis from "../component/Analysis";
 
 const QuestionPaper = () => {
   const { paperId } = useParams();
   const navigate = useNavigate();
+  const { state } = useLocation();
   const drawerRef = useRef(null);
   const startTimeRef = useRef(Date.now());
 
@@ -59,6 +65,7 @@ const QuestionPaper = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
+  const isViewMode = state?.viewMode || false;
 
   const paperType = window.location.pathname.includes("/mock/")
     ? "mock"
@@ -68,12 +75,14 @@ const QuestionPaper = () => {
   const allPagesVisited = maxVisitedPage >= totalQuestionPages;
 
   useEffect(() => {
-    loadPaper();
+    loadInitialData();
   }, [paperId]);
 
   useEffect(() => {
-    if (paper) {
-      loadQuestions();
+    // This effect handles loading subsequent pages if the paper wasn't fully cached initially
+    const isCached = !!getCachedPaper(paperId);
+    if (paper && !isCached) {
+      loadQuestionsForPage();
     }
   }, [currentQuestionPage, paper]);
 
@@ -97,36 +106,107 @@ const QuestionPaper = () => {
     }
   }, [timerActive, timeRemaining]);
 
-  const loadPaper = async () => {
+  const startTimer = (durationMinutes) => {
+    const duration = (durationMinutes || 0) * 60;
+    setTimeRemaining(duration);
+    setTimerActive(true);
+    startTimeRef.current = Date.now();
+  };
+
+  const loadInitialData = async () => {
     setLoading(true);
     setError(null);
     try {
+      // 1. Check cache first
+      const cachedData = getCachedPaper(paperId);
+      if (cachedData) {
+        setPaper(cachedData.paper);
+        setAllQuestions(cachedData.questions);
+        setTotalQuestionPages(
+          Math.ceil(cachedData.questions.length / questionLimit)
+        );
+        if (cachedData.submission) {
+          setSubmissionData(cachedData.submission);
+        } else if (!isViewMode) {
+          startTimer(cachedData.paper.durationMinutes);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // 2. Fetch from API if not cached
       const data = await getPaperWithQuestions(
         paperType,
         paperId,
         1,
         questionLimit
       );
-
       setPaper(data.paper);
       setAllQuestions(data.questions || []);
       setTotalQuestionPages(data.totalPages || 1);
 
-      const duration = (data.paper.durationMinutes || 0) * 60;
-      setTimeRemaining(duration);
-      setTimerActive(true);
-      startTimeRef.current = Date.now();
+      if (isViewMode) {
+        const submissionRes = await getPaperSubmissions(paperId);
+        const submission = submissionRes?.[0] || null;
+        setSubmissionData(submission);
+        // Fetch all other questions and cache everything in the background
+        fetchAllQuestionsAndCache(
+          data.paper,
+          data.questions,
+          data.totalPages,
+          submission
+        );
+      } else {
+        startTimer(data.paper.durationMinutes);
+        // Fetch and cache in background
+        fetchAllQuestionsAndCache(
+          data.paper,
+          data.questions,
+          data.totalPages,
+          null
+        );
+      }
     } catch (err) {
-      setError(err.message || "Failed to load paper");
+      setError(err.message || "Failed to load paper data.");
       if (err.status === 403) {
-        setError("सदस्यता आवश्यक आहे. कृपया सदस्यता घ्या.");
+        setError("A subscription is required to view this paper.");
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const loadQuestions = async () => {
+  const fetchAllQuestionsAndCache = async (
+    paperData,
+    firstPageQuestions,
+    totalPages,
+    submission
+  ) => {
+    let questions = [...firstPageQuestions];
+    try {
+      if (totalPages > 1) {
+        const promises = [];
+        for (let i = 2; i <= totalPages; i++) {
+          promises.push(
+            getPaperWithQuestions(paperType, paperId, i, questionLimit)
+          );
+        }
+        const results = await Promise.all(promises);
+        results.forEach((page) => questions.push(...(page.questions || [])));
+      }
+      setCachedPaper(paperId, { paper: paperData, questions, submission });
+      setAllQuestions(questions);
+    } catch (error) {
+      console.error("Error fetching all questions for caching:", error);
+      // Cache what we have anyway
+      setCachedPaper(paperId, { paper: paperData, questions, submission });
+    }
+  };
+
+  const loadQuestionsForPage = async () => {
+    const startIndex = (currentQuestionPage - 1) * questionLimit;
+    if (allQuestions[startIndex]) return; // Already loaded
+
     setLoadingQuestions(true);
     try {
       const data = await getPaperWithQuestions(
@@ -135,14 +215,15 @@ const QuestionPaper = () => {
         currentQuestionPage,
         questionLimit
       );
-
       setAllQuestions((prev) => {
-        const existing = new Map(prev.map((q) => [q._id, q]));
-        data.questions.forEach((q) => existing.set(q._id, q));
-        return Array.from(existing.values());
+        const updated = [...prev];
+        data.questions.forEach((q, i) => {
+          updated[startIndex + i] = q;
+        });
+        return updated;
       });
     } catch (err) {
-      console.error("Failed to load questions:", err);
+      console.error("Failed to load questions page:", err);
     } finally {
       setLoadingQuestions(false);
     }
@@ -178,6 +259,13 @@ const QuestionPaper = () => {
 
       setSubmissionData(analysisData);
       setDrawerHeight(10); // Collapse drawer to show analysis
+
+      // Cache the paper with submission data after successful submission
+      setCachedPaper(paperId, {
+        paper,
+        questions: allQuestions,
+        submission: analysisData,
+      });
     } catch (err) {
       alert(err.message || "सबमिट अयशस्वी झाले. पुन्हा प्रयत्न करा.");
       setTimerActive(true); // Resume timer on error
@@ -319,6 +407,17 @@ const QuestionPaper = () => {
   const attemptedCount = Object.keys(answers).filter(
     (k) => answers[k] !== undefined && answers[k] !== null && answers[k] !== ""
   ).length;
+
+  const submittedAnswersMap = useMemo(() => {
+    if (!submissionData?.answers) return new Map();
+    // The 'q' property might be an object { $oid: "..." } or a string
+    return new Map(
+      submissionData.answers.map((ans) => {
+        const key = typeof ans.q === "object" ? ans.q.$oid : ans.q;
+        return [key, ans];
+      })
+    );
+  }, [submissionData]);
 
   const currentPageQuestions = useMemo(() => {
     const startIdx = (currentQuestionPage - 1) * questionLimit;
@@ -513,22 +612,24 @@ const QuestionPaper = () => {
 
           {renderPagination()}
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 0.5,
-              px: 1.5,
-              py: 0.8,
-              borderRadius: 2,
-              bgcolor:
-                timeRemaining < 300 ? "#d32f2f" : "rgba(255,255,255,0.1)",
-            }}
-          >
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>
-              {formatTime(timeRemaining)}
-            </Typography>
-          </Box>
+          {!submissionData && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 0.5,
+                px: 1.5,
+                py: 0.8,
+                borderRadius: 2,
+                bgcolor:
+                  timeRemaining < 300 ? "#d32f2f" : "rgba(255,255,255,0.1)",
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                {formatTime(timeRemaining)}
+              </Typography>
+            </Box>
+          )}
         </Box>
 
         <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
@@ -540,6 +641,22 @@ const QuestionPaper = () => {
             currentPageQuestions.map((q, idx) => {
               const globalIndex =
                 (currentQuestionPage - 1) * questionLimit + idx + 1;
+              const submittedAnswer = submittedAnswersMap.get(q._id);
+              const isAttempted = submittedAnswer !== undefined;
+              const isCorrect = submittedAnswer?.c === true;
+              const userSelectedIndex = submittedAnswer?.s;
+              const userSelectedOption =
+                userSelectedIndex !== undefined
+                  ? q.options[userSelectedIndex]
+                  : "";
+
+              const getBorderColor = () => {
+                if (!isViewMode && !submissionData)
+                  return "rgba(255,255,255,0.1)";
+                if (!isAttempted) return "warning.main";
+                return isCorrect ? "success.main" : "error.main";
+              };
+
               return (
                 <Card
                   key={q._id}
@@ -548,45 +665,119 @@ const QuestionPaper = () => {
                     bgcolor: "#2a2a2a",
                     color: "white",
                     borderRadius: 2,
-                    border: "1px solid rgba(255,255,255,0.1)",
+                    border: "1.5px solid",
+                    borderColor: getBorderColor(),
+                    position: "relative",
                   }}
                 >
+                  {(isViewMode || submissionData) && isAttempted && (
+                    <Box
+                      sx={{
+                        position: "absolute",
+                        top: 8,
+                        right: 12,
+                        bgcolor: "rgba(0,0,0,0.4)",
+                        px: 1.5,
+                        py: 0.5,
+                        borderRadius: 1.5,
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{ fontWeight: "bold" }}
+                      >{`${submittedAnswer?.m || 0} / ${
+                        q.marks
+                      }`}</Typography>
+                    </Box>
+                  )}
                   <CardContent>
-                    <Typography variant="body1" sx={{ mb: 2, fontWeight: 600 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{ mb: 2, fontWeight: 600, pr: 7 }}
+                    >
                       {globalIndex}. {q.questionText}
                     </Typography>
 
                     <RadioGroup
                       name={`q-${q._id}`}
-                      value={answers[q._id] || ""}
-                      onChange={(e) =>
-                        handleAnswerChange(q._id, e.target.value)
+                      value={
+                        submissionData
+                          ? userSelectedOption
+                          : answers[q._id] || ""
+                      }
+                      onChange={
+                        !!submissionData
+                          ? undefined
+                          : (e) => handleAnswerChange(q._id, e.target.value)
                       }
                     >
-                      {q.options.map((opt, i) => (
-                        <FormControlLabel
-                          key={i}
-                          value={opt}
-                          control={
-                            <Radio
-                              sx={{
-                                color: "rgba(255,255,255,0.5)",
-                                "&.Mui-checked": {
-                                  color: "#f8b14a",
-                                },
-                              }}
-                            />
+                      {q.options.map((opt, i) => {
+                        const isThisCorrectAnswer = i === q.correctAnswerIndex;
+                        const isThisUserSelection = i === userSelectedIndex;
+                        let labelColor = "white";
+
+                        if (submissionData) {
+                          if (isThisCorrectAnswer) {
+                            labelColor = "success.main";
+                          } else if (isThisUserSelection && !isCorrect) {
+                            labelColor = "error.main";
                           }
-                          label={opt}
-                          sx={{
-                            color: "white",
-                            "& .MuiFormControlLabel-label": {
-                              fontSize: "0.95rem",
-                            },
-                          }}
-                        />
-                      ))}
+                        }
+
+                        return (
+                          <FormControlLabel
+                            key={i}
+                            value={opt}
+                            control={
+                              <Radio
+                                disabled={!!submissionData}
+                                sx={{
+                                  color: "rgba(255,255,255,0.5)",
+                                  "&.Mui-checked": {
+                                    color: submissionData
+                                      ? isCorrect
+                                        ? "success.main"
+                                        : "error.main"
+                                      : "#f8b14a",
+                                  },
+                                }}
+                              />
+                            }
+                            label={opt}
+                            sx={{
+                              color: labelColor,
+                              fontWeight: isThisCorrectAnswer ? 700 : 400,
+                              "& .MuiFormControlLabel-label": {
+                                fontSize: "0.95rem",
+                              },
+                            }}
+                          />
+                        );
+                      })}
                     </RadioGroup>
+
+                    {(isViewMode || submissionData) && q.explanation && (
+                      <Box
+                        sx={{
+                          mt: 2,
+                          p: 1.5,
+                          bgcolor: "rgba(0,0,0,0.25)",
+                          borderRadius: 1,
+                          borderLeft: "4px solid",
+                          borderColor: "primary.main",
+                        }}
+                      >
+                        <Typography
+                          variant="subtitle2"
+                          sx={{ fontWeight: "bold", mb: 0.5 }}
+                        >
+                          Explanation:
+                        </Typography>
+                        <Typography variant="body2">
+                          {q.explanation}
+                        </Typography>
+                      </Box>
+                    )}
                   </CardContent>
                 </Card>
               );
@@ -606,57 +797,85 @@ const QuestionPaper = () => {
             bgcolor: "#1a1a1a",
           }}
         >
-          {!allPagesVisited ? (
-            <Button
-              variant="contained"
-              onClick={() => handlePageChange(currentQuestionPage + 1)}
-              disabled={
-                isLastPage ||
-                loadingQuestions ||
-                currentQuestionPage >= maxVisitedPage + 1
-              }
-              sx={{
-                background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                color: "#fff",
-                fontWeight: 700,
-                px: 3,
-                "&:disabled": {
-                  background: "rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.3)",
-                },
-              }}
-            >
-              पुढील पृष्ठ
-            </Button>
+        {submissionData ? (
+          // View Mode: Only show Next Page button if not on the last page
+          <>
+            {!isLastPage ? (
+              <Button
+                variant="contained"
+                onClick={() => handlePageChange(currentQuestionPage + 1)}
+                disabled={loadingQuestions}
+                sx={{
+                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  px: 3,
+                }}
+              >
+                पुढील पृष्ठ
+              </Button>
+            ) : (
+              <Box /> // Empty box to maintain layout
+            )}
+          </>
           ) : (
-            <Button
-              variant="contained"
-              onClick={() => setConfirmDialog(true)}
-              disabled={attemptedCount === 0 || submitting}
-              sx={{
-                background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                color: "#fff",
-                fontWeight: 700,
-                px: 3,
-                "&:disabled": {
-                  background: "rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.3)",
-                },
-              }}
-            >
-              {submitting ? (
-                <CircularProgress size={24} color="inherit" />
+          // Solve Mode: Show Next Page or Submit button
+          <>
+            {!allPagesVisited ? (
+              <Button
+                variant="contained"
+                onClick={() => handlePageChange(currentQuestionPage + 1)}
+                disabled={
+                  isLastPage ||
+                  loadingQuestions ||
+                  currentQuestionPage >= maxVisitedPage + 1
+                }
+                sx={{
+                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  px: 3,
+                  "&:disabled": {
+                    background: "rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.3)",
+                  },
+                }}
+              >
+                पुढील पृष्ठ
+              </Button>
               ) : (
-                "सबमिट"
+              <Button
+                variant="contained"
+                onClick={() => setConfirmDialog(true)}
+                disabled={attemptedCount === 0 || submitting}
+                sx={{
+                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                  color: "#fff",
+                  fontWeight: 700,
+                  px: 3,
+                  "&:disabled": {
+                    background: "rgba(255,255,255,0.1)",
+                    color: "rgba(255,255,255,0.3)",
+                  },
+                }}
+              >
+                {submitting ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "सबमिट"
+                )}
+              </Button>
               )}
-            </Button>
+            <Typography
+              variant="body2"
+              sx={{ color: "rgba(255,255,255,0.7)" }}
+            >
+              प्रयत्न:{" "}
+              <strong style={{ color: "white" }}>{attemptedCount}</strong> /{" "}
+              {paper.totalQuestions || allQuestions.length}
+            </Typography>
+          </>
           )}
-
-          <Typography variant="body2" sx={{ color: "rgba(255,255,255,0.7)" }}>
-            प्रयत्न:{" "}
-            <strong style={{ color: "white" }}>{attemptedCount}</strong> /{" "}
-            {paper.totalQuestions || allQuestions.length}
-          </Typography>
 
           <IconButton
             size="small"

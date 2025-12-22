@@ -22,7 +22,7 @@ import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import LockIcon from "@mui/icons-material/Lock";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import StarIcon from "@mui/icons-material/Star";
-import { getMockPapers } from "../services/api";
+import { getSolvedMockPapers, getUnsolvedMockPapers } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
 
 const MockPapers = () => {
@@ -48,7 +48,11 @@ const MockPapers = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getMockPapers(currentPage, limit);
+      const fetcher =
+        filter === "solved"
+          ? getSolvedMockPapers
+          : getUnsolvedMockPapers;
+      const data = await fetcher(currentPage, limit);
       setPapers(data.papers || []);
       setTotalPages(data.totalPages || 1);
     } catch (err) {
@@ -67,7 +71,11 @@ const MockPapers = () => {
       return;
     }
 
-    navigate(`/mock/${paper._id}`);
+    if (filter === "solved") {
+      navigate(`/mock/${paper._id}`, { state: { viewMode: true } });
+    } else {
+      navigate(`/mock/${paper._id}`);
+    }
   };
 
   const handleFilterChange = (event, newFilter) => {
