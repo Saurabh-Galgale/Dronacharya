@@ -28,12 +28,17 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   getPaperWithQuestions,
   submitPaper,
   getPaperSubmissions,
 } from "../services/api";
-import { getCachedPaper, setCachedPaper } from "../services/paperCache";
+import {
+  getCachedPaper,
+  setCachedPaper,
+  removeCachedPaper,
+} from "../services/paperCache";
 import Analysis from "../component/Analysis";
 
 const QuestionPaper = () => {
@@ -65,6 +70,7 @@ const QuestionPaper = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
+  const [showRetry, setShowRetry] = useState(false);
   const isViewMode = state?.viewMode || false;
 
   const paperType = window.location.pathname.includes("/mock/")
@@ -89,6 +95,18 @@ const QuestionPaper = () => {
   useEffect(() => {
     setMaxVisitedPage((prev) => Math.max(prev, currentQuestionPage));
   }, [currentQuestionPage]);
+
+  useEffect(() => {
+    // Logic to show retry button on data mismatch
+    if (submissionData && submissionData.attempted === 0) {
+      const timeSinceSubmit =
+        (Date.now() - new Date(submissionData.submittedAt).getTime()) / 1000;
+      // Only show if submission is fresh (e.g., within 60s) to avoid showing it on old, broken data
+      if (timeSinceSubmit < 60) {
+        setShowRetry(true);
+      }
+    }
+  }, [submissionData]);
 
   useEffect(() => {
     if (timerActive && timeRemaining > 0) {
@@ -234,6 +252,11 @@ const QuestionPaper = () => {
     await handleSubmit();
   };
 
+  const handleRetry = () => {
+    removeCachedPaper(paperId);
+    window.location.reload();
+  };
+
   const handleSubmit = async () => {
     setConfirmDialog(false);
     setSubmitting(true);
@@ -257,14 +280,41 @@ const QuestionPaper = () => {
         timeSpent
       );
 
-      setSubmissionData(analysisData);
+      // Manually construct the detailed answers array for caching, as the API only returns analysis
+      const questionMap = new Map(allQuestions.map((q) => [q._id, q]));
+      const detailedAnswers = Object.keys(answers)
+        .map((questionId) => {
+          const question = questionMap.get(questionId);
+          if (!question) return null;
+
+          const selectedOptionText = answers[questionId];
+          const selectedIndex = question.options.indexOf(selectedOptionText);
+          if (selectedIndex === -1) return null; // Should not happen
+
+          const isCorrect = selectedIndex === question.correctAnswerIndex;
+
+          return {
+            q: questionId,
+            s: selectedIndex,
+            c: isCorrect,
+            m: isCorrect ? question.marks : 0,
+          };
+        })
+        .filter(Boolean);
+
+      const completeSubmissionData = {
+        ...analysisData,
+        answers: detailedAnswers,
+      };
+
+      setSubmissionData(completeSubmissionData);
       setDrawerHeight(10); // Collapse drawer to show analysis
 
       // Cache the paper with submission data after successful submission
       setCachedPaper(paperId, {
         paper,
         questions: allQuestions,
-        submission: analysisData,
+        submission: completeSubmissionData,
       });
     } catch (err) {
       alert(err.message || "सबमिट अयशस्वी झाले. पुन्हा प्रयत्न करा.");
@@ -537,6 +587,22 @@ const QuestionPaper = () => {
             >
               {paper.name || "Untitled Paper"}
             </Typography>
+
+            {showRetry && (
+              <IconButton
+                onClick={handleRetry}
+                sx={{
+                  position: "absolute",
+                  right: 0,
+                  color: "white",
+                  bgcolor: "rgba(255,255,255,0.08)",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.18)" },
+                }}
+                size="large"
+              >
+                <RefreshIcon />
+              </IconButton>
+            )}
           </Box>
         </Box>
 
@@ -645,17 +711,28 @@ const QuestionPaper = () => {
               const isAttempted = submittedAnswer !== undefined;
               const isCorrect = submittedAnswer?.c === true;
               const userSelectedIndex = submittedAnswer?.s;
-              const userSelectedOption =
-                userSelectedIndex !== undefined
-                  ? q.options[userSelectedIndex]
-                  : "";
 
-              const getBorderColor = () => {
-                if (!isViewMode && !submissionData)
-                  return "rgba(255,255,255,0.1)";
-                if (!isAttempted) return "warning.main";
-                return isCorrect ? "success.main" : "error.main";
+              const getStatus = () => {
+                if (!isViewMode && !submissionData) return null;
+                if (!isAttempted)
+                  return {
+                    label: "न सोडवलेले",
+                    color: "warning",
+                    textColor: "#ffa726",
+                  };
+                return isCorrect
+                  ? {
+                      label: "बरोबर",
+                      color: "success",
+                      textColor: "#66bb6a",
+                    }
+                  : {
+                      label: "चूक",
+                      color: "error",
+                      textColor: "#ef5350",
+                    };
               };
+              const status = getStatus();
 
               return (
                 <Card
@@ -666,45 +743,78 @@ const QuestionPaper = () => {
                     color: "white",
                     borderRadius: 2,
                     border: "1.5px solid",
-                    borderColor: getBorderColor(),
+                    borderColor: status
+                      ? `${status.color}.main`
+                      : "transparent",
                     position: "relative",
+                    overflow: "visible", // Allow chips to overflow
                   }}
                 >
-                  {(isViewMode || submissionData) && isAttempted && (
+                  <CardContent>
                     <Box
                       sx={{
-                        position: "absolute",
-                        top: 8,
-                        right: 12,
-                        bgcolor: "rgba(0,0,0,0.4)",
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: 1.5,
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        mb: 1.5,
+                        flexWrap: "wrap",
                       }}
                     >
-                      <Typography
-                        variant="body2"
-                        sx={{ fontWeight: "bold" }}
-                      >{`${submittedAnswer?.m || 0} / ${
-                        q.marks
-                      }`}</Typography>
+                      <Chip
+                        label={q.category.toUpperCase()}
+                        size="small"
+                        sx={{
+                          bgcolor: "rgba(255,255,255,0.1)",
+                          color: "white",
+                          fontWeight: 600,
+                          fontSize: "0.7rem",
+                          letterSpacing: "0.5px",
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          mt: { xs: 1, sm: 0 },
+                        }}
+                      >
+                        {status && (
+                          <Chip
+                            label={status.label}
+                            size="small"
+                            sx={{
+                              bgcolor: `${status.color}.main`,
+                              color: "white",
+                              fontWeight: 700,
+                            }}
+                          />
+                        )}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: "bold",
+                            bgcolor: "rgba(0,0,0,0.4)",
+                            px: 1.5,
+                            py: 0.5,
+                            borderRadius: 1.5,
+                          }}
+                        >{`${submittedAnswer?.m || 0} / ${
+                          q.marks
+                        }`}</Typography>
+                      </Box>
                     </Box>
-                  )}
-                  <CardContent>
+
                     <Typography
                       variant="body1"
-                      sx={{ mb: 2, fontWeight: 600, pr: 7 }}
+                      sx={{ mb: 2, fontWeight: 600, pr: 1 }}
                     >
                       {globalIndex}. {q.questionText}
                     </Typography>
 
                     <RadioGroup
                       name={`q-${q._id}`}
-                      value={
-                        submissionData
-                          ? userSelectedOption
-                          : answers[q._id] || ""
-                      }
+                      value={answers[q._id] || ""}
                       onChange={
                         !!submissionData
                           ? undefined
@@ -712,15 +822,23 @@ const QuestionPaper = () => {
                       }
                     >
                       {q.options.map((opt, i) => {
-                        const isThisCorrectAnswer = i === q.correctAnswerIndex;
-                        const isThisUserSelection = i === userSelectedIndex;
+                        const isCorrectAnswer = i === q.correctAnswerIndex;
+                        const isUserSelection = i === userSelectedIndex;
+
+                        let radioColor = "rgba(255,255,255,0.5)";
                         let labelColor = "white";
+                        let fontWeight = 400;
 
                         if (submissionData) {
-                          if (isThisCorrectAnswer) {
+                          if (isCorrectAnswer) {
+                            radioColor = "success.main";
                             labelColor = "success.main";
-                          } else if (isThisUserSelection && !isCorrect) {
+                            fontWeight = 700;
+                          }
+                          if (isUserSelection && !isCorrect) {
+                            radioColor = "error.main";
                             labelColor = "error.main";
+                            fontWeight = 700;
                           }
                         }
 
@@ -731,14 +849,15 @@ const QuestionPaper = () => {
                             control={
                               <Radio
                                 disabled={!!submissionData}
+                                checked={
+                                  !!submissionData
+                                    ? isUserSelection || isCorrectAnswer
+                                    : answers[q._id] === opt
+                                }
                                 sx={{
-                                  color: "rgba(255,255,255,0.5)",
+                                  color: radioColor,
                                   "&.Mui-checked": {
-                                    color: submissionData
-                                      ? isCorrect
-                                        ? "success.main"
-                                        : "error.main"
-                                      : "#f8b14a",
+                                    color: radioColor,
                                   },
                                 }}
                               />
@@ -746,7 +865,7 @@ const QuestionPaper = () => {
                             label={opt}
                             sx={{
                               color: labelColor,
-                              fontWeight: isThisCorrectAnswer ? 700 : 400,
+                              fontWeight: fontWeight,
                               "& .MuiFormControlLabel-label": {
                                 fontSize: "0.95rem",
                               },
