@@ -24,6 +24,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import StarIcon from "@mui/icons-material/Star";
 import { getSolvedMockPapers, getUnsolvedMockPapers } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
+import PaperCardSkeleton from "../component/PaperCardSkeleton";
 
 const MockPapers = () => {
   const navigate = useNavigate();
@@ -165,28 +166,8 @@ const MockPapers = () => {
     );
   };
 
-  if (loading && papers.length === 0) {
-    return (
-      <Box sx={{ p: 2 }}>
-        <Typography variant="body2" sx={{ mb: 3, fontWeight: 700 }}>
-          सराव प्रश्नपत्रिका
-        </Typography>
-        {[1, 2, 3].map((i) => (
-          <Card key={i} sx={{ mb: 2 }}>
-            <CardContent>
-              <Skeleton variant="text" width="60%" height={30} />
-              <Skeleton variant="text" width="40%" />
-              <Skeleton
-                variant="rectangular"
-                width="100%"
-                height={60}
-                sx={{ mt: 2 }}
-              />
-            </CardContent>
-          </Card>
-        ))}
-      </Box>
-    );
+  if (loading) {
+    return <PaperCardSkeleton count={5} />;
   }
 
   if (error) {
