@@ -49,9 +49,7 @@ const MockPapers = () => {
     setError(null);
     try {
       const fetcher =
-        filter === "solved"
-          ? getSolvedMockPapers
-          : getUnsolvedMockPapers;
+        filter === "solved" ? getSolvedMockPapers : getUnsolvedMockPapers;
       const data = await fetcher(currentPage, limit);
       setPapers(data.papers || []);
       setTotalPages(data.totalPages || 1);
@@ -208,7 +206,7 @@ const MockPapers = () => {
   }
 
   return (
-    <Box sx={{ p: 0.2, pb: 4 }}>
+    <Box sx={{ p: 0.2, pb: 4, px: 2 }}>
       {/* <Typography variant="body2" sx={{ mb: 2, fontWeight: 600 }}>
         सराव प्रश्नपत्रिका
       </Typography> */}

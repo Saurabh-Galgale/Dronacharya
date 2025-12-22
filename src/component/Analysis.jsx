@@ -103,7 +103,17 @@ const Analysis = ({ submissionData }) => {
           textAlign: "center",
         }}
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.4 }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            mb: 0.4,
+            p: 2,
+            borderRadius: 3,
+            border: "1.4px solid rgba(255,255,255,0.1)",
+          }}
+        >
           <BarChartRoundedIcon sx={{ fontSize: 32, color: "white" }} />
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
             सविस्तर विश्लेषण

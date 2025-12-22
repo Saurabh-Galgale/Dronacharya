@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Chip,
 } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -28,12 +29,17 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import {
   getPaperWithQuestions,
   submitPaper,
   getPaperSubmissions,
 } from "../services/api";
-import { getCachedPaper, setCachedPaper } from "../services/paperCache";
+import {
+  getCachedPaper,
+  setCachedPaper,
+  removeCachedPaper,
+} from "../services/paperCache";
 import Analysis from "../component/Analysis";
 
 const QuestionPaper = () => {
@@ -65,6 +71,7 @@ const QuestionPaper = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
+  const [showRetry, setShowRetry] = useState(false);
   const isViewMode = state?.viewMode || false;
 
   const paperType = window.location.pathname.includes("/mock/")
@@ -89,6 +96,18 @@ const QuestionPaper = () => {
   useEffect(() => {
     setMaxVisitedPage((prev) => Math.max(prev, currentQuestionPage));
   }, [currentQuestionPage]);
+
+  useEffect(() => {
+    // Logic to show retry button on data mismatch
+    if (submissionData && submissionData.attempted === 0) {
+      const timeSinceSubmit =
+        (Date.now() - new Date(submissionData.submittedAt).getTime()) / 1000;
+      // Only show if submission is fresh (e.g., within 60s) to avoid showing it on old, broken data
+      if (timeSinceSubmit < 60) {
+        setShowRetry(true);
+      }
+    }
+  }, [submissionData]);
 
   useEffect(() => {
     if (timerActive && timeRemaining > 0) {
@@ -234,6 +253,11 @@ const QuestionPaper = () => {
     await handleSubmit();
   };
 
+  const handleRetry = () => {
+    removeCachedPaper(paperId);
+    window.location.reload();
+  };
+
   const handleSubmit = async () => {
     setConfirmDialog(false);
     setSubmitting(true);
@@ -257,14 +281,41 @@ const QuestionPaper = () => {
         timeSpent
       );
 
-      setSubmissionData(analysisData);
+      // Manually construct the detailed answers array for caching, as the API only returns analysis
+      const questionMap = new Map(allQuestions.map((q) => [q._id, q]));
+      const detailedAnswers = Object.keys(answers)
+        .map((questionId) => {
+          const question = questionMap.get(questionId);
+          if (!question) return null;
+
+          const selectedOptionText = answers[questionId];
+          const selectedIndex = question.options.indexOf(selectedOptionText);
+          if (selectedIndex === -1) return null; // Should not happen
+
+          const isCorrect = selectedIndex === question.correctAnswerIndex;
+
+          return {
+            q: questionId,
+            s: selectedIndex,
+            c: isCorrect,
+            m: isCorrect ? question.marks : 0,
+          };
+        })
+        .filter(Boolean);
+
+      const completeSubmissionData = {
+        ...analysisData,
+        answers: detailedAnswers,
+      };
+
+      setSubmissionData(completeSubmissionData);
       setDrawerHeight(10); // Collapse drawer to show analysis
 
       // Cache the paper with submission data after successful submission
       setCachedPaper(paperId, {
         paper,
         questions: allQuestions,
-        submission: analysisData,
+        submission: completeSubmissionData,
       });
     } catch (err) {
       alert(err.message || "सबमिट अयशस्वी झाले. पुन्हा प्रयत्न करा.");
@@ -537,6 +588,22 @@ const QuestionPaper = () => {
             >
               {paper.name || "Untitled Paper"}
             </Typography>
+
+            {showRetry && (
+              <IconButton
+                onClick={handleRetry}
+                sx={{
+                  position: "absolute",
+                  right: 0,
+                  color: "white",
+                  bgcolor: "rgba(255,255,255,0.08)",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.18)" },
+                }}
+                size="large"
+              >
+                <RefreshIcon />
+              </IconButton>
+            )}
           </Box>
         </Box>
 
@@ -685,9 +752,7 @@ const QuestionPaper = () => {
                       <Typography
                         variant="body2"
                         sx={{ fontWeight: "bold" }}
-                      >{`${submittedAnswer?.m || 0} / ${
-                        q.marks
-                      }`}</Typography>
+                      >{`${submittedAnswer?.m || 0} / ${q.marks}`}</Typography>
                     </Box>
                   )}
                   <CardContent>
@@ -697,7 +762,6 @@ const QuestionPaper = () => {
                     >
                       {globalIndex}. {q.questionText}
                     </Typography>
-
                     <RadioGroup
                       name={`q-${q._id}`}
                       value={
@@ -756,6 +820,31 @@ const QuestionPaper = () => {
                       })}
                     </RadioGroup>
 
+                    <Chip
+                      label={q.category}
+                      sx={{
+                        bgcolor: "rgba(255, 255, 255, 0.1)",
+                        color: "white",
+                        fontWeight: 700,
+                        mr: 1,
+                      }}
+                    />
+
+                    <Chip
+                      label={
+                        submissionData ? (isCorrect ? "बरोबर" : "चूक") : "सोडले"
+                      }
+                      sx={{
+                        bgcolor: submissionData
+                          ? isCorrect
+                            ? "success.main"
+                            : "error.main"
+                          : "warning.main",
+                        color: "white",
+                        fontWeight: 700,
+                      }}
+                    />
+
                     {(isViewMode || submissionData) && q.explanation && (
                       <Box
                         sx={{
@@ -773,9 +862,7 @@ const QuestionPaper = () => {
                         >
                           Explanation:
                         </Typography>
-                        <Typography variant="body2">
-                          {q.explanation}
-                        </Typography>
+                        <Typography variant="body2">{q.explanation}</Typography>
                       </Box>
                     )}
                   </CardContent>
@@ -797,84 +884,84 @@ const QuestionPaper = () => {
             bgcolor: "#1a1a1a",
           }}
         >
-        {submissionData ? (
-          // View Mode: Only show Next Page button if not on the last page
-          <>
-            {!isLastPage ? (
-              <Button
-                variant="contained"
-                onClick={() => handlePageChange(currentQuestionPage + 1)}
-                disabled={loadingQuestions}
-                sx={{
-                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                  color: "#fff",
-                  fontWeight: 700,
-                  px: 3,
-                }}
-              >
-                पुढील पृष्ठ
-              </Button>
-            ) : (
-              <Box /> // Empty box to maintain layout
-            )}
-          </>
-          ) : (
-          // Solve Mode: Show Next Page or Submit button
-          <>
-            {!allPagesVisited ? (
-              <Button
-                variant="contained"
-                onClick={() => handlePageChange(currentQuestionPage + 1)}
-                disabled={
-                  isLastPage ||
-                  loadingQuestions ||
-                  currentQuestionPage >= maxVisitedPage + 1
-                }
-                sx={{
-                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                  color: "#fff",
-                  fontWeight: 700,
-                  px: 3,
-                  "&:disabled": {
-                    background: "rgba(255,255,255,0.1)",
-                    color: "rgba(255,255,255,0.3)",
-                  },
-                }}
-              >
-                पुढील पृष्ठ
-              </Button>
+          {submissionData ? (
+            // View Mode: Only show Next Page button if not on the last page
+            <>
+              {!isLastPage ? (
+                <Button
+                  variant="contained"
+                  onClick={() => handlePageChange(currentQuestionPage + 1)}
+                  disabled={loadingQuestions}
+                  sx={{
+                    background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    px: 3,
+                  }}
+                >
+                  पुढील पृष्ठ
+                </Button>
               ) : (
-              <Button
-                variant="contained"
-                onClick={() => setConfirmDialog(true)}
-                disabled={attemptedCount === 0 || submitting}
-                sx={{
-                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                  color: "#fff",
-                  fontWeight: 700,
-                  px: 3,
-                  "&:disabled": {
-                    background: "rgba(255,255,255,0.1)",
-                    color: "rgba(255,255,255,0.3)",
-                  },
-                }}
-              >
-                {submitting ? (
-                  <CircularProgress size={24} color="inherit" />
-                ) : (
-                  "सबमिट"
-                )}
-              </Button>
+                <Box /> // Empty box to maintain layout
               )}
-            <Typography
-              variant="body2"
-              sx={{ color: "rgba(255,255,255,0.7)" }}
-            >
-              प्रयत्न:{" "}
-              <strong style={{ color: "white" }}>{attemptedCount}</strong> /{" "}
-              {paper.totalQuestions || allQuestions.length}
-            </Typography>
-          </>
+            </>
+          ) : (
+            // Solve Mode: Show Next Page or Submit button
+            <>
+              {!allPagesVisited ? (
+                <Button
+                  variant="contained"
+                  onClick={() => handlePageChange(currentQuestionPage + 1)}
+                  disabled={
+                    isLastPage ||
+                    loadingQuestions ||
+                    currentQuestionPage >= maxVisitedPage + 1
+                  }
+                  sx={{
+                    background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    px: 3,
+                    "&:disabled": {
+                      background: "rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.3)",
+                    },
+                  }}
+                >
+                  पुढील पृष्ठ
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={() => setConfirmDialog(true)}
+                  disabled={attemptedCount === 0 || submitting}
+                  sx={{
+                    background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                    color: "#fff",
+                    fontWeight: 700,
+                    px: 3,
+                    "&:disabled": {
+                      background: "rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.3)",
+                    },
+                  }}
+                >
+                  {submitting ? (
+                    <CircularProgress size={24} color="inherit" />
+                  ) : (
+                    "सबमिट"
+                  )}
+                </Button>
+              )}
+              <Typography
+                variant="body2"
+                sx={{ color: "rgba(255,255,255,0.7)" }}
+              >
+                प्रयत्न:{" "}
+                <strong style={{ color: "white" }}>{attemptedCount}</strong> /{" "}
+                {paper.totalQuestions || allQuestions.length}
+              </Typography>
+            </>
           )}
 
           <IconButton

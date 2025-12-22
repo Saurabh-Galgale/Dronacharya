@@ -48,9 +48,7 @@ const PYQPapers = () => {
     setError(null);
     try {
       const fetcher =
-        filter === "solved"
-          ? getSolvedPYQPapers
-          : getUnsolvedPYQPapers;
+        filter === "solved" ? getSolvedPYQPapers : getUnsolvedPYQPapers;
       const data = await fetcher(currentPage, limit);
       setPapers(data.papers || []);
       setTotalPages(data.totalPages || 1);
@@ -207,7 +205,7 @@ const PYQPapers = () => {
   }
 
   return (
-    <Box sx={{ p: 0.2, pb: 4 }}>
+    <Box sx={{ p: 0.2, pb: 4, px: 2 }}>
       {/* <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
         मागील वर्षीय प्रश्नपत्रिका
       </Typography> */}

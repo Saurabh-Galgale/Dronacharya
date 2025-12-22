@@ -304,7 +304,7 @@ export default function Layout({ children }) {
         sx={{ flexGrow: 1, width: "100%", minHeight: "100vh" }}
       >
         <Toolbar />
-        <Box sx={{ p: { xs: 2, sm: 3 } }}>{children}</Box>
+        <Box>{children}</Box>
       </Box>
 
       {/* Global Logout Confirmation Dialog */}

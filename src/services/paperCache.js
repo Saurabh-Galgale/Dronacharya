@@ -108,3 +108,17 @@ export function clearAllPaperCaches() {
   });
   localStorage.removeItem(CACHE_INDEX_KEY);
 }
+
+/**
+ * Removes a single paper from the cache
+ * @param {string} paperId
+ */
+export function removeCachedPaper(paperId) {
+  try {
+    localStorage.removeItem(`${CACHE_PREFIX}${paperId}`);
+    const index = getCacheIndex().filter((id) => id !== paperId);
+    setCacheIndex(index);
+  } catch (error) {
+    console.error("Failed to remove cached paper:", error);
+  }
+}
