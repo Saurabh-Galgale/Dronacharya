@@ -143,4 +143,54 @@ export function clearPaperQuestionsCache() {
     .forEach((key) => sessionStorage.removeItem(key));
 }
 
+/**
+ * Submit Paper Answers
+ * POST /api/submissions
+ * @param {string} paperId - Paper ID
+ * @param {string} paperType - 'mock' or 'pyq'
+ * @param {Object} answers - { questionId: selectedOption }
+ * @param {number} timeSpent - Time in seconds
+ */
+export async function submitPaper(paperId, paperType, answers, timeSpent) {
+  try {
+    const res = await api.post("/api/submissions", {
+      paperId,
+      paperType,
+      answers,
+      timeSpent,
+    });
+    return res.data.data; // Submission analysis data
+  } catch (error) {
+    throw new Error(error.message || "Failed to submit paper");
+  }
+}
+
+/**
+ * Get Submission Analysis
+ * GET /api/submissions/:submissionId
+ * @param {string} submissionId - Submission ID
+ */
+export async function getSubmissionAnalysis(submissionId) {
+  try {
+    const res = await api.get(`/api/submissions/${submissionId}`);
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch analysis");
+  }
+}
+
+/**
+ * Get User's Paper Submissions (for history)
+ * GET /api/submissions/paper/:paperId
+ * @param {string} paperId - Paper ID
+ */
+export async function getPaperSubmissions(paperId) {
+  try {
+    const res = await api.get(`/api/submissions/paper/${paperId}`);
+    return res.data.data; // Array of submissions
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch submissions");
+  }
+}
+
 export default api;

@@ -16,24 +16,26 @@ import {
   Paper,
   Alert,
   CircularProgress,
-  buttonBaseClasses,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import GridViewIcon from "@mui/icons-material/GridView";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import TimerIcon from "@mui/icons-material/Timer";
 import CloseIcon from "@mui/icons-material/Close";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
-import { getPaperWithQuestions } from "../services/api";
+import { getPaperWithQuestions, submitPaper } from "../services/api";
+import Analysis from "../component/Analysis";
 
 const QuestionPaper = () => {
   const { paperId } = useParams();
   const navigate = useNavigate();
   const drawerRef = useRef(null);
-  const startY = useRef(0);
-  const currentY = useRef(0);
+  const startTimeRef = useRef(Date.now());
 
   const [paper, setPaper] = useState(null);
   const [allQuestions, setAllQuestions] = useState([]);
@@ -45,20 +47,23 @@ const QuestionPaper = () => {
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const questionLimit = 10;
 
-  const [drawerHeight, setDrawerHeight] = useState(90); // 90% open by default
+  const [drawerHeight, setDrawerHeight] = useState(90);
   const [gridOpen, setGridOpen] = useState(false);
   const [answers, setAnswers] = useState({});
 
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
-
   const [maxVisitedPage, setMaxVisitedPage] = useState(1);
+
+  // Submission states
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionData, setSubmissionData] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState(false);
 
   const paperType = window.location.pathname.includes("/mock/")
     ? "mock"
     : "pyq";
 
-  // submit button enabling logic
   const isLastPage = currentQuestionPage === totalQuestionPages;
   const allPagesVisited = maxVisitedPage >= totalQuestionPages;
 
@@ -82,7 +87,7 @@ const QuestionPaper = () => {
         setTimeRemaining((prev) => {
           if (prev <= 1) {
             setTimerActive(false);
-            handleTimeUp();
+            handleAutoSubmit();
             return 0;
           }
           return prev - 1;
@@ -110,6 +115,7 @@ const QuestionPaper = () => {
       const duration = (data.paper.durationMinutes || 0) * 60;
       setTimeRemaining(duration);
       setTimerActive(true);
+      startTimeRef.current = Date.now();
     } catch (err) {
       setError(err.message || "Failed to load paper");
       if (err.status === 403) {
@@ -142,8 +148,42 @@ const QuestionPaper = () => {
     }
   };
 
-  const handleTimeUp = () => {
-    alert("वेळ संपली! पेपर स्वयंचलितपणे सबमिट केला जाईल.");
+  const handleAutoSubmit = async () => {
+    alert("वेळ संपली! पेपर स्वयंचलितपणे सबमिट केला जात आहे.");
+    await handleSubmit();
+  };
+
+  const handleSubmit = async () => {
+    setConfirmDialog(false);
+    setSubmitting(true);
+    setTimerActive(false);
+
+    try {
+      const timeSpent = Math.floor((Date.now() - startTimeRef.current) / 1000);
+
+      // Format answers for backend: { questionId: selectedOption }
+      const formattedAnswers = {};
+      Object.keys(answers).forEach((qId) => {
+        if (answers[qId]) {
+          formattedAnswers[qId] = answers[qId];
+        }
+      });
+
+      const analysisData = await submitPaper(
+        paperId,
+        paperType,
+        formattedAnswers,
+        timeSpent
+      );
+
+      setSubmissionData(analysisData);
+      setDrawerHeight(10); // Collapse drawer to show analysis
+    } catch (err) {
+      alert(err.message || "सबमिट अयशस्वी झाले. पुन्हा प्रयत्न करा.");
+      setTimerActive(true); // Resume timer on error
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleAnswerChange = (questionId, value) => {
@@ -157,34 +197,6 @@ const QuestionPaper = () => {
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalQuestionPages) {
       setCurrentQuestionPage(newPage);
-    }
-  };
-
-  // Touch handlers for drawer
-  const handleTouchStart = (e) => {
-    startY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchMove = (e) => {
-    currentY.current = e.touches[0].clientY;
-    const diff = startY.current - currentY.current;
-    const windowHeight = window.innerHeight;
-    const newHeight = Math.min(
-      95,
-      Math.max(15, drawerHeight + (diff / windowHeight) * 100)
-    );
-
-    if (Math.abs(diff) > 10) {
-      setDrawerHeight(newHeight);
-    }
-  };
-
-  const handleTouchEnd = () => {
-    // Snap to nearest position
-    if (drawerHeight > 50) {
-      setDrawerHeight(90);
-    } else {
-      setDrawerHeight(10);
     }
   };
 
@@ -207,7 +219,6 @@ const QuestionPaper = () => {
       pages.push(i);
     }
 
-    // Allow free navigation only after all pages visited
     const allVisited = maxVisitedPage >= totalQuestionPages;
 
     return (
@@ -222,7 +233,6 @@ const QuestionPaper = () => {
           bgcolor: "black",
         }}
       >
-        {/* Left Arrow */}
         <IconButton
           size="small"
           onClick={() => handlePageChange(currentQuestionPage - 1)}
@@ -232,7 +242,6 @@ const QuestionPaper = () => {
           <ChevronLeftIcon fontSize="small" />
         </IconButton>
 
-        {/* Page Numbers - horizontally scrollable */}
         <Box
           sx={{
             display: "flex",
@@ -245,7 +254,6 @@ const QuestionPaper = () => {
           }}
         >
           {pages.map((page) => {
-            // Sequential navigation logic
             const canClick =
               allVisited ||
               page === currentQuestionPage ||
@@ -285,7 +293,6 @@ const QuestionPaper = () => {
           })}
         </Box>
 
-        {/* Right Arrow */}
         <IconButton
           size="small"
           onClick={() => handlePageChange(currentQuestionPage + 1)}
@@ -386,7 +393,7 @@ const QuestionPaper = () => {
         overflow: "hidden",
       }}
     >
-      {/* Analysis Section (Background) */}
+      {/* Analysis Section */}
       <Box
         sx={{
           position: "absolute",
@@ -397,8 +404,7 @@ const QuestionPaper = () => {
           pb: `${drawerHeight}vh`,
         }}
       >
-        {/* Header */}
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 2 }}>
           <Box
             sx={{
               position: "relative",
@@ -406,10 +412,8 @@ const QuestionPaper = () => {
               alignItems: "center",
               justifyContent: "center",
               minHeight: 56,
-              mb: 1,
             }}
           >
-            {/* Back Arrow on the left */}
             <IconButton
               onClick={() => navigate(-1)}
               sx={{
@@ -423,7 +427,6 @@ const QuestionPaper = () => {
             >
               <KeyboardBackspaceIcon />
             </IconButton>
-            {/* Centered Paper Name */}
             <Typography
               variant="body1"
               sx={{
@@ -438,31 +441,12 @@ const QuestionPaper = () => {
           </Box>
         </Box>
 
-        {/* Analysis Placeholder */}
-        <Box
-          sx={{
-            bgcolor: "rgba(255,255,255,0.05)",
-            borderRadius: 3,
-            p: 3,
-            textAlign: "center",
-            border: "1px dashed rgba(255,255,255,0.2)",
-          }}
-        >
-          <Typography variant="h6" sx={{ mb: 1, opacity: 0.7 }}>
-            📊 विश्लेषण
-          </Typography>
-          <Typography variant="body2" sx={{ opacity: 0.5 }}>
-            पेपर सबमिट केल्यानंतर येथे तपशीलवार विश्लेषण दिसेल
-          </Typography>
-        </Box>
+        <Analysis submissionData={submissionData} />
       </Box>
 
       {/* Bottom Drawer */}
       <Box
         ref={drawerRef}
-        // onTouchStart={handleTouchStart}
-        // onTouchMove={handleTouchMove}
-        // onTouchEnd={handleTouchEnd}
         sx={{
           position: "absolute",
           left: 0,
@@ -473,16 +457,12 @@ const QuestionPaper = () => {
           borderTopLeftRadius: 35,
           borderTopRightRadius: 35,
           boxShadow: "0 -4px 20px rgba(0,0,0,0.5)",
-          transition:
-            drawerHeight === 80 || drawerHeight === 20
-              ? "height 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
-              : "none",
+          transition: "height 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
         }}
       >
-        {/* Drawer Handle */}
         <Box
           sx={{
             width: "100%",
@@ -491,7 +471,6 @@ const QuestionPaper = () => {
             alignItems: "center",
             justifyContent: "center",
             cursor: "pointer",
-            // borderBottom: "1px solid rgba(255,255,255,0.1)",
           }}
           onClick={toggleDrawer}
         >
@@ -505,7 +484,6 @@ const QuestionPaper = () => {
           />
         </Box>
 
-        {/* Drawer Header */}
         <Box
           sx={{
             display: "flex",
@@ -547,14 +525,12 @@ const QuestionPaper = () => {
                 timeRemaining < 300 ? "#d32f2f" : "rgba(255,255,255,0.1)",
             }}
           >
-            {/* <TimerIcon sx={{ fontSize: 14 }} /> */}
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
               {formatTime(timeRemaining)}
             </Typography>
           </Box>
         </Box>
 
-        {/* Questions Content */}
         <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
           {loadingQuestions && currentPageQuestions.length === 0 ? (
             <Box sx={{ textAlign: "center", py: 4 }}>
@@ -611,26 +587,6 @@ const QuestionPaper = () => {
                         />
                       ))}
                     </RadioGroup>
-
-                    {/* {q.category && (
-                      <Box
-                        sx={{
-                          mt: 1.5,
-                          px: 1.5,
-                          py: 0.5,
-                          borderRadius: 1,
-                          bgcolor: "rgba(248, 177, 74, 0.2)",
-                          display: "inline-block",
-                        }}
-                      >
-                        <Typography
-                          variant="caption"
-                          sx={{ color: "#f8b14a", fontWeight: 600 }}
-                        >
-                          {q.category}
-                        </Typography>
-                      </Box>
-                    )} */}
                   </CardContent>
                 </Card>
               );
@@ -638,7 +594,6 @@ const QuestionPaper = () => {
           )}
         </Box>
 
-        {/* Drawer Footer */}
         <Box
           sx={{
             px: 2,
@@ -651,7 +606,6 @@ const QuestionPaper = () => {
             bgcolor: "#1a1a1a",
           }}
         >
-          {/* Show Next Page button until all pages are visited, then show Submit */}
           {!allPagesVisited ? (
             <Button
               variant="contained"
@@ -659,7 +613,7 @@ const QuestionPaper = () => {
               disabled={
                 isLastPage ||
                 loadingQuestions ||
-                currentQuestionPage >= maxVisitedPage + 1 // Prevent skipping ahead
+                currentQuestionPage >= maxVisitedPage + 1
               }
               sx={{
                 background: "linear-gradient(135deg, #de6925, #f8b14a)",
@@ -672,13 +626,13 @@ const QuestionPaper = () => {
                 },
               }}
             >
-              पुढील पृष्ठ {/* "Next Page" in Marathi */}
+              पुढील पृष्ठ
             </Button>
           ) : (
             <Button
               variant="contained"
-              onClick={() => alert("सबमिट करण्याचे कार्य लवकरच उपलब्ध होईल!")}
-              disabled={attemptedCount === 0}
+              onClick={() => setConfirmDialog(true)}
+              disabled={attemptedCount === 0 || submitting}
               sx={{
                 background: "linear-gradient(135deg, #de6925, #f8b14a)",
                 color: "#fff",
@@ -690,7 +644,11 @@ const QuestionPaper = () => {
                 },
               }}
             >
-              सबमिट
+              {submitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "सबमिट"
+              )}
             </Button>
           )}
 
@@ -778,7 +736,7 @@ const QuestionPaper = () => {
                     }}
                     onClick={() => {
                       setCurrentQuestionPage(pageNum);
-                      setDrawerHeight(80);
+                      setDrawerHeight(90);
                       setGridOpen(false);
                     }}
                   >
@@ -790,6 +748,49 @@ const QuestionPaper = () => {
           </Grid>
         </Box>
       </Modal>
+
+      {/* Confirm Submit Dialog */}
+      <Dialog
+        open={confirmDialog}
+        onClose={() => setConfirmDialog(false)}
+        PaperProps={{
+          sx: {
+            bgcolor: "#1a1a1a",
+            color: "white",
+            borderRadius: 3,
+          },
+        }}
+      >
+        <DialogTitle>पेपर सबमिट करायचे?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            तुम्ही <strong>{attemptedCount}</strong> पैकी{" "}
+            <strong>{paper.totalQuestions || allQuestions.length}</strong>{" "}
+            प्रश्न सोडवले आहेत.
+          </Typography>
+          <Typography variant="body2" sx={{ opacity: 0.7 }}>
+            सबमिट केल्यानंतर तुम्ही उत्तरे बदलू शकणार नाही.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setConfirmDialog(false)}
+            sx={{ color: "white" }}
+          >
+            रद्द करा
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            sx={{
+              background: "linear-gradient(135deg, #de6925, #f8b14a)",
+              color: "#fff",
+            }}
+          >
+            सबमिट करा
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

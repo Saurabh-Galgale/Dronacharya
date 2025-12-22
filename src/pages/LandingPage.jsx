@@ -11,7 +11,9 @@ import {
   CircularProgress,
   IconButton,
   InputAdornment,
+  Icon,
 } from "@mui/material";
+import { keyframes } from "@mui/system";
 import LoginIcon from "@mui/icons-material/Login";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -53,6 +55,12 @@ const darkTextFieldSx = {
     "&.Mui-focused fieldset": { borderColor: "white" },
   },
 };
+
+const blinkAnimation = keyframes`
+  0% { color: #de6925; }
+  50% { color: #fff; }
+  100% { color: #de6925; }
+`;
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -269,8 +277,11 @@ const LandingPage = () => {
           zIndex={20}
           sx={{
             transform: "translateX(-50%)",
-            textAlign: "center",
             width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
           }}
         >
           <Typography
@@ -282,10 +293,26 @@ const LandingPage = () => {
                 `linear-gradient(90deg, ${t.palette.secondary.dark}, ${t.palette.secondary.main})`,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
+              pr: 1.5, // add some right padding to the text
+              mt: "auto",
             }}
           >
             द्रोणाचार्य करिअर अकॅडमी
           </Typography>
+          <IconButton
+            size="small"
+            onClick={() => setUserDrawer(true)}
+            sx={{
+              bgcolor: "rgba(255, 255, 255, 0.2)",
+              padding: 0.5,
+              color: "#de6925",
+              ml: 1,
+              boxShadow: 2,
+              animation: `${blinkAnimation} 1s ease-in-out infinite`,
+            }}
+          >
+            <LoginIcon sx={{ m: 0.4 }} />
+          </IconButton>
         </Box>
 
         <Box
