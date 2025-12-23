@@ -41,6 +41,17 @@ import {
   removeCachedPaper,
 } from "../services/paperCache";
 import Analysis from "../component/Analysis";
+import SubscriptionPrompt from "../component/SubscriptionPrompt"; // Import the new component
+
+// Function to check subscription status
+const checkSubscription = () => {
+  const userProfile = JSON.parse(localStorage.getItem("user_profile"));
+  if (!userProfile || !userProfile.subscription) {
+    return false;
+  }
+  const { active, endDate } = userProfile.subscription;
+  return active && new Date() < new Date(endDate);
+};
 
 const QuestionPaper = () => {
   const { paperId } = useParams();
@@ -48,6 +59,9 @@ const QuestionPaper = () => {
   const { state } = useLocation();
   const drawerRef = useRef(null);
   const startTimeRef = useRef(Date.now());
+
+  // Subscription check
+  const [isSubscribed, setIsSubscribed] = useState(checkSubscription());
 
   const [paper, setPaper] = useState(null);
   const [allQuestions, setAllQuestions] = useState([]);
@@ -82,12 +96,18 @@ const QuestionPaper = () => {
   const allPagesVisited = maxVisitedPage >= totalQuestionPages;
 
   useEffect(() => {
-    loadInitialData();
+    const subscriptionStatus = checkSubscription();
+    setIsSubscribed(subscriptionStatus);
+    if (subscriptionStatus) {
+      loadInitialData();
+    } else {
+      setLoading(false); // Stop loading if not subscribed
+    }
   }, [paperId]);
 
   useEffect(() => {
     // This effect handles loading subsequent pages if the paper wasn't fully cached initially
-    const isCached = !!getCachedPaper(paperId);
+    const isCached = getCachedPaper(paperId);
     if (paper && !isCached) {
       loadQuestionsForPage();
     }
@@ -491,6 +511,11 @@ const QuestionPaper = () => {
     );
   }
 
+  // If not subscribed, show the prompt
+  if (!isSubscribed) {
+    return <SubscriptionPrompt />;
+  }
+
   if (error) {
     return (
       <Box sx={{ p: 3, bgcolor: "#000", minHeight: "100vh" }}>
@@ -817,7 +842,7 @@ const QuestionPaper = () => {
                       name={`q-${q._id}`}
                       value={answers[q._id] || ""}
                       onChange={
-                        !!submissionData
+                        submissionData
                           ? undefined
                           : (e) => handleAnswerChange(q._id, e.target.value)
                       }
@@ -849,9 +874,9 @@ const QuestionPaper = () => {
                             value={opt}
                             control={
                               <Radio
-                                disabled={!!submissionData}
+                                disabled={submissionData}
                                 checked={
-                                  !!submissionData
+                                  submissionData
                                     ? isUserSelection || isCorrectAnswer
                                     : answers[q._id] === opt
                                 }
