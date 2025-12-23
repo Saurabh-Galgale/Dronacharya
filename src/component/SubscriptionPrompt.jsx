@@ -1,42 +1,30 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import { Container, Typography, Grid } from "@mui/material";
 import { SUBSCRIPTION_PLANS } from "../config/plans";
-import PricingCard from "../component/PricingCard";
-import SubscriptionModal from "../component/SubscriptionModal";
+import PricingCard from "./PricingCard";
+import SubscriptionModal from "./SubscriptionModal";
 import usePaymentGateway from "../hooks/usePaymentGateway";
 
-const Subscription = () => {
-  const navigate = useNavigate();
+const SubscriptionPrompt = () => {
   const { handleBuy, loading, showSuccessModal, handleCloseSuccessModal } =
     usePaymentGateway();
   const plans = Object.values(SUBSCRIPTION_PLANS);
 
-  // Define the success handler to navigate the user
+  // When payment is successful from the prompt, we just want to reload the page
+  // to re-check the subscription and unlock the content.
   const handlePaymentSuccess = () => {
-    navigate("/pyq-papers"); // Redirect to a relevant page after subscription
+    window.location.reload();
   };
 
   return (
     <>
-      <Container maxWidth="lg" sx={{ py: 5 }}>
-        <Typography
-          variant="h3"
-          component="h1"
-          gutterBottom
-          textAlign="center"
-          fontWeight="bold"
-        >
-          Choose Your Plan
+      <Container maxWidth="md" sx={{ textAlign: "center", py: 5 }}>
+        <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
+          Unlock Full Access
         </Typography>
-        <Typography
-          variant="h6"
-          color="text.secondary"
-          textAlign="center"
-          sx={{ mb: 6 }}
-        >
-          Select the perfect plan to boost your exam preparation and unlock
-          exclusive content.
+        <Typography variant="h6" color="text.secondary" sx={{ mb: 5 }}>
+          Choose a plan to continue your learning journey and access all premium
+          papers and features.
         </Typography>
         <Grid
           container
@@ -48,7 +36,9 @@ const Subscription = () => {
             <Grid item key={plan.id} xs={12} sm={6} md={4}>
               <PricingCard
                 plan={plan}
-                onBuy={(planId) => handleBuy(planId, plan.name, handlePaymentSuccess)}
+                onBuy={(planId) =>
+                  handleBuy(planId, plan.name, handlePaymentSuccess)
+                }
                 loading={loading}
               />
             </Grid>
@@ -63,4 +53,4 @@ const Subscription = () => {
   );
 };
 
-export default Subscription;
+export default SubscriptionPrompt;

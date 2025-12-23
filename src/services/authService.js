@@ -279,6 +279,35 @@ export async function resetPassword(token, payload) {
   }
 }
 
+/* ================= USER ================= */
+
+/**
+ * Get user profile from backend
+ * GET /api/user/profile
+ */
+export async function getProfile() {
+  try {
+    const res = await api.get("/api/user/profile");
+    if (res.data?.success && res.data?.data) {
+      // Update the stored user profile
+      setStoredUserProfile(res.data.data);
+      return res.data.data;
+    }
+    throw new Error("Failed to fetch user profile.");
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      "An error occurred while fetching your profile.";
+    // If it's an auth error, logging out is a good idea
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      clearAuth();
+      // Optionally redirect to login, though this might be better handled in the UI
+    }
+    throw new Error(message);
+  }
+}
+
 /* ================= TOKEN VALIDATION ================= */
 export async function validateToken() {
   const token = getToken();
