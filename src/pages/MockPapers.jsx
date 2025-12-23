@@ -362,7 +362,7 @@ const MockPapers = () => {
                     }}
                   >
                     <Box>
-                      {!isFree && (
+                      {!isFree && !isSubscribed ? (
                         <>
                           <IconButton
                             size="medium"
@@ -376,6 +376,8 @@ const MockPapers = () => {
                             <LockIcon fontSize="medium" />
                           </IconButton>
                         </>
+                      ) : (
+                        <Box></Box>
                       )}
                     </Box>
 

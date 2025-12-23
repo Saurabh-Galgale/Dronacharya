@@ -38,7 +38,7 @@ const PYQPapers = () => {
   const limit = 20;
 
   const userProfile = getStoredUserProfile();
-  const isSubscribed = userProfile?.subscription?.isActive || false;
+  const isSubscribed = userProfile?.subscription?.active || false;
 
   useEffect(() => {
     fetchPapers();
@@ -357,7 +357,7 @@ const PYQPapers = () => {
                     }}
                   >
                     <Box>
-                      {!isFree && (
+                      {!isFree && !isSubscribed ? (
                         <>
                           <IconButton
                             size="medium"
@@ -371,6 +371,8 @@ const PYQPapers = () => {
                             <LockIcon fontSize="medium" />
                           </IconButton>
                         </>
+                      ) : (
+                        <Box></Box>
                       )}
                     </Box>
 
