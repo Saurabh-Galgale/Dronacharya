@@ -41,17 +41,6 @@ import {
   removeCachedPaper,
 } from "../services/paperCache";
 import Analysis from "../component/Analysis";
-import SubscriptionPrompt from "../component/SubscriptionPrompt"; // Import the new component
-
-// Function to check subscription status
-const checkSubscription = () => {
-  const userProfile = JSON.parse(localStorage.getItem("user_profile"));
-  if (!userProfile || !userProfile.subscription) {
-    return false;
-  }
-  const { active, endDate } = userProfile.subscription;
-  return active && new Date() < new Date(endDate);
-};
 
 const QuestionPaper = () => {
   const { paperId } = useParams();
@@ -59,9 +48,6 @@ const QuestionPaper = () => {
   const { state } = useLocation();
   const drawerRef = useRef(null);
   const startTimeRef = useRef(Date.now());
-
-  // Subscription check
-  const [isSubscribed, setIsSubscribed] = useState(checkSubscription());
 
   const [paper, setPaper] = useState(null);
   const [allQuestions, setAllQuestions] = useState([]);
@@ -96,14 +82,8 @@ const QuestionPaper = () => {
   const allPagesVisited = maxVisitedPage >= totalQuestionPages;
 
   useEffect(() => {
-    // Re-check subscription on component mount in case it changed in another tab
-    setIsSubscribed(checkSubscription());
-    if (isSubscribed) {
-      loadInitialData();
-    } else {
-      setLoading(false); // Stop loading if not subscribed
-    }
-  }, [paperId, isSubscribed]);
+    loadInitialData();
+  }, [paperId]);
 
   useEffect(() => {
     // This effect handles loading subsequent pages if the paper wasn't fully cached initially
@@ -509,11 +489,6 @@ const QuestionPaper = () => {
         <CircularProgress sx={{ color: "white" }} />
       </Box>
     );
-  }
-
-  // If not subscribed, show the prompt
-  if (!isSubscribed) {
-    return <SubscriptionPrompt />;
   }
 
   if (error) {
