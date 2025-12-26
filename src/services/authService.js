@@ -43,9 +43,10 @@ export function getToken() {
 export function clearToken() {
   memoryToken = null;
   try {
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.clear();
+    sessionStorage.clear();
   } catch (error) {
-    console.error("Failed to clear token:", error);
+    console.error("Failed to clear localStorage", error);
   }
 }
 

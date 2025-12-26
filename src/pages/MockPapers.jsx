@@ -471,10 +471,10 @@ const MockPapers = () => {
             }}
           >
             <Typography variant="body2" sx={{ mb: 1 }}>
-              ✓ सर्व Mock Papers प्रवेश
+              ✓ सर्व सराव प्रश्नपत्रिका प्रवेश
             </Typography>
             <Typography variant="body2" sx={{ mb: 1 }}>
-              ✓ सर्व PYQ Papers प्रवेश
+              ✓ सर्व मागील वर्षांच्या प्रश्नपत्रिका
             </Typography>
             <Typography variant="body2">✓ तपशीलवार विश्लेषण</Typography>
           </Box>

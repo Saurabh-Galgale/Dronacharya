@@ -1,5 +1,7 @@
 // src/layout/MainLayout.jsx
 import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
 import {
   AppBar,
   Box,
@@ -15,7 +17,6 @@ import {
   IconButton,
   useMediaQuery,
   Divider,
-  ListSubheader,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -23,6 +24,8 @@ import {
   Button,
   Menu,
   MenuItem,
+  Container,
+  Grid,
 } from "@mui/material";
 
 import MenuIcon from "@mui/icons-material/Menu";
@@ -33,9 +36,12 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import ArticleIcon from "@mui/icons-material/Article";
 import SubscriptionsIcon from "@mui/icons-material/Subscriptions";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import HistoryEduIcon from "@mui/icons-material/HistoryEdu"; // Icon for PYQ
+import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
+import EmailIcon from "@mui/icons-material/Email";
+import PhoneIcon from "@mui/icons-material/Phone";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
 
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import Footer from "../component/Footer";
 import { useTheme } from "@mui/material/styles";
 import { clearToken } from "../services/authService";
 
@@ -85,7 +91,7 @@ export default function Layout({ children }) {
     { text: "मुख्यपृष्ठ", icon: <DashboardIcon />, path: "/dashboard" },
     { text: "सराव प्रश्नपत्रिका", icon: <ListIcon />, path: "/mock" },
     { text: "मागील प्रश्नपत्रिका", icon: <HistoryEduIcon />, path: "/pyq" },
-    { text: "चालू घडामोडी", icon: <ArticleIcon />, path: "/ca" },
+    // { text: "चालू घडामोडी", icon: <ArticleIcon />, path: "/ca" },
   ];
 
   const accountItems = [
@@ -94,70 +100,116 @@ export default function Layout({ children }) {
   ];
 
   const drawerContent = (
-    <Box sx={{ height: "100%", bgcolor: "background.paper" }}>
-      <Toolbar />
-      {/* मुख्य मेनू Section */}
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.path} disablePadding>
-            <ListItemButton
-              component={Link}
-              to={item.path}
-              selected={location.pathname === item.path}
-              onClick={() => isMobile && setMobileOpen(false)}
-              sx={listButtonSx}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 42,
-                  color: location.pathname === item.path ? "white" : "inherit",
-                }}
+    <Box
+      sx={{
+        height: "100%",
+        bgcolor: "background.paper",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box sx={{ flexGrow: 1, overflowY: "auto" }}>
+        <Toolbar />
+        {/* मुख्य मेनू Section */}
+        <List>
+          {menuItems.map((item) => (
+            <ListItem key={item.path} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                selected={location.pathname === item.path}
+                onClick={() => isMobile && setMobileOpen(false)}
+                sx={listButtonSx}
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      <Divider sx={{ my: 1, mx: 2 }} />
-      {/* माहिती व खाते Section */}
-      <List>
-        {accountItems.map((item) => (
-          <ListItem key={item.path} disablePadding>
-            <ListItemButton
-              component={Link}
-              to={item.path}
-              selected={location.pathname === item.path}
-              onClick={() => isMobile && setMobileOpen(false)}
-              sx={listButtonSx}
-            >
-              <ListItemIcon
-                sx={{
-                  minWidth: 42,
-                  color: location.pathname === item.path ? "white" : "inherit",
-                }}
+                <ListItemIcon
+                  sx={{
+                    minWidth: 42,
+                    color:
+                      location.pathname === item.path ? "white" : "inherit",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+        <Divider sx={{ my: 1, mx: 2 }} />
+        {/* माहिती व खाते Section */}
+        <List>
+          {accountItems.map((item) => (
+            <ListItem key={item.path} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                selected={location.pathname === item.path}
+                onClick={() => isMobile && setMobileOpen(false)}
+                sx={listButtonSx}
               >
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
+                <ListItemIcon
+                  sx={{
+                    minWidth: 42,
+                    color:
+                      location.pathname === item.path ? "white" : "inherit",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
 
-        {/* Logout Option in Sidebar */}
-        <ListItem disablePadding>
-          <ListItemButton
-            onClick={() => setLogoutDialogOpen(true)}
-            sx={{ ...listButtonSx, mt: 1 }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <LogoutIcon color="error" />
-            </ListItemIcon>
-            <ListItemText primary="बाहेर पडा" sx={{ color: "error.main" }} />
-          </ListItemButton>
-        </ListItem>
-      </List>
+          {/* Logout Option in Sidebar */}
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => setLogoutDialogOpen(true)}
+              sx={{ ...listButtonSx, mt: 1 }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <LogoutIcon color="error" />
+              </ListItemIcon>
+              <ListItemText primary="बाहेर पडा" sx={{ color: "error.main" }} />
+            </ListItemButton>
+          </ListItem>
+        </List>
+      </Box>
+
+      {/* Sidebar Footer with Copyright */}
+      <Box
+        sx={{
+          p: 2,
+          borderTop: "2px solid",
+          borderColor: "divider",
+          background:
+            "linear-gradient(135deg,rgba(222, 105, 37, 0.5),rgba(248, 178, 74, 0.5))",
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            textAlign: "center",
+            color: "black",
+            fontSize: "12px",
+          }}
+        >
+          © {new Date().getFullYear()} द्रोणाचार्य करिअर अकॅडमी
+        </Typography>
+        <Typography
+          variant="caption"
+          sx={{
+            display: "block",
+            textAlign: "center",
+            color: "black",
+            fontSize: "10px",
+            mt: 0.5,
+          }}
+        >
+          All rights reserved
+        </Typography>
+      </Box>
     </Box>
   );
 
@@ -301,10 +353,19 @@ export default function Layout({ children }) {
       {/* Page Content Holder */}
       <Box
         component="main"
-        sx={{ flexGrow: 1, width: "100%", minHeight: "100vh" }}
+        sx={{
+          flexGrow: 1,
+          width: "100%",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
       >
         <Toolbar />
-        <Box>{children}</Box>
+        <Box sx={{ flexGrow: 1 }}>{children}</Box>
+
+        {/* Footer Component */}
+        <Footer />
       </Box>
 
       {/* Global Logout Confirmation Dialog */}
