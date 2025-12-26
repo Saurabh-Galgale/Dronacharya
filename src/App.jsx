@@ -19,7 +19,11 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MockPapers = lazy(() => import("./pages/MockPapers")); // Mock Papers
 const PYQPapers = lazy(() => import("./pages/PYQPapers")); // PYQ Papers
 const QuestionPaper = lazy(() => import("./pages/QuestionPaper")); // Single Paper View
-const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
+const ContactUs = lazy(() => import("./pages/policy/ContactUs"));
+const TermsAndConditions = lazy(() =>
+  import("./pages/policy/TermsAndConditions")
+);
+// const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Profile = lazy(() => import("./pages/Profile"));
 
@@ -52,6 +56,11 @@ export default function App() {
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/contact-us" element={<ContactUs />} />
+            <Route
+              path="/terms-and-conditions"
+              element={<TermsAndConditions />}
+            />
 
             <Route
               path="/mock/:paperId"
@@ -88,7 +97,7 @@ export default function App() {
                       {/* <Route path="pyq/:paperId" element={<QuestionPaper />} /> */}
 
                       {/* Other Pages */}
-                      <Route path="ca" element={<CurrentAffairs />} />
+                      {/* <Route path="ca" element={<CurrentAffairs />} /> */}
                       <Route path="subscription" element={<Subscription />} />
                       <Route path="profile" element={<Profile />} />
 

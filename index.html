@@ -3,14 +3,11 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- App Identity -->
-    <title>द्रोणाचार्य अकादमी</title>
+    <title>द्रोणाचार्य करिअर अकॅडमी</title>
     <link rel="icon" type="image/svg+xml" href="/images/logo.jpeg" />
 
-    <!-- Mobile-first viewport (DO NOT CHANGE) -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Fonts (REQUIRED – unchanged) -->
     <link
       href="https://fonts.googleapis.com/css2?family=Caveat&display=swap"
       rel="stylesheet"
@@ -20,129 +17,53 @@
       rel="stylesheet"
     />
 
-    <style>
-      /* Default hidden message */
-      .desktop-restriction {
-        display: none;
+    <!-- <style>
+      /* Clean Global Reset */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: #f5f5f5; /* Light grey background for desktop space */
       }
 
-      @media (min-width: 650px) {
-        /* Hide the actual app content */
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+      }
+
+      /* App Container */
+      #root {
+        width: 100%;
+        /* If you want to keep a "mobile-like" column on desktop, keep max-width. 
+           If you want it truly full-screen, change max-width to 'none' */
+        max-width: 560px;
+        min-height: 100vh;
+        background: #fff;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Full width for actual mobile devices */
+      @media (max-width: 600px) {
         #root {
-          display: none !important;
-        }
-
-        /* Show the restriction message on a clean white background */
-        html,
-        body {
-          background: white !important;
-        }
-
-        body {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 100vh;
-          margin: 0;
-        }
-
-        .desktop-restriction {
-          display: block;
-          color: black;
-          font-family: sans-serif;
-          text-align: center;
-          padding: 2rem;
-          font-size: 1.2rem;
+          max-width: 100%;
+          box-shadow: none;
         }
       }
+    </style> -->
 
-      /* Mobile Styles */
-      @media (max-width: 649px) {
-        html,
-        body {
-          margin: 0;
-          padding: 0;
-          height: 100%;
-          background: #000; /* side black bars */
-        }
-
-        body {
-          display: flex;
-          justify-content: center;
-          align-items: stretch;
-          overflow-x: hidden;
-        }
-
-        #root {
-          width: 100%;
-          max-width: 560px; /* mobile frame */
-          min-height: 100vh;
-          background: #000; /* app background remains controlled by React */
-        }
-      }
-    </style>
-
-    <!-- ===================================================== -->
-    <!-- Content Security Policy -->
-    <!-- DEV + PROD SAFE (tightenable later) -->
-    <!-- ===================================================== -->
     <meta
       http-equiv="Content-Security-Policy"
-      content="
-        default-src 'self' data: https:;
-        script-src
-          'self'
-          'unsafe-inline'
-          'unsafe-eval'
-          https://accounts.google.com
-          https://apis.google.com;
-        style-src
-          'self'
-          'unsafe-inline'
-          https://fonts.googleapis.com;
-        font-src
-          'self'
-          https://fonts.gstatic.com;
-        img-src
-          'self'
-          data:
-          https:;
-        connect-src
-          'self'
-          http://localhost:5050
-          https://accounts.google.com
-          https://oauth2.googleapis.com
-          https://www.googleapis.com
-          https://*;
-        frame-src
-          'self'
-          https://accounts.google.com
-          https://*.googleusercontent.com;
-      "
+      content="default-src 'self' data: https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://accounts.google.com https://apis.google.com https://checkout.razorpay.com https://unpkg.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' http://localhost:5050 https://accounts.google.com https://oauth2.googleapis.com https://www.googleapis.com https://api.razorpay.com https://checkout.razorpay.com https://lumberjack.razorpay.com; frame-src 'self' https://accounts.google.com https://*.googleusercontent.com https://checkout.razorpay.com https://api.razorpay.com;"
     />
 
-    <!-- Google Identity SDK (load once) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
 
   <body>
-    <div id="restriction-msg" class="desktop-restriction" style="display: none">
-      This app is not optimized for desktops or tablets. Please use a mobile
-      device.
-    </div>
-
     <div id="root"></div>
 
-    <script type="module">
-      // Check screen width immediately
-      const isMobile = window.innerWidth < 650;
-
-      if (isMobile) {
-        // ONLY load the app if it's mobile
-        import("/src/main.jsx");
-      } else {
-        document.getElementById("restriction-msg").style.display = "block";
-      }
-    </script>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

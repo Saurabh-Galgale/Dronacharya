@@ -38,7 +38,7 @@ const PYQPapers = () => {
   const limit = 20;
 
   const userProfile = getStoredUserProfile();
-  const isSubscribed = userProfile?.subscription?.isActive || false;
+  const isSubscribed = userProfile?.subscription?.active || false;
 
   useEffect(() => {
     fetchPapers();
@@ -357,7 +357,7 @@ const PYQPapers = () => {
                     }}
                   >
                     <Box>
-                      {!isFree && (
+                      {!isFree && !isSubscribed ? (
                         <>
                           <IconButton
                             size="medium"
@@ -371,6 +371,8 @@ const PYQPapers = () => {
                             <LockIcon fontSize="medium" />
                           </IconButton>
                         </>
+                      ) : (
+                        <Box></Box>
                       )}
                     </Box>
 
@@ -464,10 +466,10 @@ const PYQPapers = () => {
             }}
           >
             <Typography variant="body2" sx={{ mb: 1 }}>
-              ✓ सर्व Mock Papers प्रवेश
+              ✓ सर्व सराव प्रश्नपत्रिका प्रवेश
             </Typography>
             <Typography variant="body2" sx={{ mb: 1 }}>
-              ✓ सर्व PYQ Papers प्रवेश
+              ✓ सर्व मागील वर्षांच्या प्रश्नपत्रिका
             </Typography>
             <Typography variant="body2">✓ तपशीलवार विश्लेषण</Typography>
           </Box>

@@ -30,6 +30,7 @@ import {
   isAuthenticated,
 } from "../services/authService";
 const GoogleSign = lazy(() => import("../component/GoogleSign"));
+import Footer from "../component/Footer";
 
 const images = [
   "/images/slide1.webp",
@@ -232,486 +233,509 @@ const LandingPage = () => {
   return (
     <Box
       display="flex"
+      flexDirection={"column"}
       height="100vh"
+      minHeight={"100vh"}
       position="relative"
-      sx={{ overflow: "hidden", bgcolor: "black" }}
+      sx={{ bgcolor: "black" }}
     >
-      {/* Carousel Slider */}
-      <Box
-        flex={1}
-        height="100%"
-        position="relative"
-        ref={emblaRef}
-        sx={{ overflow: "hidden" }}
-      >
-        <Box sx={{ display: "flex", height: "100%" }}>
-          {images.map((src, i) => (
-            <Box
-              key={i}
-              sx={{
-                position: "relative",
-                flex: "0 0 100%",
-                height: "100vh",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <img
-                src={src}
-                alt={`Slide ${i + 1}`}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  objectFit: isMobile ? "cover" : "contain",
-                }}
-              />
-            </Box>
-          ))}
-        </Box>
-
+      <Box>
+        {/* Carousel Slider */}
         <Box
-          position="absolute"
-          top={20}
-          left="50%"
-          zIndex={20}
+          flex={1}
+          height="100%"
+          position="relative"
+          ref={emblaRef}
           sx={{
-            transform: "translateX(-50%)",
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            textAlign: "center",
+            overflow: "hidden",
+            width: isMobile ? "100%" : "60%",
+            margin: "0 auto",
           }}
         >
-          <Typography
-            variant={isMobile ? "h6" : "h4"}
-            fontWeight="bold"
-            sx={{
-              fontFamily: "'Gotu', sans-serif",
-              background: (t) =>
-                `linear-gradient(90deg, ${t.palette.secondary.dark}, ${t.palette.secondary.main})`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              pr: 1.5, // add some right padding to the text
-              mt: "auto",
-            }}
-          >
-            द्रोणाचार्य करिअर अकॅडमी
-          </Typography>
-          <IconButton
-            size="small"
-            onClick={() => setUserDrawer(true)}
-            sx={{
-              bgcolor: "rgba(255, 255, 255, 0.2)",
-              padding: 0.5,
-              color: "#de6925",
-              ml: 1,
-              boxShadow: 2,
-              animation: `${blinkAnimation} 1s ease-in-out infinite`,
-            }}
-          >
-            <LoginIcon sx={{ m: 0.4 }} />
-          </IconButton>
-        </Box>
+          <Box sx={{ display: "flex", height: "100%" }}>
+            {images.map((src, i) => (
+              <Box
+                key={i}
+                sx={{
+                  position: "relative",
+                  flex: "0 0 100%",
+                  height: "100vh",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <img
+                  src={src}
+                  alt={`Slide ${i + 1}`}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: isMobile ? "cover" : "fill",
+                  }}
+                />
+              </Box>
+            ))}
+          </Box>
 
-        <Box
-          position="absolute"
-          bottom={isMobile ? 80 : 40}
-          left="50%"
-          zIndex={15}
-          sx={{ transform: "translateX(-50%)", display: "flex", gap: "10px" }}
-        >
-          {images.map((_, i) => (
-            <Box
-              key={i}
-              onClick={() => emblaApi?.scrollTo(i)}
-              sx={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                cursor: "pointer",
-                background:
-                  index === i
-                    ? "linear-gradient(135deg, #de6925, #f8b14a)"
-                    : "rgba(255,255,255,0.4)",
-              }}
-            />
-          ))}
-        </Box>
-
-        {isMobile && (
           <Box
-            width={"80%"}
             position="absolute"
-            bottom={20}
+            top={20}
             left="50%"
-            zIndex={30}
-            sx={{ transform: "translateX(-50%)" }}
+            zIndex={20}
+            sx={{
+              transform: "translateX(-50%)",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+            }}
+          >
+            <Typography
+              variant={isMobile ? "h6" : "h4"}
+              fontWeight="bold"
+              sx={{
+                fontFamily: "'Gotu', sans-serif",
+                background: (t) =>
+                  `linear-gradient(90deg, ${t.palette.secondary.dark}, ${t.palette.secondary.main})`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                pr: 1.5, // add some right padding to the text
+                mt: "auto",
+              }}
+            >
+              द्रोणाचार्य करिअर अकॅडमी
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() => setUserDrawer(true)}
+              sx={{
+                bgcolor: "rgba(255, 255, 255, 0.2)",
+                padding: 0.5,
+                color: "#de6925",
+                ml: 1,
+                boxShadow: 2,
+                animation: `${blinkAnimation} 1s ease-in-out infinite`,
+              }}
+            >
+              <LoginIcon sx={{ m: 0.4 }} />
+            </IconButton>
+          </Box>
+
+          <Box
+            position="absolute"
+            bottom={isMobile ? 80 : 40}
+            left="50%"
+            zIndex={15}
+            sx={{ transform: "translateX(-50%)", display: "flex", gap: "10px" }}
+          >
+            {images.map((_, i) => (
+              <Box
+                key={i}
+                onClick={() => emblaApi?.scrollTo(i)}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  cursor: "pointer",
+                  background:
+                    index === i
+                      ? "linear-gradient(135deg, #de6925, #f8b14a)"
+                      : "rgba(255,255,255,0.4)",
+                }}
+              />
+            ))}
+          </Box>
+
+          {isMobile && (
+            <Box
+              width={"80%"}
+              position="absolute"
+              bottom={20}
+              left="50%"
+              zIndex={30}
+              sx={{ transform: "translateX(-50%)" }}
+            >
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => setUserDrawer(true)}
+                startIcon={<LoginIcon sx={{ color: "black" }} />}
+                sx={{
+                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                  color: "black",
+                  borderRadius: "30px",
+                  px: 4,
+                }}
+              >
+                Sign In
+              </Button>
+            </Box>
+          )}
+        </Box>
+
+        {!isMobile && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: "4%",
+              left: "50%",
+              transform: "translate(-50%, -50%)", // Perfect Centering
+              zIndex: 10,
+              width: "60%",
+              maxWidth: 500,
+              p: 2,
+              textAlign: "center",
+              borderRadius: 4,
+              backgroundColor: "rgba(0, 0, 0, 0.0001)", // Darker for text legibility
+              backdropFilter: "blur(12px)", // Increased blur for premium feel
+              border: "1px solid rgba(255,255,255,0.1)",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.4)",
+            }}
           >
             <Button
-              fullWidth
               variant="contained"
+              fullWidth
               onClick={() => setUserDrawer(true)}
-              startIcon={<LoginIcon sx={{ color: "black" }} />}
               sx={{
                 background: "linear-gradient(135deg, #de6925, #f8b14a)",
                 color: "black",
                 borderRadius: "30px",
-                px: 4,
               }}
             >
               Sign In
             </Button>
           </Box>
         )}
-      </Box>
 
-      {!isMobile && (
-        <Box
-          flex={1}
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          zIndex={5}
-          sx={{
-            backgroundColor: "rgba(0,0,0,0.6)",
-            backdropFilter: "blur(6px)",
-            px: 4,
+        {/* Main Auth Drawer */}
+        <Drawer
+          anchor="bottom"
+          open={userDrawer}
+          onClose={() => setUserDrawer(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: "22px 22px 0 0",
+              p: 3,
+              background:
+                "linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0))",
+              backdropFilter: "blur(10px)",
+            },
           }}
         >
-          <Box sx={{ textAlign: "center", width: "100%", maxWidth: 420 }}>
-            <Typography variant="h5" sx={{ color: "white", mb: 2 }}>
-              Welcome
+          <Box display="flex" flexDirection="column" alignItems="center">
+            <Typography
+              variant="body2"
+              sx={{ color: "rgba(255,255,255,0.65)", mb: 2 }}
+            >
+              Continue with Google वापरून पुढे जा.
             </Typography>
-            <Button
-              variant="contained"
-              onClick={() => setUserDrawer(true)}
+            <Suspense fallback={<CircularProgress size={24} />}>
+              <GoogleSign onSuccess={handleGoogleSuccess} />
+            </Suspense>
+            <Box
               sx={{
-                background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                color: "black",
-                borderRadius: "30px",
+                display: "flex",
+                alignItems: "center",
+                width: "100%",
+                maxWidth: 320,
+                my: 2.5,
               }}
             >
-              Sign In
+              <Box
+                sx={{
+                  flex: 1,
+                  height: "1px",
+                  bgcolor: "rgba(255,255,255,0.25)",
+                }}
+              />
+              <Typography
+                sx={{
+                  px: 1.5,
+                  color: "rgba(255,255,255,0.7)",
+                  fontSize: "0.8rem",
+                }}
+              >
+                OR
+              </Typography>
+              <Box
+                sx={{
+                  flex: 1,
+                  height: "1px",
+                  bgcolor: "rgba(255,255,255,0.25)",
+                }}
+              />
+            </Box>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setRegisterDrawer(true);
+              }}
+              sx={{
+                width: 278,
+                height: 38,
+                borderRadius: "28px",
+                mb: 1,
+                fontWeight: 600,
+                borderColor: "rgba(255,255,255,0.3)",
+                color: "white",
+                "&:hover": {
+                  borderColor: "rgba(255,255,255,0.6)",
+                  bgcolor: "rgba(255,255,255,0.05)",
+                },
+              }}
+            >
+              Create account
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setLoginDrawer(true);
+              }}
+              sx={{
+                width: 278,
+                height: 38,
+                borderRadius: "28px",
+                fontWeight: 600,
+                borderColor: "rgba(255,255,255,0.3)",
+                color: "white",
+                "&:hover": {
+                  borderColor: "rgba(255,255,255,0.6)",
+                  bgcolor: "rgba(255,255,255,0.05)",
+                },
+              }}
+            >
+              Login with Email
             </Button>
           </Box>
-        </Box>
-      )}
+        </Drawer>
 
-      {/* Main Auth Drawer */}
-      <Drawer
-        anchor="bottom"
-        open={userDrawer}
-        onClose={() => setUserDrawer(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: "22px 22px 0 0",
-            p: 3,
-            background:
-              "linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0))",
-            backdropFilter: "blur(10px)",
-          },
-        }}
-      >
-        <Box display="flex" flexDirection="column" alignItems="center">
-          <Typography
-            variant="body2"
-            sx={{ color: "rgba(255,255,255,0.65)", mb: 2 }}
-          >
-            Continue with Google वापरून पुढे जा.
+        {/* Login Drawer */}
+        <Drawer
+          anchor="bottom"
+          open={loginDrawer}
+          onClose={() => setLoginDrawer(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: "22px 22px 0 0",
+              p: 3,
+              background:
+                "linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0))",
+              backdropFilter: "blur(10px)",
+            },
+          }}
+        >
+          <Typography variant="h6" sx={{ color: "white", mb: 2 }}>
+            Login
           </Typography>
-          <Suspense fallback={<CircularProgress size={24} />}>
-            <GoogleSign onSuccess={handleGoogleSuccess} />
-          </Suspense>
+          <TextField
+            label="Email"
+            fullWidth
+            margin="dense"
+            value={loginForm.email}
+            onChange={(e) =>
+              setLoginForm({ ...loginForm, email: e.target.value })
+            }
+            disabled={formLoading}
+            sx={darkTextFieldSx}
+          />
+          <TextField
+            label="Password"
+            type={showLoginPassword ? "text" : "password"}
+            fullWidth
+            margin="dense"
+            value={loginForm.password}
+            onChange={(e) =>
+              setLoginForm({ ...loginForm, password: e.target.value })
+            }
+            disabled={formLoading}
+            onKeyPress={(e) => {
+              if (e.key === "Enter" && !formLoading) {
+                handleLoginSubmit();
+              }
+            }}
+            sx={darkTextFieldSx}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    sx={{ color: "white" }}
+                  >
+                    {showLoginPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
               width: "100%",
-              maxWidth: 320,
-              my: 2.5,
+              display: "flex",
+              justifyContent: "flex-end",
+              mt: 0.5,
             }}
           >
-            <Box
-              sx={{ flex: 1, height: "1px", bgcolor: "rgba(255,255,255,0.25)" }}
-            />
             <Typography
+              variant="caption"
               sx={{
-                px: 1.5,
+                cursor:
+                  forgotLoading || forgotCooldown || formLoading
+                    ? "not-allowed"
+                    : "pointer",
                 color: "rgba(255,255,255,0.7)",
-                fontSize: "0.8rem",
+                textDecoration: "underline",
+                opacity:
+                  forgotLoading || forgotCooldown || formLoading ? 0.5 : 1,
               }}
+              onClick={() =>
+                !forgotLoading &&
+                !forgotCooldown &&
+                !formLoading &&
+                handleForgotPassword()
+              }
             >
-              OR
+              {forgotLoading
+                ? "Sending..."
+                : forgotCooldown
+                ? "Wait a minute"
+                : "Forgot password?"}
             </Typography>
-            <Box
-              sx={{ flex: 1, height: "1px", bgcolor: "rgba(255,255,255,0.25)" }}
-            />
           </Box>
           <Button
-            variant="outlined"
-            onClick={() => {
-              setRegisterDrawer(true);
-            }}
-            sx={{
-              width: 278,
-              height: 38,
-              borderRadius: "28px",
-              mb: 1,
-              fontWeight: 600,
-              borderColor: "rgba(255,255,255,0.3)",
-              color: "white",
-              "&:hover": {
-                borderColor: "rgba(255,255,255,0.6)",
-                bgcolor: "rgba(255,255,255,0.05)",
-              },
-            }}
+            variant="contained"
+            fullWidth
+            sx={{ mt: 2 }}
+            disabled={formLoading}
+            onClick={handleLoginSubmit}
           >
-            Create account
+            {formLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Login"
+            )}
           </Button>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              setLoginDrawer(true);
-            }}
-            sx={{
-              width: 278,
-              height: 38,
-              borderRadius: "28px",
-              fontWeight: 600,
-              borderColor: "rgba(255,255,255,0.3)",
-              color: "white",
-              "&:hover": {
-                borderColor: "rgba(255,255,255,0.6)",
-                bgcolor: "rgba(255,255,255,0.05)",
-              },
-            }}
-          >
-            Login with Email
-          </Button>
-        </Box>
-      </Drawer>
+        </Drawer>
 
-      {/* Login Drawer */}
-      <Drawer
-        anchor="bottom"
-        open={loginDrawer}
-        onClose={() => setLoginDrawer(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: "22px 22px 0 0",
-            p: 3,
-            background:
-              "linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0))",
-            backdropFilter: "blur(10px)",
-          },
-        }}
-      >
-        <Typography variant="h6" sx={{ color: "white", mb: 2 }}>
-          Login
-        </Typography>
-        <TextField
-          label="Email"
-          fullWidth
-          margin="dense"
-          value={loginForm.email}
-          onChange={(e) =>
-            setLoginForm({ ...loginForm, email: e.target.value })
-          }
-          disabled={formLoading}
-          sx={darkTextFieldSx}
-        />
-        <TextField
-          label="Password"
-          type={showLoginPassword ? "text" : "password"}
-          fullWidth
-          margin="dense"
-          value={loginForm.password}
-          onChange={(e) =>
-            setLoginForm({ ...loginForm, password: e.target.value })
-          }
-          disabled={formLoading}
-          onKeyPress={(e) => {
-            if (e.key === "Enter" && !formLoading) {
-              handleLoginSubmit();
-            }
-          }}
-          sx={darkTextFieldSx}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  sx={{ color: "white" }}
-                >
-                  {showLoginPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-        <Box
-          sx={{
-            width: "100%",
-            display: "flex",
-            justifyContent: "flex-end",
-            mt: 0.5,
+        {/* Register Drawer */}
+        <Drawer
+          anchor="bottom"
+          open={registerDrawer}
+          onClose={() => setRegisterDrawer(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: "22px 22px 0 0",
+              p: 3,
+              background:
+                "linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0))",
+              backdropFilter: "blur(10px)",
+            },
           }}
         >
+          <Typography variant="h6" sx={{ color: "white", mb: 2 }}>
+            Create Account
+          </Typography>
+          <TextField
+            label="Full Name"
+            fullWidth
+            margin="dense"
+            value={registerForm.name}
+            onChange={(e) =>
+              setRegisterForm({ ...registerForm, name: e.target.value })
+            }
+            disabled={formLoading}
+            sx={darkTextFieldSx}
+          />
+          <TextField
+            label="Email"
+            fullWidth
+            margin="dense"
+            value={registerForm.email}
+            onChange={(e) =>
+              setRegisterForm({ ...registerForm, email: e.target.value })
+            }
+            disabled={formLoading}
+            sx={darkTextFieldSx}
+          />
+          <TextField
+            label="Password"
+            type={showRegisterPassword ? "text" : "password"}
+            fullWidth
+            margin="dense"
+            value={registerForm.password}
+            onChange={(e) =>
+              setRegisterForm({ ...registerForm, password: e.target.value })
+            }
+            disabled={formLoading}
+            onKeyPress={(e) => {
+              if (e.key === "Enter" && !formLoading) {
+                handleRegisterSubmit();
+              }
+            }}
+            sx={darkTextFieldSx}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() =>
+                      setShowRegisterPassword(!showRegisterPassword)
+                    }
+                    sx={{ color: "white" }}
+                  >
+                    {showRegisterPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
           <Typography
             variant="caption"
-            sx={{
-              cursor:
-                forgotLoading || forgotCooldown || formLoading
-                  ? "not-allowed"
-                  : "pointer",
-              color: "rgba(255,255,255,0.7)",
-              textDecoration: "underline",
-              opacity: forgotLoading || forgotCooldown || formLoading ? 0.5 : 1,
-            }}
-            onClick={() =>
-              !forgotLoading &&
-              !forgotCooldown &&
-              !formLoading &&
-              handleForgotPassword()
-            }
+            sx={{ color: "rgba(255,255,255,0.5)", mt: 1 }}
           >
-            {forgotLoading
-              ? "Sending..."
-              : forgotCooldown
-              ? "Wait a minute"
-              : "Forgot password?"}
+            Password must be at least 8 characters with letters and numbers
           </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          fullWidth
-          sx={{ mt: 2 }}
-          disabled={formLoading}
-          onClick={handleLoginSubmit}
-        >
-          {formLoading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            "Login"
-          )}
-        </Button>
-      </Drawer>
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ mt: 2 }}
+            disabled={formLoading}
+            onClick={handleRegisterSubmit}
+          >
+            {formLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Create Account"
+            )}
+          </Button>
+        </Drawer>
 
-      {/* Register Drawer */}
-      <Drawer
-        anchor="bottom"
-        open={registerDrawer}
-        onClose={() => setRegisterDrawer(false)}
-        PaperProps={{
-          sx: {
-            borderRadius: "22px 22px 0 0",
-            p: 3,
-            background:
-              "linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0))",
-            backdropFilter: "blur(10px)",
-          },
-        }}
-      >
-        <Typography variant="h6" sx={{ color: "white", mb: 2 }}>
-          Create Account
-        </Typography>
-        <TextField
-          label="Full Name"
-          fullWidth
-          margin="dense"
-          value={registerForm.name}
-          onChange={(e) =>
-            setRegisterForm({ ...registerForm, name: e.target.value })
-          }
-          disabled={formLoading}
-          sx={darkTextFieldSx}
-        />
-        <TextField
-          label="Email"
-          fullWidth
-          margin="dense"
-          value={registerForm.email}
-          onChange={(e) =>
-            setRegisterForm({ ...registerForm, email: e.target.value })
-          }
-          disabled={formLoading}
-          sx={darkTextFieldSx}
-        />
-        <TextField
-          label="Password"
-          type={showRegisterPassword ? "text" : "password"}
-          fullWidth
-          margin="dense"
-          value={registerForm.password}
-          onChange={(e) =>
-            setRegisterForm({ ...registerForm, password: e.target.value })
-          }
-          disabled={formLoading}
-          onKeyPress={(e) => {
-            if (e.key === "Enter" && !formLoading) {
-              handleRegisterSubmit();
-            }
-          }}
-          sx={darkTextFieldSx}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton
-                  onClick={() => setShowRegisterPassword(!showRegisterPassword)}
-                  sx={{ color: "white" }}
-                >
-                  {showRegisterPassword ? <VisibilityOff /> : <Visibility />}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
-        <Typography
-          variant="caption"
-          sx={{ color: "rgba(255,255,255,0.5)", mt: 1 }}
+        {/* Error Snackbar */}
+        <Snackbar
+          open={!!errorMsg}
+          autoHideDuration={4000}
+          onClose={() => setErrorMsg(null)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          Password must be at least 8 characters with letters and numbers
-        </Typography>
-        <Button
-          variant="contained"
-          fullWidth
-          sx={{ mt: 2 }}
-          disabled={formLoading}
-          onClick={handleRegisterSubmit}
+          <Alert severity="error" onClose={() => setErrorMsg(null)}>
+            {errorMsg}
+          </Alert>
+        </Snackbar>
+
+        {/* Success Snackbar */}
+        <Snackbar
+          open={!!successMsg}
+          autoHideDuration={4000}
+          onClose={() => setSuccessMsg(null)}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          {formLoading ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            "Create Account"
-          )}
-        </Button>
-      </Drawer>
+          <Alert severity="success" onClose={() => setSuccessMsg(null)}>
+            {successMsg}
+          </Alert>
+        </Snackbar>
+      </Box>
 
-      {/* Error Snackbar */}
-      <Snackbar
-        open={!!errorMsg}
-        autoHideDuration={4000}
-        onClose={() => setErrorMsg(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert severity="error" onClose={() => setErrorMsg(null)}>
-          {errorMsg}
-        </Alert>
-      </Snackbar>
-
-      {/* Success Snackbar */}
-      <Snackbar
-        open={!!successMsg}
-        autoHideDuration={4000}
-        onClose={() => setSuccessMsg(null)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert severity="success" onClose={() => setSuccessMsg(null)}>
-          {successMsg}
-        </Alert>
-      </Snackbar>
+      <Footer />
     </Box>
   );
 };
