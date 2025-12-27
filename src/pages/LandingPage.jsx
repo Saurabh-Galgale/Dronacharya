@@ -11,7 +11,7 @@ import {
   CircularProgress,
   IconButton,
   InputAdornment,
-  Icon,
+  Backdrop,
 } from "@mui/material";
 import { keyframes } from "@mui/system";
 import LoginIcon from "@mui/icons-material/Login";
@@ -207,7 +207,6 @@ const LandingPage = () => {
       setFormLoading(false);
     }
   };
-
   const handleForgotPassword = async () => {
     if (!loginForm.email) {
       setErrorMsg("Please enter your email first");
@@ -239,6 +238,23 @@ const LandingPage = () => {
       position="relative"
       sx={{ bgcolor: "black" }}
     >
+      {/* 1. Full Screen Loader Backdrop */}
+      <Backdrop
+        sx={{
+          color: "#de6925",
+          zIndex: (theme) => theme.zIndex.drawer + 1000, // Ensure it's above everything
+          flexDirection: "column",
+          gap: 2,
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          backdropFilter: "blur(8px)",
+        }}
+        open={formLoading}
+      >
+        <CircularProgress color="inherit" size={60} thickness={4} />
+        <Typography sx={{ color: "white", fontWeight: 600 }}>
+          कृपया प्रतीक्षा करा... (Logging in)
+        </Typography>
+      </Backdrop>
       <Box>
         {/* Carousel Slider */}
         <Box
@@ -486,7 +502,7 @@ const LandingPage = () => {
                 },
               }}
             >
-              Create account
+              नवीन अकाउंट बनवा
             </Button>
             <Button
               variant="outlined"
@@ -506,7 +522,7 @@ const LandingPage = () => {
                 },
               }}
             >
-              Login with Email
+              Email ने Log in करा
             </Button>
           </Box>
         </Drawer>
@@ -530,7 +546,7 @@ const LandingPage = () => {
             Login
           </Typography>
           <TextField
-            label="Email"
+            label="ई-मेल (Email)"
             fullWidth
             margin="dense"
             value={loginForm.email}
@@ -541,7 +557,7 @@ const LandingPage = () => {
             sx={darkTextFieldSx}
           />
           <TextField
-            label="Password"
+            label="पासवर्ड (Password)"
             type={showLoginPassword ? "text" : "password"}
             fullWidth
             margin="dense"
@@ -634,10 +650,10 @@ const LandingPage = () => {
           }}
         >
           <Typography variant="h6" sx={{ color: "white", mb: 2 }}>
-            Create Account
+            नवीन अकाउंट बनवा
           </Typography>
           <TextField
-            label="Full Name"
+            label="स्वतःचे पूर्ण नाव टाका"
             fullWidth
             margin="dense"
             value={registerForm.name}
@@ -648,7 +664,7 @@ const LandingPage = () => {
             sx={darkTextFieldSx}
           />
           <TextField
-            label="Email"
+            label="स्वतःचा व योग्य ई-मेल टाका  "
             fullWidth
             margin="dense"
             value={registerForm.email}
@@ -659,7 +675,7 @@ const LandingPage = () => {
             sx={darkTextFieldSx}
           />
           <TextField
-            label="Password"
+            label="नवीन पासवर्ड बनवा"
             type={showRegisterPassword ? "text" : "password"}
             fullWidth
             margin="dense"
@@ -691,9 +707,14 @@ const LandingPage = () => {
           />
           <Typography
             variant="caption"
-            sx={{ color: "rgba(255,255,255,0.5)", mt: 1 }}
+            sx={{
+              color: "white",
+              mt: 1,
+              display: "block",
+              px: 1,
+            }}
           >
-            Password must be at least 8 characters with letters and numbers
+            किमान ८ अक्षरे, संख्या आणि चिन्हांचा वापर करा.
           </Typography>
           <Button
             variant="contained"
@@ -705,7 +726,7 @@ const LandingPage = () => {
             {formLoading ? (
               <CircularProgress size={24} color="inherit" />
             ) : (
-              "Create Account"
+              "नवीन अकाउंट बनवा"
             )}
           </Button>
         </Drawer>
