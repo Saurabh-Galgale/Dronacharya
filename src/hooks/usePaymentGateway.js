@@ -52,7 +52,7 @@ const usePaymentGateway = () => {
         amount,
         currency,
         order_id: orderId,
-        name: "Dronacharya",
+        name: "Dronacharya Academy",
         description: `Subscription: ${planName}`,
         method: {
           upi: true,

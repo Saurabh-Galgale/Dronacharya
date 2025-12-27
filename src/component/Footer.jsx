@@ -109,7 +109,7 @@ const Footer = () => {
                 { text: "Terms & Conditions", path: "/terms-and-conditions" },
                 { text: "Privacy Policy", path: "/privacy-policy" },
                 { text: "Refund Policy", path: "/refund-policy" },
-                { text: "Shipping & Delivery", path: "/shipping-policy" },
+                { text: "Shipping & Delivery", path: "/shipping-and-delivery" },
               ].map((item, idx) => (
                 <ListItem key={idx} disablePadding sx={{ mb: 1 }}>
                   <ListItemButton

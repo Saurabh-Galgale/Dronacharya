@@ -1,11 +1,32 @@
 import React, { useState, useEffect } from "react";
+import Footer from "../../component/Footer";
+
 import { useNavigate } from "react-router-dom";
 import { getStoredUserProfile } from "../../services/authService";
+import {
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  FormHelperText,
+  Typography,
+  Box,
+} from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const ContactUs = () => {
   const navigate = useNavigate();
   const userProfile = getStoredUserProfile();
   const userEmail = userProfile?.email || "";
+
+  // Compliance Details - Change these to match your Aadhaar/PAN exactly
+  const LEGAL_NAME = "Saurabh Rajendra Galgale";
+  const SUPPORT_EMAIL = "help.dronacharyacareeracademy@gmail.com";
+  const FULL_ADDRESS =
+    "Vinayaki krupa apt., Nana master nagar, Karjat, Maharashtra, 410201";
+  const PHONE_NUMBER = "+91 8600326056";
 
   const [formData, setFormData] = useState({
     email: userEmail,
@@ -38,6 +59,11 @@ const ContactUs = () => {
     return Object.keys(tempErrors).length === 0;
   };
 
+  const isFormValid =
+    formData.subject !== "" &&
+    formData.message.length >= 10 &&
+    formData.message.length <= 50;
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (validate()) {
@@ -59,411 +85,362 @@ const ContactUs = () => {
   });
 
   return (
-    <div
-      style={{
-        backgroundColor: "#f8f9fa",
-        minHeight: "100vh",
-        padding: "48px 24px",
-      }}
-    >
-      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "48px" }}>
-          <h1
-            style={{
-              fontSize: "36px",
-              fontWeight: 900,
-              marginBottom: "16px",
-              background: "linear-gradient(135deg, #de6925, #f8b14a)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Contact Us
-          </h1>
-          <p style={{ color: "#666", fontSize: "16px" }}>
-            We're here to help! Reach out to us anytime.
-          </p>
-        </div>
+    <>
+      <div
+        style={{
+          backgroundColor: "#f8f9fa",
+          minHeight: "100vh",
+          padding: "48px 24px",
+        }}
+      >
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          {/* Header */}
+          <Box style={{ marginBottom: "48px", textAlign: "center" }}>
+            {/* Container for Arrow and Heading */}
+            <Box
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative", // Allows the arrow to be positioned relative to the center
+                marginBottom: "8px",
+              }}
+            >
+              {/* Back Arrow - Positioned to the left of the text */}
+              <ArrowBackIcon
+                onClick={() => navigate("/")}
+                style={{
+                  cursor: "pointer",
+                  fontSize: "52px",
+                  color: "#de6925",
+                  position: "absolute",
+                  left: "0",
+                  padding: "8px",
+                  borderRadius: "50%",
+                  transition: "background 0.3s",
+                }}
+                onMouseEnter={(e) => (e.target.style.background = "#fff3e0")}
+                onMouseLeave={(e) => (e.target.style.background = "none")}
+              />
+              <h1
+                style={{
+                  fontSize: "36px",
+                  fontWeight: 900,
+                  margin: 0,
+                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                Contact Us
+              </h1>
+            </Box>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "32px",
-          }}
-        >
-          {/* Contact Information (Compliance Info) */}
+            {/* Subtitle Details */}
+            <p
+              style={{
+                color: "#444",
+                fontSize: "16px",
+                fontWeight: "500",
+                margin: 0,
+              }}
+            >
+              Dronacharya Academy — An Educational Initiative by {LEGAL_NAME}
+            </p>
+          </Box>
+
           <div
             style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+              gap: "32px",
+            }}
+          >
+            {/* Contact Information (Razorpay Compliance Section) */}
+            <div
+              style={{
+                backgroundColor: "white",
+                borderRadius: "16px",
+                padding: "32px",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+              }}
+            >
+              <h2
+                style={{
+                  fontSize: "22px",
+                  fontWeight: 700,
+                  marginBottom: "24px",
+                  color: "#1a1a1a",
+                }}
+              >
+                Official Details
+              </h2>
+
+              <div style={{ marginBottom: "24px" }}>
+                <h3
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#888",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Registered Name
+                </h3>
+                <p
+                  style={{ color: "#333", fontSize: "16px", fontWeight: "600" }}
+                >
+                  {LEGAL_NAME}
+                </p>
+              </div>
+
+              <div style={{ marginBottom: "24px" }}>
+                <h3
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#888",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Operating Address
+                </h3>
+                <p
+                  style={{ color: "#666", fontSize: "14px", lineHeight: "1.5" }}
+                >
+                  {FULL_ADDRESS}
+                </p>
+              </div>
+
+              <div style={{ marginBottom: "24px" }}>
+                <h3
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#888",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Support Email
+                </h3>
+                <p
+                  style={{
+                    color: "#de6925",
+                    fontSize: "15px",
+                    fontWeight: "600",
+                  }}
+                >
+                  {SUPPORT_EMAIL}
+                </p>
+              </div>
+
+              <div style={{ marginBottom: "24px" }}>
+                <h3
+                  style={{
+                    fontSize: "14px",
+                    fontWeight: 700,
+                    color: "#888",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Phone Number
+                </h3>
+                <p style={{ color: "#333", fontSize: "15px" }}>
+                  {PHONE_NUMBER}
+                </p>
+              </div>
+            </div>
+
+            {/* Contact Form Section */}
+            <Box
+              sx={{
+                backgroundColor: "white",
+                borderRadius: "16px",
+                padding: "32px",
+                boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+              }}
+            >
+              {!userEmail ? (
+                <Box sx={{ textAlign: "center", padding: "40px 0" }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
+                    Send us a Message
+                  </Typography>
+                  <Typography color="textSecondary" sx={{ mb: 3 }}>
+                    Please log in to your account to fill out the contact form.
+                  </Typography>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={() => navigate("/")}
+                    sx={{
+                      py: 1.5,
+                      background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                      fontWeight: 700,
+                      borderRadius: "12px",
+                    }}
+                  >
+                    Log In to Contact Us
+                  </Button>
+                </Box>
+              ) : (
+                <>
+                  <Typography
+                    variant="h5"
+                    sx={{ fontWeight: 700, mb: 3, color: "#1a1a1a" }}
+                  >
+                    Send us a Message
+                  </Typography>
+
+                  {submitted && (
+                    <Box
+                      sx={{
+                        p: 2,
+                        mb: 3,
+                        bgcolor: "#d4edda",
+                        color: "#155724",
+                        borderRadius: "12px",
+                      }}
+                    >
+                      ✓ Message sent successfully!
+                    </Box>
+                  )}
+
+                  <form onSubmit={handleSubmit}>
+                    {/* Email - Read Only */}
+                    <TextField
+                      fullWidth
+                      label="Email Address"
+                      value={formData.email}
+                      readOnly
+                      disabled
+                      sx={{
+                        mb: 3,
+                        "& .MuiInputBase-input": { cursor: "not-allowed" },
+                      }}
+                    />
+
+                    {/* Subject - MUI Select */}
+                    <FormControl fullWidth sx={{ mb: 3 }}>
+                      <InputLabel id="subject-label">Subject *</InputLabel>
+                      <Select
+                        labelId="subject-label"
+                        name="subject"
+                        value={formData.subject}
+                        label="Subject *"
+                        onChange={handleChange}
+                        required
+                      >
+                        <MenuItem value="Mock Paper Issue">
+                          Mock Paper Issue
+                        </MenuItem>
+                        <MenuItem value="Payment Issue">Payment Issue</MenuItem>
+                        <MenuItem value="Profile Issue">Profile Issue</MenuItem>
+                        <MenuItem value="Other">Other</MenuItem>
+                      </Select>
+                    </FormControl>
+
+                    {/* Message - MUI Multi-line TextField */}
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      name="message"
+                      label="Message *"
+                      placeholder="Type your message (10-40 characters)"
+                      value={formData.message}
+                      onChange={handleChange}
+                      error={formData.message.length > 50}
+                      helperText={
+                        formData.message.length < 10 &&
+                        formData.message.length > 0
+                          ? "Min 10 characters required"
+                          : `${formData.message.length}/50 characters`
+                      }
+                      sx={{ mb: 4 }}
+                    />
+
+                    {/* Submit Button */}
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      disabled={!isFormValid}
+                      sx={{
+                        py: 2,
+                        borderRadius: "12px",
+                        fontWeight: 700,
+                        fontSize: "16px",
+                        background: isFormValid
+                          ? "linear-gradient(135deg, #de6925, #f8b14a)"
+                          : "#e0e0e0",
+                        "&:hover": {
+                          background:
+                            "linear-gradient(135deg, #c55a1e, #e09d3e)",
+                        },
+                        "&.Mui-disabled": {
+                          background: "#eeeeee",
+                          color: "#bdbdbd",
+                        },
+                      }}
+                    >
+                      Send Message
+                    </Button>
+                  </form>
+                </>
+              )}
+            </Box>
+          </div>
+
+          {/* Business Hours */}
+          <div
+            style={{
+              marginTop: "48px",
               backgroundColor: "white",
               borderRadius: "16px",
               padding: "32px",
               boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+              textAlign: "center",
             }}
           >
             <h2
               style={{
-                fontSize: "24px",
+                fontSize: "20px",
                 fontWeight: 700,
-                marginBottom: "24px",
-                color: "#1a1a1a",
+                marginBottom: "16px",
               }}
             >
-              Get in Touch
+              Response Timeline
             </h2>
-
-            <div style={{ marginBottom: "24px" }}>
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "10px",
-                }}
-              >
-                📍
-              </div>
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#333" }}>
-                Academy Address
-              </h3>
-              <p style={{ color: "#666", fontSize: "14px" }}>
-                Dronacharya career academy, Maharashtra, India
-              </p>
-            </div>
-
-            <div style={{ marginBottom: "24px" }}>
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #4facfe, #00f2fe)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "10px",
-                }}
-              >
-                ✉️
-              </div>
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#333" }}>
-                Email Us
-              </h3>
-              <p style={{ color: "#de6925", fontSize: "14px" }}>
-                help.dronacharyacareeracademy@gmail.com
-              </p>
-            </div>
-
-            <div style={{ marginBottom: "24px" }}>
-              <div
-                style={{
-                  width: "40px",
-                  height: "40px",
-                  borderRadius: "10px",
-                  background: "linear-gradient(135deg, #43e97b, #38f9d7)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: "10px",
-                }}
-              >
-                📞
-              </div>
-              <h3 style={{ fontSize: "16px", fontWeight: 600, color: "#333" }}>
-                Call Us
-              </h3>
-              <p style={{ color: "#de6925", fontSize: "14px" }}>
-                +91 8600326056
-              </p>
-            </div>
+            <p style={{ color: "#666", fontSize: "14px" }}>
+              We aim to respond to all queries within{" "}
+              <strong>24 to 48 working hours</strong>. Business Hours: Mon-Fri
+              (9 AM - 5 PM).
+            </p>
           </div>
 
-          {/* Contact Form Section */}
-          <div
-            style={{
-              backgroundColor: "white",
-              borderRadius: "16px",
-              padding: "32px",
-              boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-            }}
-          >
-            {!userEmail ? (
-              <div style={{ textAlign: "center", padding: "40px 0" }}>
-                <h2
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: 700,
-                    marginBottom: "16px",
-                  }}
-                >
-                  Send us a Message
-                </h2>
-                <p style={{ color: "#666", marginBottom: "24px" }}>
-                  Please log in to your account to fill out the contact form.
-                </p>
-                <button
-                  onClick={() => navigate("/")}
-                  style={{
-                    width: "100%",
-                    padding: "16px",
-                    background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "12px",
-                    fontWeight: 700,
-                    cursor: "pointer",
-                  }}
-                >
-                  Log In to Contact Us
-                </button>
-              </div>
-            ) : (
-              <>
-                <h2
-                  style={{
-                    fontSize: "24px",
-                    fontWeight: 700,
-                    marginBottom: "24px",
-                    color: "#1a1a1a",
-                  }}
-                >
-                  Send us a Message
-                </h2>
-                {submitted && (
-                  <div
-                    style={{
-                      padding: "16px",
-                      backgroundColor: "#d4edda",
-                      borderRadius: "12px",
-                      marginBottom: "24px",
-                      color: "#155724",
-                    }}
-                  >
-                    ✓ Message sent successfully!
-                  </div>
-                )}
-                <form onSubmit={handleSubmit}>
-                  <div style={{ marginBottom: "15px" }}>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "8px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      value={formData.email}
-                      readOnly
-                      style={{
-                        ...inputStyle(),
-                        backgroundColor: "#f5f5f5",
-                        cursor: "not-allowed",
-                        color: "#777",
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: "15px" }}>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "8px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Phone Number *
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="10-digit mobile number"
-                      style={inputStyle(errors.phone)}
-                    />
-                    {errors.phone && (
-                      <p
-                        style={{
-                          color: "#ff4d4d",
-                          fontSize: "12px",
-                          marginTop: "5px",
-                        }}
-                      >
-                        {errors.phone}
-                      </p>
-                    )}
-                  </div>
-
-                  <div style={{ marginBottom: "15px" }}>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "8px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Subject *
-                    </label>
-                    <select
-                      name="subject"
-                      value={formData.subject}
-                      onChange={handleChange}
-                      style={inputStyle(errors.subject)}
-                    >
-                      <option value="">Select an Issue</option>
-                      <option value="Mock Paper Issue">Mock Paper Issue</option>
-                      <option value="Payment Issue">Payment Issue</option>
-                      <option value="Profile Issue">Profile Issue</option>
-                      <option value="Other">Other</option>
-                    </select>
-                    {errors.subject && (
-                      <p
-                        style={{
-                          color: "#ff4d4d",
-                          fontSize: "12px",
-                          marginTop: "5px",
-                        }}
-                      >
-                        {errors.subject}
-                      </p>
-                    )}
-                  </div>
-
-                  <div style={{ marginBottom: "24px" }}>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "8px",
-                        fontSize: "14px",
-                        fontWeight: 600,
-                      }}
-                    >
-                      Message *
-                    </label>
-                    <textarea
-                      name="message"
-                      rows="4"
-                      value={formData.message}
-                      onChange={handleChange}
-                      placeholder="Min 50 characters required..."
-                      style={inputStyle(errors.message)}
-                    />
-                    {errors.message && (
-                      <p
-                        style={{
-                          color: "#ff4d4d",
-                          fontSize: "12px",
-                          marginTop: "5px",
-                        }}
-                      >
-                        {errors.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    style={{
-                      width: "100%",
-                      padding: "16px",
-                      background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                      color: "white",
-                      border: "none",
-                      borderRadius: "12px",
-                      fontWeight: 700,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Send Message
-                  </button>
-                </form>
-              </>
-            )}
+          {/* Back to Home Button */}
+          <div style={{ marginTop: "48px", textAlign: "center" }}>
+            <button
+              onClick={() => navigate("/")}
+              style={{
+                display: "inline-block",
+                padding: "12px 32px",
+                background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                color: "white",
+                border: "none",
+                borderRadius: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+                textDecoration: "none",
+              }}
+            >
+              Back to Home
+            </button>
           </div>
-        </div>
-
-        {/* Business Hours */}
-        <div
-          style={{
-            marginTop: "48px",
-            backgroundColor: "white",
-            borderRadius: "16px",
-            padding: "32px",
-            boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "24px",
-              fontWeight: 700,
-              marginBottom: "24px",
-              color: "#1a1a1a",
-              textAlign: "center",
-            }}
-          >
-            Business Hours
-          </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "24px",
-              textAlign: "center",
-            }}
-          >
-            <div>
-              <p
-                style={{ fontWeight: 600, marginBottom: "8px", color: "#333" }}
-              >
-                Monday - Friday
-              </p>
-              <p style={{ color: "#666", fontSize: "14px" }}>
-                9:00 AM - 5:00 PM
-              </p>
-            </div>
-            <div>
-              <p
-                style={{ fontWeight: 600, marginBottom: "8px", color: "#333" }}
-              >
-                Saturday & Sunday
-              </p>
-              <p style={{ color: "#666", fontSize: "14px" }}>Closed</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Back to Home Button */}
-        <div style={{ marginTop: "48px", textAlign: "center" }}>
-          <button
-            onClick={() => navigate("/")}
-            style={{
-              display: "inline-block",
-              padding: "12px 32px",
-              background: "linear-gradient(135deg, #de6925, #f8b14a)",
-              color: "white",
-              border: "none",
-              borderRadius: "12px",
-              fontWeight: 600,
-              cursor: "pointer",
-              textDecoration: "none",
-            }}
-          >
-            Back to Home
-          </button>
         </div>
       </div>
-    </div>
+      <Footer />
+    </>
   );
 };
 

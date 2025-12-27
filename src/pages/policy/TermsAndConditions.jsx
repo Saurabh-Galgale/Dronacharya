@@ -1,281 +1,232 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Paper,
+  Divider,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import Footer from "../../component/Footer";
 
 const TermsAndConditions = () => {
+  const navigate = useNavigate();
+  const lastUpdated = "December 27, 2025";
+  const LEGAL_NAME = "Saurabh Rajendra Galgale";
+  const SUPPORT_EMAIL = "help.dronacharyacareeracademy@gmail.com";
+
   return (
-    <div
-      style={{
-        backgroundColor: "#f8f9fa",
-        minHeight: "100vh",
-        padding: "48px 24px",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto",
-          backgroundColor: "white",
-          borderRadius: "16px",
-          padding: "48px",
-          boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+    <>
+      <Box
+        sx={{
+          backgroundColor: "#f8f9fa",
+          minHeight: "100vh",
+          padding: "48px 24px",
+          fontFamily: "sans-serif",
         }}
       >
-        <h1
-          style={{
-            fontSize: "32px",
-            fontWeight: 900,
-            marginBottom: "8px",
-            color: "#1a1a1a",
-          }}
-        >
-          Terms and Conditions
-        </h1>
-        <p style={{ color: "#666", marginBottom: "32px", fontSize: "14px" }}>
-          Last Updated: December 24, 2025
-        </p>
-
-        <div style={{ lineHeight: 1.8, color: "#333" }}>
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
+        <Box sx={{ maxWidth: "900px", margin: "0 auto" }}>
+          {/* Header Section */}
+          <Box sx={{ marginBottom: "48px", textAlign: "center" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+                marginBottom: "8px",
               }}
             >
-              1. Acceptance of Terms
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              By accessing and using the द्रोणाचार्य करिअर अकॅडमी platform (the
-              "Service"), you accept and agree to be bound by the terms and
-              provisions of this agreement. If you do not agree to these terms,
-              please do not use our Service.
-            </p>
-          </section>
-
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
+              <ArrowBackIcon
+                onClick={() => navigate("/")}
+                sx={{
+                  cursor: "pointer",
+                  fontSize: "32px",
+                  color: "#de6925",
+                  position: "absolute",
+                  left: "0",
+                  padding: "8px",
+                  borderRadius: "50%",
+                  transition: "0.3s",
+                  "&:hover": { background: "#fff3e0" },
+                }}
+              />
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: 900,
+                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                Terms & Conditions
+              </Typography>
+            </Box>
+            <Typography
+              sx={{ color: "#444", fontSize: "16px", fontWeight: "500" }}
             >
-              2. Use of Service
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              You may use this Service only for lawful purposes and in
-              accordance with these Terms. You agree not to:
-            </p>
-            <ul style={{ marginLeft: "24px", marginBottom: "12px" }}>
-              <li style={{ marginBottom: "8px" }}>
-                Use the Service in any way that violates any applicable law or
-                regulation
-              </li>
-              <li style={{ marginBottom: "8px" }}>
-                Share your account credentials with others
-              </li>
-              <li style={{ marginBottom: "8px" }}>
-                Reproduce, distribute, or create derivative works from our
-                content without permission
-              </li>
-              <li style={{ marginBottom: "8px" }}>
-                Attempt to bypass any security measures or access restrictions
-              </li>
-            </ul>
-          </section>
+              Dronacharya Academy — An Educational Initiative by {LEGAL_NAME}
+            </Typography>
+            <Typography sx={{ color: "#888", fontSize: "14px", mt: 1 }}>
+              Last Updated: {lastUpdated}
+            </Typography>
+          </Box>
 
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
-            >
-              3. Intellectual Property Rights
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              All content on this platform, including but not limited to text,
-              graphics, logos, images, study materials, magazines, and software,
-              is the property of द्रोणाचार्य करिअर अकॅडमी and is protected by
-              copyright, trademark, and other intellectual property laws.
-            </p>
-            <p style={{ marginBottom: "12px" }}>
-              You are granted a limited, non-exclusive, non-transferable license
-              to access and use the Service for personal, non-commercial
-              educational purposes only.
-            </p>
-          </section>
-
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
-            >
-              4. User Accounts
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              To access certain features, you may be required to create an
-              account. You are responsible for:
-            </p>
-            <ul style={{ marginLeft: "24px", marginBottom: "12px" }}>
-              <li style={{ marginBottom: "8px" }}>
-                Maintaining the confidentiality of your account credentials
-              </li>
-              <li style={{ marginBottom: "8px" }}>
-                All activities that occur under your account
-              </li>
-              <li style={{ marginBottom: "8px" }}>
-                Notifying us immediately of any unauthorized use
-              </li>
-            </ul>
-          </section>
-
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
-            >
-              5. Payment Terms
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              Subscription fees are charged in advance and are non-refundable
-              except as required by law or as specified in our Refund and
-              Cancellation Policy. We reserve the right to modify subscription
-              fees with prior notice.
-            </p>
-          </section>
-
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
-            >
-              6. Limitation of Liability
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              To the maximum extent permitted by law, द्रोणाचार्य करिअर अकॅडमी
-              shall not be liable for any indirect, incidental, special,
-              consequential, or punitive damages arising out of or relating to
-              your use of the Service.
-            </p>
-          </section>
-
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
-            >
-              7. Termination
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              We reserve the right to terminate or suspend your account and
-              access to the Service immediately, without prior notice, for any
-              breach of these Terms or for any other reason at our sole
-              discretion.
-            </p>
-          </section>
-
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
-            >
-              8. Governing Law
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              These Terms shall be governed by and construed in accordance with
-              the laws of India. Any disputes arising under these Terms shall be
-              subject to the exclusive jurisdiction of the courts in Mumbai,
-              Maharashtra, India.
-            </p>
-          </section>
-
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
-            >
-              9. Changes to Terms
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              We reserve the right to modify these Terms at any time. We will
-              notify users of any material changes by posting the new Terms on
-              this page and updating the "Last Updated" date.
-            </p>
-          </section>
-
-          <section style={{ marginBottom: "32px" }}>
-            <h2
-              style={{
-                fontSize: "20px",
-                fontWeight: 700,
-                marginBottom: "16px",
-                color: "#de6925",
-              }}
-            >
-              10. Contact Information
-            </h2>
-            <p style={{ marginBottom: "12px" }}>
-              If you have any questions about these Terms, please contact us
-              through our Contact Us page or reach out to our customer support.
-            </p>
-          </section>
-        </div>
-
-        <div
-          style={{
-            marginTop: "48px",
-            paddingTop: "24px",
-            borderTop: "1px solid #e0e0e0",
-            textAlign: "center",
-          }}
-        >
-          <a
-            href="/"
-            style={{
-              display: "inline-block",
-              padding: "12px 32px",
-              background: "linear-gradient(135deg, #de6925, #f8b14a)",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "12px",
-              fontWeight: 600,
-              transition: "transform 0.2s",
+          {/* Main Terms Card */}
+          <Paper
+            elevation={0}
+            sx={{
+              borderRadius: "20px",
+              padding: { xs: "24px", md: "40px" },
+              boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
+              color: "#444",
+              mb: 5,
             }}
           >
-            Back to Home
-          </a>
-        </div>
-      </div>
-    </div>
+            <section style={{ marginBottom: "32px" }}>
+              <Typography
+                variant="h6"
+                sx={{ color: "#1a1a1a", fontWeight: 700, mb: 1.5 }}
+              >
+                1. Acceptance of Terms
+              </Typography>
+              <Typography sx={{ lineHeight: 1.7 }}>
+                By accessing and using <strong>Dronacharya Academy</strong>,
+                operated by
+                <strong> {LEGAL_NAME}</strong> ("we", "us", "our"), you agree to
+                comply with and be bound by these Terms and Conditions. If you
+                do not agree, please do not use our services.
+              </Typography>
+            </section>
+
+            <Divider sx={{ mb: 4 }} />
+
+            <section style={{ marginBottom: "32px" }}>
+              <Typography
+                variant="h6"
+                sx={{ color: "#1a1a1a", fontWeight: 700, mb: 1.5 }}
+              >
+                2. Eligibility
+              </Typography>
+              <Typography sx={{ lineHeight: 1.7 }}>
+                Our services are available to individuals of all ages. However,
+                if you are under the age of 18, you represent that you are using
+                the service with the consent and supervision of a parent or
+                legal guardian.
+              </Typography>
+            </section>
+
+            <section style={{ marginBottom: "32px" }}>
+              <Typography
+                variant="h6"
+                sx={{ color: "#1a1a1a", fontWeight: 700, mb: 1.5 }}
+              >
+                3. Subscription and Access
+              </Typography>
+              <List sx={{ p: 0 }}>
+                {[
+                  "Access to practice papers is granted on a monthly subscription basis.",
+                  "Subscriptions are for individual use only. Account sharing is strictly prohibited.",
+                  "We reserve the right to terminate access if any suspicious activity is detected.",
+                ].map((text, index) => (
+                  <ListItem key={index} sx={{ px: 0, py: 0.5 }}>
+                    <ListItemIcon sx={{ minWidth: "35px" }}>
+                      <CheckCircleOutlineIcon
+                        sx={{ color: "#de6925", fontSize: "20px" }}
+                      />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={text}
+                      primaryTypographyProps={{
+                        fontSize: "15px",
+                        lineHeight: 1.6,
+                      }}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </section>
+
+            <section style={{ marginBottom: "32px" }}>
+              <Typography
+                variant="h6"
+                sx={{ color: "#1a1a1a", fontWeight: 700, mb: 1.5 }}
+              >
+                4. Intellectual Property
+              </Typography>
+              <Typography sx={{ lineHeight: 1.7 }}>
+                All content, including questions, papers, magazines, and
+                software, is the property of
+                <strong> Dronacharya Academy</strong>. Users are{" "}
+                <strong>not permitted</strong> to copy, reproduce, distribute,
+                or download content for commercial use. The service is for
+                "Online View Only" practice.
+              </Typography>
+            </section>
+
+            <section style={{ marginBottom: "32px" }}>
+              <Typography
+                variant="h6"
+                sx={{ color: "#1a1a1a", fontWeight: 700, mb: 1.5 }}
+              >
+                5. Account Security
+              </Typography>
+              <Typography sx={{ lineHeight: 1.7 }}>
+                Users are responsible for maintaining the confidentiality of
+                their credentials. Our platform provides a "Forgot Password"
+                feature via registered email. We are not liable for losses
+                resulting from unauthorized access due to user negligence.
+              </Typography>
+            </section>
+
+            {/* Jurisdiction Box */}
+            <Box
+              sx={{
+                backgroundColor: "#f8f9fa",
+                borderLeft: "5px solid #de6925",
+                padding: "20px",
+                borderRadius: "8px",
+                mb: 4,
+              }}
+            >
+              <Typography
+                variant="h6"
+                sx={{ color: "#1a1a1a", fontWeight: 700, mb: 1 }}
+              >
+                6. Governing Law
+              </Typography>
+              <Typography sx={{ fontSize: "15px" }}>
+                These terms shall be governed by the laws of India. Any disputes
+                shall be subject to the exclusive jurisdiction of the courts in{" "}
+                <strong>Karjat, Maharashtra</strong>.
+              </Typography>
+            </Box>
+
+            <section>
+              <Typography
+                variant="h6"
+                sx={{ color: "#1a1a1a", fontWeight: 700, mb: 1.5 }}
+              >
+                7. Contact Information
+              </Typography>
+              <Typography sx={{ lineHeight: 1.7 }}>
+                For any grievances or questions regarding these terms, please
+                contact us at:
+                <br />
+                <strong style={{ color: "#de6925" }}>{SUPPORT_EMAIL}</strong>
+              </Typography>
+            </section>
+          </Paper>
+        </Box>
+      </Box>
+      <Footer />
+    </>
   );
 };
 

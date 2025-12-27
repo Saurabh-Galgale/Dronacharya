@@ -22,7 +22,7 @@ const SubscriptionModal = ({ open, handleClose }) => {
 
   const handleRedirect = () => {
     handleClose();
-    navigate("/mock-papers"); // Or any other relevant page
+    navigate("/mock"); // Or any other relevant page
   };
 
   return (

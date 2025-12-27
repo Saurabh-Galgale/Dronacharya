@@ -19,10 +19,16 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const MockPapers = lazy(() => import("./pages/MockPapers")); // Mock Papers
 const PYQPapers = lazy(() => import("./pages/PYQPapers")); // PYQ Papers
 const QuestionPaper = lazy(() => import("./pages/QuestionPaper")); // Single Paper View
+
+// Payment Gateway terms & policy pages imports
 const ContactUs = lazy(() => import("./pages/policy/ContactUs"));
 const TermsAndConditions = lazy(() =>
   import("./pages/policy/TermsAndConditions")
 );
+const PrivacyPolicy = lazy(() => import("./pages/policy/PrivacyPolicy"));
+const RefundPolicy = lazy(() => import("./pages/policy/RefundPolicy"));
+const ShippingPolicy = lazy(() => import("./pages/policy/ShippingPolicy"));
+
 // const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -61,6 +67,9 @@ export default function App() {
               path="/terms-and-conditions"
               element={<TermsAndConditions />}
             />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="/refund-policy" element={<RefundPolicy />} />
+            <Route path="/shipping-and-delivery" element={<ShippingPolicy />} />
 
             <Route
               path="/mock/:paperId"
