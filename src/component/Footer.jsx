@@ -12,13 +12,14 @@ import {
 import { Link } from "react-router-dom";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
+import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 
 const Footer = () => {
   return (
     <Box
       component="footer"
       sx={{
-        bgcolor: "#0a0a0a", // Slightly darker for better contrast
+        bgcolor: "#0a0a0a",
         color: "white",
         pt: 8,
         pb: 4,
@@ -43,11 +44,28 @@ const Footer = () => {
             </Typography>
             <Typography
               variant="body2"
-              sx={{ color: "#999", mb: 3, maxWidth: 300 }}
+              sx={{ color: "#999", mb: 2, maxWidth: 300 }}
             >
               आपल्या यशासाठी समर्पित शैक्षणिक मंच. स्पर्धा परीक्षेच्या तयारीसाठी
               विश्वसनीय नाव.
             </Typography>
+
+            {/* PRICING LINE - CRUCIAL FOR BOT VERIFICATION */}
+            <Typography
+              variant="body2"
+              sx={{
+                color: "#de6925",
+                fontWeight: 600,
+                mb: 2,
+                bgcolor: "rgba(222, 105, 37, 0.1)",
+                display: "inline-block",
+                p: 0.5,
+                borderRadius: 1,
+              }}
+            >
+              Subscriptions start from just ₹199/month
+            </Typography>
+
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 <EmailIcon sx={{ fontSize: 18, color: "#de6925" }} />
@@ -131,11 +149,36 @@ const Footer = () => {
 
         <Divider sx={{ my: 4, borderColor: "#222" }} />
 
-        <Box sx={{ textAlign: "center" }}>
-          <Typography variant="caption" sx={{ color: "#666" }}>
+        {/* MERCHANT COMPLIANCE SECTION */}
+        <Box sx={{ textAlign: "center", mb: 2 }}>
+          <Typography
+            variant="caption"
+            sx={{ color: "#888", display: "block", mb: 1 }}
+          >
             © {new Date().getFullYear()} द्रोणाचार्य करिअर अकॅडमी. All rights
             reserved.
           </Typography>
+
+          <Box
+            sx={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 1,
+              bgcolor: "#1a1a1a",
+              px: 2,
+              py: 0.5,
+              borderRadius: 5,
+              border: "1px solid #333",
+            }}
+          >
+            <InfoOutlineIcon sx={{ fontSize: 14, color: "#de6925" }} />
+            <Typography
+              variant="caption"
+              sx={{ color: "#bbb", fontWeight: 500 }}
+            >
+              Operated by: <strong>Saurabh Rajendra Galgale</strong>
+            </Typography>
+          </Box>
         </Box>
       </Container>
     </Box>
