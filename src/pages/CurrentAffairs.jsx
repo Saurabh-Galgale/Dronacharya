@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 
 import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
-
-const MONTHS = ["ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"];
+import { getMagazines } from "../services/api";
 
 const gradients = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -20,17 +19,9 @@ const gradients = [
   "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
 ];
 
-const MAGAZINE_DATA = {
-  ऑक्टोबर:
-    "https://k%2FzHThxGxjmMyShUhfKIJm8%2BmSBJjZ2ZXlcSuJFSLrBFVwp6nfni%2BWNJTgNgQc6NS4gZQhmJ6BTBLhCgtJfHz63CQ%2BV536VZAxXUUf2k%2BHadWK9w5My5GMlBOy30ttXgVZXvjBen5ids9Kv6oSgOA5LE4AOtRbRQr4Ezfou7AYCGrJgYTCg2t%2B2PZYn14Lxyhde3GXVef6jeUiSROw0Kx5ptJdlVVerGfNg0w1Ym6ygY63wIfZVos%2BR2Pg9KiDmoSeklRz44xADedwAwf%2FkjXDBaaqpNBAUghJBChjLhnu2pD4IuAYl1S7CSpPh%2FQjHoZ%2F1ac5ZYsjRWfCVk%2FUJTt5QfZbyXALdLECviv402eTwYMqSPIBtx6T0SkaIxY%2BdLMZTLc%2ByeqRtpD0b3z%2BlTsLIkH3jc7Vkkm4gnyVuv1put0J20ZzB5NDJVxBngF3Zcz%2FSBvlaYuIGTbeAPVds4xixhjaB3c5vQZMhCwQRXsA8MG5u8ONsxI1hVUtrlyGrTk0H1xtjSgDsCW5OB7EtmNEBhyG5rORCan1KAhjsc1tUnWUyc9wHGhy5rExXd0upYFtmRaBWgYo0VTFQ%2B6cj24wMGppwVonultixRTpsU%2BMk5jNkcTDzFyE4PGewWZUyKh6XSEfBy4FA",
-  नोव्हेंबर:
-    "https://wN80zRFJDPvHHUsA1y19CfPUvWO%2Fis4om5cMrSS0ubglsoNq0lGC7uu%2FgAKKL5XLhzcTnkBZM6ZMzvd%2BjEXHWvpwJkVk5bhi5PdBiT5gszmso1Xr41RtvEB48WvhPq9%2BYDwInjU5jHikgX3%2BsZ8MbmPMLHdvS2eNE4GS7xISYvY36HYLm4nW2MDL%2F9jqt8nF9GWIT81mAFzv38x6rSthZbp4h4TziC5TuoyLll09vjZbyZLU7b7eRy4VjPu%2Bf8XXPigqKZ8QTMsDDvmbTKBjrdArn6i1hT1pROvo%2B%2FoGOxodcPnxxddnw0MNA%2FX5h2oZyp9ibN8aUmU9UQJBeSmHrb1jekYZ85AeqOCJDbppe10HhB6eFPOvnGBVZdnG%2FTsFJ8TrVdqkuRtG%2FAXaVaga943oeOR9ZcRqogL1foPsDbvcefRlqCWZVvQ5TTf6XxghvH6Ucy%2BNjpZHbh17PklnsUYxxVprAlvlg%2FLb8t%2FHiprT4cuuds%2FiO2gBBufeMee1uzxCzOiAoS1JfkDDdhP%2BbPR6sNhUeMladBZVjxaY227p9jRDZSzwl8NiFudj9L4VbmBJAraxmpApRYUc9sL0cacW3bCTSCbRGgJCGtWC%2BUCTPb34QSi3kGXk4u%2Bh6YfoIbaxpm9VaddxZqoKug1%2BGiZD%2FOnRe31gtfhr2WALpeEShkXztnmJlyAmtRG2eN%2BH4uEpx7UImltP23pmLxtJJZzihLZUR5j9ErstTRyio%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA5N4CGGRWTVOGDPSL%2F20251225%2Fap-south-1%2Fs3%2Faws",
-  डिसेंबर:
-    "https://RtvEB48WvhPq9%2BYDwInjU5jHikgX3%2BsZ8MbmPMLHdvS2eNE4GS7xISYvY36HYLm4nW2MDL%2F9jqt8nF9GWIT81mAFzv38x6rSthZbp4h4TziC5TuoyLll09vjZbyZLU7b7eRy4VjPu%2Bf8XXPigqKZ8QTMsDDvmbTKBjrdArn6i1hT1pROvo%2B%2FoGOxodcPnxxddnw0MNA%2FX5h2oZyp9ibN8aUmU9UQJBeSmHrb1jekYZ85AeqOCJDbppe10HhB6eFPOvnGBVZdnG%2FTsFJ8TrVdqkuRtG%2FAXaVaga943oeOR9ZcRqogL1foPsDbvcefRlqCWZVvQ5TTf6XxghvH6Ucy%2BNjpZHbh17PklnsUYxxVprAlvlg%2FLb8t%2FHiprT4cuuds%2FiO2gBBufeMee1uzxCzOiAoS1JfkDDdhP%2BbPR6sNhUeMladBZVjxaY227p9jRDZSzwl8NiFudj9L4VbmBJAraxmpApRYUc9sL0cacW3bCTSCbRGgJCGtWC%2BUCTPb34QSi3kGXk4u%2Bh6YfoIbaxpm9VaddxZqoKug1%2BGiZD%2FOnRe31gtfhr2WALpeEShkXztnmJlyAmtRG2eN%2BH4uEpx7UImltP23pmLxtJJZzihLZUR5j9ErstTRyio%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA5N4CGGRWTVOGDPSL%2F20251225%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20251225T103524Z&X-Amz-Expires=43200&X-Amz-SignedHeaders=host&X-Amz-Signature=e0",
-};
-
 const MagazineCard = ({
   month,
+  year,
   isOpen,
   onToggle,
   onOpenPdf,
@@ -102,7 +93,7 @@ const MagazineCard = ({
                 fontSize: "13px",
               }}
             >
-              २०२५
+              {year}
             </span>
           </div>
           <div style={{ padding: "0 24px 24px" }}>
@@ -259,9 +250,29 @@ const MagazineCard = ({
 };
 
 const MagazinePage = () => {
+  const [magazines, setMagazines] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [openMonthIndex, setOpenMonthIndex] = useState(null);
   const [openReader, setOpenReader] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState("");
+
+  useEffect(() => {
+    const fetchMagazines = async () => {
+      try {
+        setIsLoading(true);
+        const magazinesData = await getMagazines();
+        setMagazines(magazinesData.magazines);
+      } catch (err) {
+        setError(err.message || "Failed to fetch magazines.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMagazines();
+  }, []);
 
   return (
     <div
@@ -273,24 +284,51 @@ const MagazinePage = () => {
         marginRight: 12,
       }}
     >
-      {/* ... (Your existing Header and Mapping) */}
+      {isLoading && (
+        <div style={{ textAlign: "center", padding: "50px", fontSize: "18px" }}>
+          Loading Magazines...
+        </div>
+      )}
 
-      {MONTHS.map((month, index) => (
-        <MagazineCard
-          key={index}
-          month={month}
-          index={index}
-          imageUrl={MAGAZINE_DATA[month]}
-          isOpen={openMonthIndex === index}
-          onToggle={() =>
-            setOpenMonthIndex(openMonthIndex === index ? null : index)
-          }
-          onOpenPdf={(m) => {
-            setSelectedMonth(m);
-            setOpenReader(true);
+      {error && (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "50px",
+            fontSize: "18px",
+            color: "red",
           }}
-        />
-      ))}
+        >
+          {error}
+        </div>
+      )}
+
+      {!isLoading && !error && magazines.length === 0 && (
+        <div style={{ textAlign: "center", padding: "50px", fontSize: "18px" }}>
+          No magazines found.
+        </div>
+      )}
+
+      {!isLoading &&
+        !error &&
+        magazines.length > 0 &&
+        magazines.map((magazine, index) => (
+          <MagazineCard
+            key={magazine._id}
+            month={magazine.month}
+            year={magazine.year}
+            index={index}
+            imageUrl={magazine.coverUrl}
+            isOpen={openMonthIndex === index}
+            onToggle={() =>
+              setOpenMonthIndex(openMonthIndex === index ? null : index)
+            }
+            onOpenPdf={() => {
+              setSelectedMonth(magazine.month);
+              setOpenReader(true);
+            }}
+          />
+        ))}
 
       {/* FULL SCREEN PDF READER */}
       {openReader && (

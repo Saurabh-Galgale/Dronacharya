@@ -171,4 +171,29 @@ export async function getPaperSubmissions(paperId) {
   }
 }
 
+/* ================= MAGAZINES API ================= */
+
+/**
+ * Get all magazines (gallery view)
+ * Caches the result in sessionStorage.
+ * GET /api/magazines
+ */
+export async function getMagazines() {
+  const cacheKey = "magazines_cache";
+  try {
+    const cachedData = sessionStorage.getItem(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+
+    const res = await api.get("/api/magazines");
+    const magazinesData = res.data.data;
+
+    sessionStorage.setItem(cacheKey, JSON.stringify(magazinesData));
+    return magazinesData;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch magazines");
+  }
+}
+
 export default api;
