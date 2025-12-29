@@ -180,7 +180,17 @@ export async function getPaperSubmissions(paperId) {
 export async function getMagazines() {
   try {
     const res = await api.get("/api/magazines");
-    return res.data.data;
+    const data = res.data.data;
+
+    if (data && data.magazines) {
+      data.magazines.forEach((magazine) => {
+        if (magazine.coverUrl && !magazine.coverUrl.startsWith("http")) {
+          magazine.coverUrl = `https://${magazine.coverUrl}`;
+        }
+      });
+    }
+
+    return data;
   } catch (error) {
     throw new Error(error.message || "Failed to fetch magazines");
   }
@@ -194,7 +204,13 @@ export async function getMagazines() {
 export async function getMagazineById(magazineId) {
   try {
     const res = await api.get(`/api/magazines/${magazineId}`);
-    return res.data.data;
+    const magazine = res.data.data;
+
+    if (magazine && magazine.magazineUrl && !magazine.magazineUrl.startsWith("http")) {
+      magazine.magazineUrl = `https://${magazine.magazineUrl}`;
+    }
+
+    return magazine;
   } catch (error) {
     throw new Error(error.message || "Failed to fetch magazine details");
   }
