@@ -171,4 +171,47 @@ export async function getPaperSubmissions(paperId) {
   }
 }
 
+/* ================= MAGAZINES API ================= */
+
+/**
+ * Get all magazines
+ * GET /api/magazines
+ */
+export async function getMagazines() {
+  try {
+    const res = await api.get("/api/magazines");
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch magazines");
+  }
+}
+
+/**
+ * Get a single magazine by ID
+ * GET /api/magazines/:id
+ * @param {string} magazineId - Magazine ID
+ */
+export async function getMagazineById(magazineId) {
+  try {
+    const res = await api.get(`/api/magazines/${magazineId}`);
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch magazine details");
+  }
+}
+
+/**
+ * Get quiz questions for a magazine
+ * GET /api/magazines/:id/quiz
+ * @param {string} magazineId - Magazine ID
+ */
+export async function getMagazineQuiz(magazineId) {
+  try {
+    const res = await api.get(`/api/magazines/${magazineId}/quiz`);
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch magazine quiz");
+  }
+}
+
 export default api;
