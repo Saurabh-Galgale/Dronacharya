@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-
 import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import "@react-pdf-viewer/core/lib/styles/index.css";
-
-const MONTHS = ["ऑक्टोबर", "नोव्हेंबर", "डिसेंबर"];
+import { getMagazines, getMagazineById } from "../services/api"; // Assuming getMagazineById is also in api.js
+import Quiz from "../component/Quiz"; // Assuming Quiz component is in component folder
 
 const gradients = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -20,22 +19,13 @@ const gradients = [
   "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
 ];
 
-const MAGAZINE_DATA = {
-  ऑक्टोबर:
-    "https://k%2FzHThxGxjmMyShUhfKIJm8%2BmSBJjZ2ZXlcSuJFSLrBFVwp6nfni%2BWNJTgNgQc6NS4gZQhmJ6BTBLhCgtJfHz63CQ%2BV536VZAxXUUf2k%2BHadWK9w5My5GMlBOy30ttXgVZXvjBen5ids9Kv6oSgOA5LE4AOtRbRQr4Ezfou7AYCGrJgYTCg2t%2B2PZYn14Lxyhde3GXVef6jeUiSROw0Kx5ptJdlVVerGfNg0w1Ym6ygY63wIfZVos%2BR2Pg9KiDmoSeklRz44xADedwAwf%2FkjXDBaaqpNBAUghJBChjLhnu2pD4IuAYl1S7CSpPh%2FQjHoZ%2F1ac5ZYsjRWfCVk%2FUJTt5QfZbyXALdLECviv402eTwYMqSPIBtx6T0SkaIxY%2BdLMZTLc%2ByeqRtpD0b3z%2BlTsLIkH3jc7Vkkm4gnyVuv1put0J20ZzB5NDJVxBngF3Zcz%2FSBvlaYuIGTbeAPVds4xixhjaB3c5vQZMhCwQRXsA8MG5u8ONsxI1hVUtrlyGrTk0H1xtjSgDsCW5OB7EtmNEBhyG5rORCan1KAhjsc1tUnWUyc9wHGhy5rExXd0upYFtmRaBWgYo0VTFQ%2B6cj24wMGppwVonultixRTpsU%2BMk5jNkcTDzFyE4PGewWZUyKh6XSEfBy4FA",
-  नोव्हेंबर:
-    "https://wN80zRFJDPvHHUsA1y19CfPUvWO%2Fis4om5cMrSS0ubglsoNq0lGC7uu%2FgAKKL5XLhzcTnkBZM6ZMzvd%2BjEXHWvpwJkVk5bhi5PdBiT5gszmso1Xr41RtvEB48WvhPq9%2BYDwInjU5jHikgX3%2BsZ8MbmPMLHdvS2eNE4GS7xISYvY36HYLm4nW2MDL%2F9jqt8nF9GWIT81mAFzv38x6rSthZbp4h4TziC5TuoyLll09vjZbyZLU7b7eRy4VjPu%2Bf8XXPigqKZ8QTMsDDvmbTKBjrdArn6i1hT1pROvo%2B%2FoGOxodcPnxxddnw0MNA%2FX5h2oZyp9ibN8aUmU9UQJBeSmHrb1jekYZ85AeqOCJDbppe10HhB6eFPOvnGBVZdnG%2FTsFJ8TrVdqkuRtG%2FAXaVaga943oeOR9ZcRqogL1foPsDbvcefRlqCWZVvQ5TTf6XxghvH6Ucy%2BNjpZHbh17PklnsUYxxVprAlvlg%2FLb8t%2FHiprT4cuuds%2FiO2gBBufeMee1uzxCzOiAoS1JfkDDdhP%2BbPR6sNhUeMladBZVjxaY227p9jRDZSzwl8NiFudj9L4VbmBJAraxmpApRYUc9sL0cacW3bCTSCbRGgJCGtWC%2BUCTPb34QSi3kGXk4u%2Bh6YfoIbaxpm9VaddxZqoKug1%2BGiZD%2FOnRe31gtfhr2WALpeEShkXztnmJlyAmtRG2eN%2BH4uEpx7UImltP23pmLxtJJZzihLZUR5j9ErstTRyio%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA5N4CGGRWTVOGDPSL%2F20251225%2Fap-south-1%2Fs3%2Faws",
-  डिसेंबर:
-    "https://RtvEB48WvhPq9%2BYDwInjU5jHikgX3%2BsZ8MbmPMLHdvS2eNE4GS7xISYvY36HYLm4nW2MDL%2F9jqt8nF9GWIT81mAFzv38x6rSthZbp4h4TziC5TuoyLll09vjZbyZLU7b7eRy4VjPu%2Bf8XXPigqKZ8QTMsDDvmbTKBjrdArn6i1hT1pROvo%2B%2FoGOxodcPnxxddnw0MNA%2FX5h2oZyp9ibN8aUmU9UQJBeSmHrb1jekYZ85AeqOCJDbppe10HhB6eFPOvnGBVZdnG%2FTsFJ8TrVdqkuRtG%2FAXaVaga943oeOR9ZcRqogL1foPsDbvcefRlqCWZVvQ5TTf6XxghvH6Ucy%2BNjpZHbh17PklnsUYxxVprAlvlg%2FLb8t%2FHiprT4cuuds%2FiO2gBBufeMee1uzxCzOiAoS1JfkDDdhP%2BbPR6sNhUeMladBZVjxaY227p9jRDZSzwl8NiFudj9L4VbmBJAraxmpApRYUc9sL0cacW3bCTSCbRGgJCGtWC%2BUCTPb34QSi3kGXk4u%2Bh6YfoIbaxpm9VaddxZqoKug1%2BGiZD%2FOnRe31gtfhr2WALpeEShkXztnmJlyAmtRG2eN%2BH4uEpx7UImltP23pmLxtJJZzihLZUR5j9ErstTRyio%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA5N4CGGRWTVOGDPSL%2F20251225%2Fap-south-1%2Fs3%2Faws4_request&X-Amz-Date=20251225T103524Z&X-Amz-Expires=43200&X-Amz-SignedHeaders=host&X-Amz-Signature=e0",
-};
-
 const MagazineCard = ({
-  month,
+  magazine,
   isOpen,
   onToggle,
   onOpenPdf,
+  onOpenQuiz,
   index,
-  imageUrl,
 }) => {
   const cardRef = useRef(null);
 
@@ -51,12 +41,12 @@ const MagazineCard = ({
 
   return (
     <div
+      className="magazine-card"
       ref={cardRef}
       style={{
         marginBottom: "24px",
         width: "100%",
-        perspective: "2000px", // Increased perspective for smoother flip
-        // We set a height that fits a standard mobile screen but allows scroll
+        perspective: "2000px",
         height: isOpen ? "750px" : "180px",
         transition: "height 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
@@ -73,11 +63,11 @@ const MagazineCard = ({
           cursor: "pointer",
         }}
       >
-        {/* FRONT CARD - Stay Absolute */}
+        {/* FRONT CARD */}
         <div
           style={{
             position: "absolute",
-            inset: 0, // Fill the container
+            inset: 0,
             backfaceVisibility: "hidden",
             display: "flex",
             flexDirection: "column",
@@ -102,14 +92,14 @@ const MagazineCard = ({
                 fontSize: "13px",
               }}
             >
-              २०२५
+              {magazine.year}
             </span>
           </div>
           <div style={{ padding: "0 24px 24px" }}>
             <h2
               style={{ fontSize: "32px", fontWeight: 900, marginBottom: "8px" }}
             >
-              {month}
+              {magazine.month}
             </h2>
             <div
               style={{
@@ -125,11 +115,11 @@ const MagazineCard = ({
           </div>
         </div>
 
-        {/* BACK CARD - Perfect Flip & Perfect Fit */}
+        {/* BACK CARD */}
         <div
           style={{
             position: "absolute",
-            inset: 0, // Fill the container
+            inset: 0,
             backfaceVisibility: "hidden",
             transform: "rotateY(180deg)",
             display: "flex",
@@ -140,7 +130,6 @@ const MagazineCard = ({
             overflow: "hidden",
           }}
         >
-          {/* Header */}
           <div
             style={{
               padding: "16px 20px",
@@ -153,7 +142,7 @@ const MagazineCard = ({
             }}
           >
             <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700 }}>
-              {month} २०२५
+              {magazine.month} {magazine.year}
             </h3>
             <button
               onClick={(e) => {
@@ -174,15 +163,14 @@ const MagazineCard = ({
             </button>
           </div>
 
-          {/* Image Container - This now fits width perfectly */}
           <div style={{ flex: 1, overflowY: "auto", backgroundColor: "#fff" }}>
-            {imageUrl ? (
+            {magazine.coverUrl ? (
               <img
-                src={imageUrl}
-                alt={`${month} cover`}
+                src={magazine.coverUrl}
+                alt={`${magazine.month} cover`}
                 style={{
-                  width: "100%", // Force width fit
-                  height: "auto", // Natural height
+                  width: "100%",
+                  height: "auto",
                   display: "block",
                 }}
               />
@@ -194,8 +182,6 @@ const MagazineCard = ({
               </div>
             )}
 
-            {/* Buttons positioned inside scroll if image is too long, 
-                or pinned to bottom via flex */}
             <div
               style={{
                 padding: "20px",
@@ -207,7 +193,7 @@ const MagazineCard = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onOpenPdf(month);
+                  onOpenPdf(magazine._id);
                 }}
                 style={{
                   width: "100%",
@@ -231,6 +217,7 @@ const MagazineCard = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
+                  onOpenQuiz(magazine._id);
                 }}
                 style={{
                   width: "100%",
@@ -259,9 +246,64 @@ const MagazineCard = ({
 };
 
 const MagazinePage = () => {
+  const [magazines, setMagazines] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [openMonthIndex, setOpenMonthIndex] = useState(null);
   const [openReader, setOpenReader] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState("");
+  const [pdfUrl, setPdfUrl] = useState("");
+  const [selectedMagazineId, setSelectedMagazineId] = useState(null);
+  const [isQuizOpen, setIsQuizOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchMagazines = async () => {
+      try {
+        const cachedData = localStorage.getItem("magazines");
+        if (cachedData) {
+          const { timestamp, data } = JSON.parse(cachedData);
+          const isCacheValid = (new Date().getTime() - timestamp) / (1000 * 60 * 60 * 24) < 7;
+          if (isCacheValid) {
+            setMagazines(data);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        const data = await getMagazines();
+        setMagazines(data.magazines);
+        localStorage.setItem("magazines", JSON.stringify({ timestamp: new Date().getTime(), data: data.magazines }));
+      } catch (_error) {
+        setError("Failed to load magazines. Please refresh the page.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchMagazines();
+  }, []);
+
+  const handleOpenPdf = async (magazineId) => {
+    try {
+      const magazine = await getMagazineById(magazineId);
+      setPdfUrl(magazine.magazineUrl);
+      setOpenReader(true);
+    } catch (_error) {
+      setError("Failed to load magazine PDF.");
+    }
+  };
+
+  const handleOpenQuiz = (magazineId) => {
+    setSelectedMagazineId(magazineId);
+    setIsQuizOpen(true);
+  };
+
+  if (isLoading) {
+    return <div>Loading magazines...</div>;
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div
@@ -273,26 +315,20 @@ const MagazinePage = () => {
         marginRight: 12,
       }}
     >
-      {/* ... (Your existing Header and Mapping) */}
-
-      {MONTHS.map((month, index) => (
+      {magazines.map((magazine, index) => (
         <MagazineCard
-          key={index}
-          month={month}
+          key={magazine._id}
+          magazine={magazine}
           index={index}
-          imageUrl={MAGAZINE_DATA[month]}
           isOpen={openMonthIndex === index}
           onToggle={() =>
             setOpenMonthIndex(openMonthIndex === index ? null : index)
           }
-          onOpenPdf={(m) => {
-            setSelectedMonth(m);
-            setOpenReader(true);
-          }}
+          onOpenPdf={handleOpenPdf}
+          onOpenQuiz={handleOpenQuiz}
         />
       ))}
 
-      {/* FULL SCREEN PDF READER */}
       {openReader && (
         <div
           style={{
@@ -301,7 +337,7 @@ const MagazinePage = () => {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: "#1a1a1a", // Your original dark background
+            backgroundColor: "#1a1a1a",
             zIndex: 9999,
             display: "flex",
             flexDirection: "column",
@@ -330,11 +366,10 @@ const MagazinePage = () => {
               ←
             </button>
             <h2 style={{ margin: 0, fontSize: "18px" }}>
-              {selectedMonth} २०२५
+              Magazine
             </h2>
           </div>
 
-          {/* This is the part we fix to render the PDF */}
           <div
             style={{
               flex: 1,
@@ -344,14 +379,19 @@ const MagazinePage = () => {
           >
             <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
               <Viewer
-                // Point this to your assets.
-                // If "ऑक्टोबर" is clicked, it looks for /assets/pdfs/ऑक्टोबर.pdf
-                fileUrl={`/images/sample.pdf`}
+                fileUrl={pdfUrl}
                 defaultScale={SpecialZoomLevel.PageWidth}
               />
             </Worker>
           </div>
         </div>
+      )}
+
+      {isQuizOpen && (
+        <Quiz
+          magazineId={selectedMagazineId}
+          onClose={() => setIsQuizOpen(false)}
+        />
       )}
     </div>
   );
