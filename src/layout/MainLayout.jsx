@@ -91,7 +91,7 @@ export default function Layout({ children }) {
     { text: "मुख्यपृष्ठ", icon: <DashboardIcon />, path: "/dashboard" },
     { text: "सराव प्रश्नपत्रिका", icon: <ListIcon />, path: "/mock" },
     { text: "मागील प्रश्नपत्रिका", icon: <HistoryEduIcon />, path: "/pyq" },
-    // { text: "चालू घडामोडी", icon: <ArticleIcon />, path: "/ca" },
+    { text: "चालू घडामोडी", icon: <ArticleIcon />, path: "/ca" },
   ];
 
   const accountItems = [

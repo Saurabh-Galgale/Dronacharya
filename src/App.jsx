@@ -29,7 +29,7 @@ const PrivacyPolicy = lazy(() => import("./pages/policy/PrivacyPolicy"));
 const RefundPolicy = lazy(() => import("./pages/policy/RefundPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/policy/ShippingPolicy"));
 
-// const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
+const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Profile = lazy(() => import("./pages/Profile"));
 
@@ -106,7 +106,7 @@ export default function App() {
                       {/* <Route path="pyq/:paperId" element={<QuestionPaper />} /> */}
 
                       {/* Other Pages */}
-                      {/* <Route path="ca" element={<CurrentAffairs />} /> */}
+                      <Route path="ca" element={<CurrentAffairs />} />
                       <Route path="subscription" element={<Subscription />} />
                       <Route path="profile" element={<Profile />} />
 
