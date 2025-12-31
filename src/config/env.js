@@ -7,14 +7,6 @@ const PROD_URL = import.meta.env.VITE_AWS_API_BASE_URL;
 
 export const API_BASE_URL = mode === "development" ? TEST_URL : PROD_URL;
 
-if (!API_BASE_URL) {
-  console.warn("⚠️ API_BASE_URL is not defined", {
-    mode,
-    TEST_URL,
-    PROD_URL,
-  });
-}
-
 if (mode === "development") {
   console.log("🔧 DEV MODE API:", API_BASE_URL);
 }

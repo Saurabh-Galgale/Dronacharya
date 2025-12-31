@@ -22,11 +22,8 @@ const ContactUs = () => {
   const userEmail = userProfile?.email || "";
 
   // Compliance Details - Change these to match your Aadhaar/PAN exactly
-  const LEGAL_NAME = "Saurabh Rajendra Galgale";
+  const LEGAL_NAME = "Dronacharya Career Academy";
   const SUPPORT_EMAIL = "help.dronacharyacareeracademy@gmail.com";
-  const FULL_ADDRESS =
-    "Vinayaki krupa apt., Nana master nagar, Karjat, Maharashtra, 410201";
-  const PHONE_NUMBER = "+91 8600326056";
 
   const [formData, setFormData] = useState({
     email: userEmail,
@@ -203,24 +200,6 @@ const ContactUs = () => {
                     textTransform: "uppercase",
                   }}
                 >
-                  Operating Address
-                </h3>
-                <p
-                  style={{ color: "#666", fontSize: "14px", lineHeight: "1.5" }}
-                >
-                  {FULL_ADDRESS}
-                </p>
-              </div>
-
-              <div style={{ marginBottom: "24px" }}>
-                <h3
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: "#888",
-                    textTransform: "uppercase",
-                  }}
-                >
                   Support Email
                 </h3>
                 <p
@@ -231,22 +210,6 @@ const ContactUs = () => {
                   }}
                 >
                   {SUPPORT_EMAIL}
-                </p>
-              </div>
-
-              <div style={{ marginBottom: "24px" }}>
-                <h3
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: "#888",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Phone Number
-                </h3>
-                <p style={{ color: "#333", fontSize: "15px" }}>
-                  {PHONE_NUMBER}
                 </p>
               </div>
             </div>

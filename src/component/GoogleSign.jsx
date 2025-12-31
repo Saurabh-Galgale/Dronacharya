@@ -12,14 +12,6 @@ export default function GoogleSign({ onSuccess }) {
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
-    if (!clientId) {
-      setError("Google Client ID not configured");
-      console.error(
-        "VITE_GOOGLE_CLIENT_ID is missing in environment variables"
-      );
-      return;
-    }
-
     let interval;
     let mounted = true;
 

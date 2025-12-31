@@ -1,11 +1,11 @@
 // src/App.jsx
-import React, { Suspense, lazy, useEffect } from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { Box, CircularProgress } from "@mui/material";
 import theme from "./theme";
+import "./index.css";
 import PrivateRoute from "./component/PrivateRoute";
-import { getToken } from "./services/authService";
 
 // Public pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -47,13 +47,6 @@ const LoadingFallback = () => (
 );
 
 export default function App() {
-  useEffect(() => {
-    const token = getToken();
-    if (token) {
-      console.log("User is authenticated");
-    }
-  }, []);
-
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>

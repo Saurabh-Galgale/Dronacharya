@@ -11,7 +11,7 @@ import {
 
 const PaperCardSkeleton = ({ count = 3 }) => {
   return (
-    <Box sx={{ p: 2, pb: 4 }}>
+    <Box sx={{ p: 0.2, pb: 4, px: 2 }}>
       {/* Filter Toggle Skeleton */}
       <Box sx={{ mb: 2 }}>
         <ToggleButtonGroup
