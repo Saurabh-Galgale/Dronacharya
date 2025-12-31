@@ -376,9 +376,7 @@ const MockPapers = () => {
                             <LockIcon fontSize="medium" />
                           </IconButton>
                         </>
-                      ) : (
-                        <Box></Box>
-                      )}
+                      ) : null}
                     </Box>
 
                     <Button

@@ -3,6 +3,7 @@ import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
 import { Box, Typography } from "@mui/material";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import { getMagazines, getMagazineById } from "../services/api";
+import { getStoredUserProfile } from "../services/authService";
 import Quiz from "../component/Quiz";
 
 const gradients = [
@@ -20,6 +21,26 @@ const gradients = [
   "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
 ];
 
+const monthTranslations = {
+  january: "जानेवारी",
+  february: "फेब्रुवारी",
+  march: "मार्च",
+  april: "एप्रिल",
+  may: "मे",
+  june: "जून",
+  july: "जुलै",
+  august: "ऑगस्ट",
+  september: "सप्टेंबर",
+  october: "ऑक्टोबर",
+  november: "नोव्हेंबर",
+  december: "डिसेंबर",
+};
+
+const getMarathiMonth = (englishMonth) => {
+  if (!englishMonth) return "";
+  return monthTranslations[englishMonth.toLowerCase()] || englishMonth;
+};
+
 const getMarathiMessage = (msg) => {
   if (!msg) return "काहीतरी चूक झाली. कृपया पुन्हा प्रयत्न करा.";
   const lowerMsg = msg.toLowerCase();
@@ -32,6 +53,9 @@ const getMarathiMessage = (msg) => {
   }
   return "माहिती लोड करण्यात अडचण आली. कृपया नंतर प्रयत्न करा.";
 };
+
+const userProfile = getStoredUserProfile();
+const isSubscribed = userProfile?.subscription?.active || false;
 
 const MagazineCard = ({
   magazine,
@@ -117,7 +141,7 @@ const MagazineCard = ({
               {magazine.year}
             </span>
 
-            {isLocked && (
+            {isLocked && !isSubscribed ? (
               <div
                 style={{
                   backgroundColor: "rgba(0,0,0,0.3)",
@@ -129,13 +153,13 @@ const MagazineCard = ({
               >
                 🔒
               </div>
-            )}
+            ) : null}
           </div>
           <div style={{ padding: "0 24px 24px" }}>
             <h2
               style={{ fontSize: "32px", fontWeight: 900, marginBottom: "8px" }}
             >
-              {magazine.month}
+              {getMarathiMonth(magazine.month)}
             </h2>
             <div
               style={{
@@ -147,7 +171,9 @@ const MagazineCard = ({
             >
               <span>📚</span>
               <span style={{ fontSize: "14px" }}>
-                {isLocked ? "Premium मासिक" : "मोफत मासिक"}
+                {isLocked && !isSubscribed
+                  ? "Premium मासिक"
+                  : "मराठीत उपलब्ध मासिक"}
               </span>
             </div>
           </div>
@@ -181,9 +207,11 @@ const MagazineCard = ({
           >
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <h3 style={{ margin: 0, fontSize: "18px", fontWeight: 700 }}>
-                {magazine.month} {magazine.year}
+                {getMarathiMonth(magazine.month)} {magazine.year}
               </h3>
-              {isLocked && <span title="Subscription Required">🔒</span>}
+              {isLocked && !isSubscribed ? (
+                <span title="Subscription Required">🔒</span>
+              ) : null}
             </div>
             {/* <button
               onClick={(e) => {
@@ -213,7 +241,7 @@ const MagazineCard = ({
               flexDirection: "column",
             }}
           >
-            {isLocked && (
+            {isLocked && !isSubscribed ? (
               <div
                 style={{
                   backgroundColor: "#fff3e0",
@@ -227,7 +255,7 @@ const MagazineCard = ({
               >
                 सबस्क्रिप्शन आवश्यक 🔒
               </div>
-            )}
+            ) : null}
 
             <div
               style={{
@@ -298,7 +326,7 @@ const MagazineCard = ({
                   fontSize: "15px",
                 }}
               >
-                {isLocked ? "🔒 अनलॉक करा" : "📈 पूर्ण वाचा"}
+                {isLocked && !isSubscribed ? "🔒 अनलॉक करा" : "📈 पूर्ण वाचा"}
               </button>
 
               <button

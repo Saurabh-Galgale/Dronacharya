@@ -371,9 +371,7 @@ const PYQPapers = () => {
                             <LockIcon fontSize="medium" />
                           </IconButton>
                         </>
-                      ) : (
-                        <Box></Box>
-                      )}
+                      ) : null}
                     </Box>
 
                     <Button
