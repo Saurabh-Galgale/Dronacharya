@@ -1,11 +1,11 @@
 // src/App.jsx
-import React, { Suspense, lazy, useEffect } from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { Box, CircularProgress } from "@mui/material";
 import theme from "./theme";
+import "./index.css";
 import PrivateRoute from "./component/PrivateRoute";
-import { getToken } from "./services/authService";
 
 // Public pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -29,7 +29,7 @@ const PrivacyPolicy = lazy(() => import("./pages/policy/PrivacyPolicy"));
 const RefundPolicy = lazy(() => import("./pages/policy/RefundPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/policy/ShippingPolicy"));
 
-// const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
+const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Profile = lazy(() => import("./pages/Profile"));
 
@@ -47,13 +47,6 @@ const LoadingFallback = () => (
 );
 
 export default function App() {
-  useEffect(() => {
-    const token = getToken();
-    if (token) {
-      console.log("User is authenticated");
-    }
-  }, []);
-
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
@@ -106,7 +99,7 @@ export default function App() {
                       {/* <Route path="pyq/:paperId" element={<QuestionPaper />} /> */}
 
                       {/* Other Pages */}
-                      {/* <Route path="ca" element={<CurrentAffairs />} /> */}
+                      <Route path="ca" element={<CurrentAffairs />} />
                       <Route path="subscription" element={<Subscription />} />
                       <Route path="profile" element={<Profile />} />
 

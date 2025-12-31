@@ -94,7 +94,7 @@ export function setCachedPaper(paperId, data) {
 
     enforceCacheLimit();
   } catch (error) {
-    console.error("Failed to cache paper:", error);
+    // console.error("Failed to cache paper:", error);
   }
 }
 
@@ -119,6 +119,6 @@ export function removeCachedPaper(paperId) {
     const index = getCacheIndex().filter((id) => id !== paperId);
     setCacheIndex(index);
   } catch (error) {
-    console.error("Failed to remove cached paper:", error);
+    // console.error("Failed to remove cached paper:", error);
   }
 }

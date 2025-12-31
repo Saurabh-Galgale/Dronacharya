@@ -67,6 +67,7 @@ const QuestionPaper = () => {
   const [timerActive, setTimerActive] = useState(false);
   const [maxVisitedPage, setMaxVisitedPage] = useState(1);
 
+  const [refreshWarningOpen, setRefreshWarningOpen] = useState(false);
   // Submission states
   const [submitting, setSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState(null);
@@ -124,6 +125,18 @@ const QuestionPaper = () => {
       return () => clearInterval(interval);
     }
   }, [timerActive, timeRemaining]);
+
+  // Add this useEffect to handle the browser's native "Are you sure?" alert
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (!submissionData && !isViewMode && Object.keys(answers).length > 0) {
+        e.preventDefault();
+        e.returnValue = ""; // Standard for modern browsers
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [answers, submissionData, isViewMode]);
 
   const startTimer = (durationMinutes) => {
     const duration = (durationMinutes || 0) * 60;
@@ -216,7 +229,7 @@ const QuestionPaper = () => {
       setCachedPaper(paperId, { paper: paperData, questions, submission });
       setAllQuestions(questions);
     } catch (error) {
-      console.error("Error fetching all questions for caching:", error);
+      // console.error("Error fetching all questions for caching:", error);
       // Cache what we have anyway
       setCachedPaper(paperId, { paper: paperData, questions, submission });
     }
@@ -242,7 +255,7 @@ const QuestionPaper = () => {
         return updated;
       });
     } catch (err) {
-      console.error("Failed to load questions page:", err);
+      // console.error("Failed to load questions page:", err);
     } finally {
       setLoadingQuestions(false);
     }
@@ -565,7 +578,17 @@ const QuestionPaper = () => {
             }}
           >
             <IconButton
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (
+                  !submissionData &&
+                  !isViewMode &&
+                  Object.keys(answers).length > 0
+                ) {
+                  setRefreshWarningOpen(true);
+                } else {
+                  navigate(-1);
+                }
+              }}
               sx={{
                 position: "absolute",
                 left: 0,
@@ -752,60 +775,6 @@ const QuestionPaper = () => {
                   }}
                 >
                   <CardContent>
-                    {/* <Box
-                      sx={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        mb: 1.5,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <Chip
-                        label={q.category.toUpperCase()}
-                        size="small"
-                        sx={{
-                          bgcolor: "rgba(255,255,255,0.1)",
-                          color: "white",
-                          fontWeight: 600,
-                          fontSize: "0.7rem",
-                          letterSpacing: "0.5px",
-                        }}
-                      />
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          mt: { xs: 1, sm: 0 },
-                        }}
-                      >
-                        {status && (
-                          <Chip
-                            label={status.label}
-                            size="small"
-                            sx={{
-                              bgcolor: `${status.color}.main`,
-                              color: "white",
-                              fontWeight: 700,
-                            }}
-                          />
-                        )}
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            fontWeight: "bold",
-                            bgcolor: "rgba(0,0,0,0.4)",
-                            px: 1.5,
-                            py: 0.5,
-                            borderRadius: 1.5,
-                          }}
-                        >{`${submittedAnswer?.m || 0} / ${
-                          q.marks
-                        }`}</Typography>
-                      </Box>
-                    </Box> */}
-
                     <Typography
                       variant="body1"
                       sx={{ mb: 2, fontWeight: 600, pr: 1 }}
@@ -988,6 +957,21 @@ const QuestionPaper = () => {
             bgcolor: "#1a1a1a",
           }}
         >
+          <IconButton
+            onClick={toggleDrawer}
+            sx={{
+              bgcolor: "rgba(255,255,255,0.1)",
+              color: "white",
+              p: 0.4,
+              "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+            }}
+          >
+            {drawerHeight > 50 ? (
+              <KeyboardArrowDownIcon />
+            ) : (
+              <KeyboardArrowUpIcon />
+            )}
+          </IconButton>
           {submissionData ? (
             // View Mode: Only show Next Page button if not on the last page
             <>
@@ -1057,6 +1041,7 @@ const QuestionPaper = () => {
                   )}
                 </Button>
               )}
+
               <Typography
                 variant="body2"
                 sx={{ color: "rgba(255,255,255,0.7)" }}
@@ -1068,18 +1053,20 @@ const QuestionPaper = () => {
             </>
           )}
 
-          <IconButton
-            size="small"
-            onClick={() => setGridOpen(true)}
-            sx={{
-              p: 1,
-              bgcolor: "rgba(255,255,255,0.1)",
-              color: "white",
-              "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
-            }}
-          >
-            <GridViewIcon fontSize="medium" />
-          </IconButton>
+          {!isViewMode && (
+            <IconButton
+              size="small"
+              onClick={() => setGridOpen(true)}
+              sx={{
+                p: 1,
+                bgcolor: "rgba(255,255,255,0.1)",
+                color: "white",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+              }}
+            >
+              <GridViewIcon fontSize="medium" />
+            </IconButton>
+          )}
         </Box>
       </Box>
 
@@ -1198,6 +1185,79 @@ const QuestionPaper = () => {
             }}
           >
             सबमिट करा
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Refresh/Leave Warning Modal */}
+      <Dialog
+        open={refreshWarningOpen}
+        PaperProps={{
+          sx: {
+            bgcolor: "#1a1a1a",
+            color: "white",
+            borderRadius: "20px",
+            padding: "10px",
+            maxWidth: "350px",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ textAlign: "center", fontWeight: 900, color: "#de6925" }}
+        >
+          सावधान! (Warning)
+        </DialogTitle>
+        <DialogContent>
+          <Typography
+            sx={{ textAlign: "center", fontSize: "1.1rem", lineHeight: 1.6 }}
+          >
+            तुम्ही पेज रिफ्रेश केल्यास किंवा मागे गेल्यास तुमची उत्तरे पुसली
+            जातील आणि परीक्षा पुन्हा सुरुवातीपासून सुरू होईल.
+          </Typography>
+          <Box
+            sx={{
+              mt: 2,
+              p: 1.5,
+              bgcolor: "rgba(255,255,255,0.05)",
+              borderRadius: 2,
+            }}
+          >
+            <Typography
+              variant="body2"
+              sx={{ color: "#aaa", textAlign: "center" }}
+            >
+              तुम्हाला खरोखर परीक्षा थांबवून बाहेर पडायचे आहे का?
+            </Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ flexDirection: "column", gap: 1, p: 2 }}>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={() => setRefreshWarningOpen(false)}
+            sx={{
+              background: "linear-gradient(135deg, #de6925, #f8b14a)",
+              color: "white",
+              fontWeight: 800,
+              borderRadius: "12px",
+              py: 1.5,
+            }}
+          >
+            परीक्षा सुरू ठेवा (Continue Exam)
+          </Button>
+          <Button
+            fullWidth
+            onClick={() => {
+              setRefreshWarningOpen(false);
+              navigate(-1); // Or handle cleanup
+            }}
+            sx={{
+              color: "#ef5350",
+              fontWeight: 600,
+              fontSize: "0.9rem",
+            }}
+          >
+            हो, परीक्षा थांबवा (Yes, Stop Exam)
           </Button>
         </DialogActions>
       </Dialog>

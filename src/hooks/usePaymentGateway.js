@@ -109,7 +109,6 @@ const usePaymentGateway = () => {
         },
         modal: {
           ondismiss: function () {
-            console.log("User cancelled payment.");
             toast.dismiss(toastId);
           },
         },

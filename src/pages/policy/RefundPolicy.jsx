@@ -8,7 +8,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 const RefundPolicy = () => {
   const navigate = useNavigate();
   const lastUpdated = "December 27, 2025";
-  const LEGAL_NAME = "Saurabh Rajendra Galgale";
+  const LEGAL_NAME = "Dronacharya Career Academy";
   const SUPPORT_EMAIL = "help.dronacharyacareeracademy@gmail.com";
 
   return (

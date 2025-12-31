@@ -6,11 +6,8 @@ import { useNavigate } from "react-router-dom";
 const PrivacyPolicy = () => {
   const navigate = useNavigate();
   const lastUpdated = "December 27, 2025";
-  const LEGAL_NAME = "Saurabh Rajendra Galgale";
+  const LEGAL_NAME = "Dronacharya Career Academy";
   const SUPPORT_EMAIL = "help.dronacharyacareeracademy@gmail.com";
-  const ADDRESS =
-    "Vinayaki krupa apt., Nana master nagar, Karjat, Maharashtra, 410201";
-
   return (
     <>
       <div
@@ -214,9 +211,6 @@ const PrivacyPolicy = () => {
               </p>
               <p style={{ margin: "5px 0" }}>
                 <strong>Email:</strong> {SUPPORT_EMAIL}
-              </p>
-              <p style={{ margin: "5px 0" }}>
-                <strong>Address:</strong> {ADDRESS}
               </p>
             </div>
           </div>

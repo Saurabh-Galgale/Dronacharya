@@ -73,12 +73,6 @@ const Footer = () => {
                   help.dronacharyacareeracademy@gmail.com
                 </Typography>
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                <PhoneIcon sx={{ fontSize: 18, color: "#de6925" }} />
-                <Typography variant="body2" sx={{ color: "#bbb" }}>
-                  +91 8600326056
-                </Typography>
-              </Box>
             </Box>
           </Grid>
 
@@ -158,27 +152,6 @@ const Footer = () => {
             © {new Date().getFullYear()} द्रोणाचार्य करिअर अकॅडमी. All rights
             reserved.
           </Typography>
-
-          <Box
-            sx={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 1,
-              bgcolor: "#1a1a1a",
-              px: 2,
-              py: 0.5,
-              borderRadius: 5,
-              border: "1px solid #333",
-            }}
-          >
-            <InfoOutlineIcon sx={{ fontSize: 14, color: "#de6925" }} />
-            <Typography
-              variant="caption"
-              sx={{ color: "#bbb", fontWeight: 500 }}
-            >
-              Operated by: <strong>Saurabh Rajendra Galgale</strong>
-            </Typography>
-          </Box>
         </Box>
       </Container>
     </Box>
