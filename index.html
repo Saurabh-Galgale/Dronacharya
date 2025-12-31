@@ -76,6 +76,8 @@
       </div>
     </div>
 
+    <script type="module" src="/src/main.jsx"></script>
+
     <script>
       (function () {
         const ua = navigator.userAgent;
@@ -98,26 +100,26 @@
           !isMacDesktop &&
           !isLinuxDesktop
         ) {
-          // Extra check: Screens larger than 1024px are almost never phones
           if (window.innerWidth <= 700) {
             allowed = true;
           }
         }
 
-        // FORCE BLOCK if it's a Macbook/PC even in "Responsive Mode"
         if (isWindows || isMacDesktop) {
           allowed = false;
         }
 
-        if (allowed) {
-          const script = document.createElement("script");
-          script.type = "module";
-          script.src = "/src/main.jsx";
-          document.body.appendChild(script);
+        const rootEl = document.getElementById("root");
+        const blockerEl = document.getElementById("desktop-blocker");
+
+        if (!allowed) {
+          console.error("Access Blocked: Not a mobile device.");
+          if (rootEl) rootEl.style.display = "none";
+          if (blockerEl) blockerEl.style.display = "flex";
+          window.stop();
         } else {
-          console.error("Access Blocked!");
-          document.getElementById("root").remove();
-          document.getElementById("desktop-blocker").style.display = "flex";
+          if (rootEl) rootEl.style.display = "block";
+          if (blockerEl) blockerEl.style.display = "none";
         }
       })();
     </script>
