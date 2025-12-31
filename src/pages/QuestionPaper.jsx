@@ -263,7 +263,8 @@ const QuestionPaper = () => {
 
   const handleAutoSubmit = async () => {
     alert("वेळ संपली! पेपर स्वयंचलितपणे सबमिट केला जात आहे.");
-    await handleSubmit();
+    const maxSeconds = (paper.durationMinutes || 0) * 60;
+    await handleSubmit(maxSeconds);
   };
 
   const handleRetry = () => {
@@ -271,14 +272,17 @@ const QuestionPaper = () => {
     window.location.reload();
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (forcedTime = null) => {
+    const timeSpent =
+      forcedTime !== null
+        ? forcedTime
+        : Math.floor((Date.now() - startTimeRef.current) / 1000);
+
     setConfirmDialog(false);
     setSubmitting(true);
     setTimerActive(false);
 
     try {
-      const timeSpent = Math.floor((Date.now() - startTimeRef.current) / 1000);
-
       // Format answers for backend: { questionId: selectedOption }
       const formattedAnswers = {};
       Object.keys(answers).forEach((qId) => {
@@ -1161,9 +1165,9 @@ const QuestionPaper = () => {
         <DialogTitle>पेपर सबमिट करायचे?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            तुम्ही <strong>{attemptedCount}</strong> पैकी{" "}
-            <strong>{paper.totalQuestions || allQuestions.length}</strong>{" "}
-            प्रश्न सोडवले आहेत.
+            तुम्ही{" "}
+            <strong>{paper.totalQuestions || allQuestions.length}</strong> पैकी{" "}
+            <strong>{attemptedCount}</strong> प्रश्न सोडवले आहेत.
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.7 }}>
             सबमिट केल्यानंतर तुम्ही उत्तरे बदलू शकणार नाही.
@@ -1177,7 +1181,7 @@ const QuestionPaper = () => {
             रद्द करा
           </Button>
           <Button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit()}
             variant="contained"
             sx={{
               background: "linear-gradient(135deg, #de6925, #f8b14a)",

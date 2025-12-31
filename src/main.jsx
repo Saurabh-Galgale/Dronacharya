@@ -47,19 +47,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// ReactDOM.createRoot(document.getElementById("root")).render(
-//   <React.StrictMode>
-//     <ThemeProvider theme={theme}>
-//       <CssBaseline />
-//       <ErrorBoundary>
-//         <LocalizationProvider dateAdapter={AdapterDayjs}>
-//           <App />
-//         </LocalizationProvider>
-//       </ErrorBoundary>
-//     </ThemeProvider>
-//   </React.StrictMode>
-// );
-
 ReactDOM.createRoot(document.getElementById("root")).render(
   <ThemeProvider theme={theme}>
     <CssBaseline />
