@@ -85,6 +85,29 @@ async function fetchPapers(type, filter = "unsolved", page = 1, limit = 20) {
   }
 }
 
+/* ================= BLOGS API ================= */
+
+/**
+ * Get blogs with pagination and filtering
+ * GET /api/blogs?page=1&limit=10&category=gk&subCategory=politics
+ * @param {number} page - Page number
+ * @param {number} limit - Items per page
+ * @param {string} [category] - Optional category filter
+ * @param {string} [subCategory] - Optional sub-category filter
+ */
+export async function getBlogs(page = 1, limit = 2, category, subCategory) {
+  try {
+    const params = { page, limit };
+    if (category) params.category = category;
+    if (subCategory) params.subCategory = subCategory;
+
+    const res = await api.get("/api/blogs", { params });
+    return res.data; // { success, count, pagination, data }
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch blogs");
+  }
+}
+
 // Mock Papers
 export const getSolvedMockPapers = (page, limit) =>
   fetchPapers("mock", "solved", page, limit);

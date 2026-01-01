@@ -32,6 +32,7 @@ const ShippingPolicy = lazy(() => import("./pages/policy/ShippingPolicy"));
 const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Blogs = lazy(() => import("./pages/Blogs"));
 
 // Loading fallback
 const LoadingFallback = () => (
@@ -102,6 +103,7 @@ export default function App() {
                       <Route path="ca" element={<CurrentAffairs />} />
                       <Route path="subscription" element={<Subscription />} />
                       <Route path="profile" element={<Profile />} />
+                      <Route path="blogs" element={<Blogs />} />
 
                       {/* Default redirect */}
                       <Route
