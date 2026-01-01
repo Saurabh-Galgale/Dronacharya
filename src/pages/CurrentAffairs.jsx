@@ -544,7 +544,7 @@ const MagazinePage = () => {
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
-              fontSize: { xs: "2.5rem", sm: "3rem", md: "3.75rem" },
+              fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
               letterSpacing: "-0.02em",
               lineHeight: 1.2,
               textShadow: "0 4px 12px rgba(222, 105, 37, 0.15)",

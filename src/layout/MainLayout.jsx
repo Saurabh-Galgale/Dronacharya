@@ -24,22 +24,21 @@ import {
   Button,
   Menu,
   MenuItem,
-  Container,
-  Grid,
 } from "@mui/material";
 
+import HomeIcon from "@mui/icons-material/Home";
+import QuizIcon from "@mui/icons-material/Quiz";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
+import NewspaperIcon from "@mui/icons-material/Newspaper";
+import EditNoteIcon from "@mui/icons-material/EditNote";
+import CardMembershipIcon from "@mui/icons-material/CardMembership";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+
 import MenuIcon from "@mui/icons-material/Menu";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import ListIcon from "@mui/icons-material/List";
 import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
-import ArticleIcon from "@mui/icons-material/Article";
 import SubscriptionsIcon from "@mui/icons-material/Subscriptions";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-import HistoryEduIcon from "@mui/icons-material/HistoryEdu";
-import EmailIcon from "@mui/icons-material/Email";
-import PhoneIcon from "@mui/icons-material/Phone";
-import LocationOnIcon from "@mui/icons-material/LocationOn";
 
 import Footer from "../component/Footer";
 import { useTheme } from "@mui/material/styles";
@@ -81,6 +80,9 @@ export default function Layout({ children }) {
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
+  const hideFooterPaths = ["/blogs"];
+  const shouldShowFooter = !hideFooterPaths.includes(location.pathname);
+
   const handleLogout = () => {
     clearToken?.();
     window.location.assign("/");
@@ -88,15 +90,16 @@ export default function Layout({ children }) {
 
   // Sidebar Menu Logic
   const menuItems = [
-    { text: "मुख्यपृष्ठ", icon: <DashboardIcon />, path: "/dashboard" },
-    { text: "सराव प्रश्नपत्रिका", icon: <ListIcon />, path: "/mock" },
-    { text: "मागील प्रश्नपत्रिका", icon: <HistoryEduIcon />, path: "/pyq" },
-    { text: "चालू घडामोडी", icon: <ArticleIcon />, path: "/ca" },
+    { text: "मुख्यपृष्ठ", icon: <HomeIcon />, path: "/dashboard" },
+    { text: "सराव प्रश्नपत्रिका", icon: <QuizIcon />, path: "/mock" },
+    { text: "मागील प्रश्नपत्रिका", icon: <MenuBookIcon />, path: "/pyq" },
+    { text: "चालू घडामोडी", icon: <NewspaperIcon />, path: "/ca" },
+    { text: "लेख", icon: <EditNoteIcon />, path: "/blogs" },
   ];
 
   const accountItems = [
-    { text: "सदस्यता", icon: <SubscriptionsIcon />, path: "/subscription" },
-    { text: "माझे खाते", icon: <PersonIcon />, path: "/profile" },
+    { text: "सदस्यता", icon: <CardMembershipIcon />, path: "/subscription" },
+    { text: "माझे खाते", icon: <AccountCircleIcon />, path: "/profile" },
   ];
 
   const drawerContent = (
@@ -365,7 +368,7 @@ export default function Layout({ children }) {
         <Box sx={{ flexGrow: 1 }}>{children}</Box>
 
         {/* Footer Component */}
-        <Footer />
+        {shouldShowFooter && <Footer />}
       </Box>
 
       {/* Global Logout Confirmation Dialog */}

@@ -1,0 +1,188 @@
+/* --- Rotating Filter Trigger --- */
+.filterTrigger {
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+
+.filterTrigger:active {
+  transform: scale(0.9);
+}
+
+.rotatingIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  animation: smoothRotate 8s linear infinite; /* Professional speed */
+}
+
+@keyframes smoothRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Professional Filter Inputs --- */
+.filterSelect {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 15px;
+  width: 100%;
+  appearance: none;
+  outline: none;
+  transition: border 0.3s ease;
+}
+
+.filterSelect:focus {
+  border-color: #007bff;
+}
+
+/* --- Swipe Hint Animations (Your Existing Logic) --- */
+.swipeIndicatorContainer {
+  position: absolute;
+  top: 50%;
+  right: 15%;
+  transform: translateY(-50%);
+  z-index: 100;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.swipePath {
+  position: absolute;
+  right: 25px;
+  height: 50px;
+  background: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(0, 200, 255, 0.2) 50%,
+    rgba(255, 100, 255, 0.4) 100%
+  );
+  border-radius: 25px;
+  width: 0;
+  filter: blur(6px);
+  animation: pathGrow 3s infinite ease-in-out;
+}
+
+.swipeHandWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: swipeAction 3s infinite ease-in-out;
+}
+
+.swipeCircle {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  z-index: 2;
+  animation: pressAndColor 3s infinite ease-in-out;
+}
+
+.swipeArrow {
+  position: absolute;
+  color: white;
+  font-size: 24px;
+  font-weight: bold;
+  opacity: 0;
+  z-index: 3;
+  animation: arrowFade 3s infinite ease-in-out;
+}
+
+@keyframes pressAndColor {
+  0% {
+    transform: scale(1.8);
+    opacity: 0;
+    background: rgba(255, 255, 255, 0.1);
+  }
+  20% {
+    transform: scale(1);
+    opacity: 1;
+    background: rgba(0, 200, 255, 0.5);
+    border-color: #00c8ff;
+    box-shadow: 0 0 25px rgba(0, 200, 255, 0.6);
+  }
+  35% {
+    transform: scale(0.95);
+    background: rgba(255, 100, 255, 0.5);
+    border-color: #ff64ff;
+  }
+  85% {
+    transform: scale(0.95);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes swipeAction {
+  0%,
+  30% {
+    transform: translateX(0);
+  }
+  65%,
+  85% {
+    transform: translateX(-160px);
+  }
+  100% {
+    transform: translateX(-160px);
+    opacity: 0;
+  }
+}
+
+@keyframes pathGrow {
+  0%,
+  30% {
+    width: 0;
+    opacity: 0;
+  }
+  35% {
+    opacity: 1;
+  }
+  65%,
+  85% {
+    width: 160px;
+    opacity: 1;
+  }
+  100% {
+    width: 160px;
+    opacity: 0;
+  }
+}
+
+@keyframes arrowFade {
+  0%,
+  45% {
+    opacity: 0;
+  }
+  55%,
+  80% {
+    opacity: 1;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 0;
+  }
+}
