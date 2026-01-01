@@ -1,15 +1,12 @@
-// main.jsx
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from "./theme";
-
-// MUI pickers
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import ErrorPage from "./component/ErrorPage"; // Import the new component
 
-// 🔹 Simple error boundary
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -17,32 +14,27 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    // Update state so the next render will show the fallback UI.
     return { hasError: true, error };
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error("React error caught by ErrorBoundary:", error, errorInfo);
+    // You can also log the error to an error reporting service like Sentry
+    console.error("Critical Crash Caught:", error, errorInfo);
   }
+
+  resetError = () => {
+    this.setState({ hasError: false, error: null });
+  };
 
   render() {
     if (this.state.hasError) {
+      // Professional Mobile UI Fallback
       return (
-        <div
-          style={{
-            background: "black",
-            color: "red",
-            minHeight: "100vh",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: "20px",
-            fontWeight: "bold",
-          }}
-        >
-          ⚠️ Something went wrong: {this.state.error?.message}
-        </div>
+        <ErrorPage error={this.state.error} resetError={this.resetError} />
       );
     }
+
     return this.props.children;
   }
 }
@@ -57,6 +49,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     </ErrorBoundary>
   </ThemeProvider>
 );
+
+// Service worker registration remains same below...
 
 // Register service worker for image caching (public/sw.js)
 // Note: SWs only register on https or localhost.

@@ -411,8 +411,12 @@ const MagazinePage = () => {
     setIsPdfLoading(true);
     try {
       const magazine = await getMagazineById(magazineId);
-      setPdfUrl(magazine.magazineUrl);
-      setOpenReader(true);
+      if (magazine && magazine.magazineUrl) {
+        setPdfUrl(magazine.magazineUrl);
+        setOpenReader(true);
+      } else {
+        setError("पीडीएफ लिंक सापडली नाही (PDF Link not found)");
+      }
     } catch (err) {
       const backendMessage = err.response?.data?.message || err.message;
       const lowerMsg = backendMessage.toLowerCase();
@@ -621,7 +625,7 @@ const MagazinePage = () => {
         </div>
       )}
 
-      {openReader && (
+      {openReader && pdfUrl && (
         <div
           style={{
             position: "fixed",
