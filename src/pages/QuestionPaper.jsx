@@ -87,16 +87,28 @@ const QuestionPaper = () => {
   }, [paperId]);
 
   useEffect(() => {
-    // This effect handles loading subsequent pages if the paper wasn't fully cached initially
     const isCached = !!getCachedPaper(paperId);
     if (paper && !isCached) {
-      loadQuestionsForPage();
+      loadQuestionsForPage(currentQuestionPage);
+      // Pre-fetch the next page
+      if (currentQuestionPage < totalQuestionPages) {
+        loadQuestionsForPage(currentQuestionPage + 1);
+      }
     }
-  }, [currentQuestionPage, paper]);
+  }, [currentQuestionPage, paper, totalQuestionPages]);
 
   useEffect(() => {
     setMaxVisitedPage((prev) => Math.max(prev, currentQuestionPage));
   }, [currentQuestionPage]);
+
+  useEffect(() => {
+    // Update cache whenever allQuestions changes, but only if not loading initial data
+    if (!loading && paper) {
+      const cachedData = getCachedPaper(paperId) || { paper };
+      const updatedCache = { ...cachedData, questions: allQuestions };
+      setCachedPaper(paperId, updatedCache);
+    }
+  }, [allQuestions, paperId, loading, paper]);
 
   useEffect(() => {
     // Logic to show retry button on data mismatch
@@ -174,29 +186,19 @@ const QuestionPaper = () => {
         questionLimit
       );
       setPaper(data.paper);
-      setAllQuestions(data.questions || []);
+      const initialQuestions = Array(data.paper.totalQuestions).fill(null);
+      (data.questions || []).forEach((q, i) => {
+        initialQuestions[i] = q;
+      });
+      setAllQuestions(initialQuestions);
       setTotalQuestionPages(data.totalPages || 1);
 
       if (isViewMode) {
         const submissionRes = await getPaperSubmissions(paperId);
         const submission = submissionRes?.[0] || null;
         setSubmissionData(submission);
-        // Fetch all other questions and cache everything in the background
-        fetchAllQuestionsAndCache(
-          data.paper,
-          data.questions,
-          data.totalPages,
-          submission
-        );
       } else {
         startTimer(data.paper.durationMinutes);
-        // Fetch and cache in background
-        fetchAllQuestionsAndCache(
-          data.paper,
-          data.questions,
-          data.totalPages,
-          null
-        );
       }
     } catch (err) {
       setError(err.message || "Failed to load paper data.");
@@ -208,55 +210,32 @@ const QuestionPaper = () => {
     }
   };
 
-  const fetchAllQuestionsAndCache = async (
-    paperData,
-    firstPageQuestions,
-    totalPages,
-    submission
-  ) => {
-    let questions = [...firstPageQuestions];
-    try {
-      if (totalPages > 1) {
-        const promises = [];
-        for (let i = 2; i <= totalPages; i++) {
-          promises.push(
-            getPaperWithQuestions(paperType, paperId, i, questionLimit)
-          );
-        }
-        const results = await Promise.all(promises);
-        results.forEach((page) => questions.push(...(page.questions || [])));
-      }
-      setCachedPaper(paperId, { paper: paperData, questions, submission });
-      setAllQuestions(questions);
-    } catch (error) {
-      // console.error("Error fetching all questions for caching:", error);
-      // Cache what we have anyway
-      setCachedPaper(paperId, { paper: paperData, questions, submission });
-    }
-  };
+  const loadingPages = useRef(new Set());
+  const loadQuestionsForPage = async (page) => {
+    const startIndex = (page - 1) * questionLimit;
+    if (allQuestions[startIndex] || loadingPages.current.has(page)) return;
 
-  const loadQuestionsForPage = async () => {
-    const startIndex = (currentQuestionPage - 1) * questionLimit;
-    if (allQuestions[startIndex]) return; // Already loaded
+    setLoadingQuestions(page === currentQuestionPage);
+    loadingPages.current.add(page);
 
-    setLoadingQuestions(true);
     try {
       const data = await getPaperWithQuestions(
         paperType,
         paperId,
-        currentQuestionPage,
+        page,
         questionLimit
       );
       setAllQuestions((prev) => {
         const updated = [...prev];
-        data.questions.forEach((q, i) => {
+        (data.questions || []).forEach((q, i) => {
           updated[startIndex + i] = q;
         });
         return updated;
       });
     } catch (err) {
-      // console.error("Failed to load questions page:", err);
+      // console.error(`Failed to load questions for page ${page}:`, err);
     } finally {
+      loadingPages.current.delete(page);
       setLoadingQuestions(false);
     }
   };
@@ -333,6 +312,13 @@ const QuestionPaper = () => {
         paper,
         questions: allQuestions,
         submission: completeSubmissionData,
+      });
+
+      // Invalidate the session storage for the paper list
+      Object.keys(sessionStorage).forEach((key) => {
+        if (key.startsWith(`${paperType}_`)) {
+          sessionStorage.removeItem(key);
+        }
       });
     } catch (err) {
       alert(err.message || "सबमिट अयशस्वी झाले. पुन्हा प्रयत्न करा.");
@@ -491,6 +477,8 @@ const QuestionPaper = () => {
     const startIdx = (currentQuestionPage - 1) * questionLimit;
     return allQuestions.slice(startIdx, startIdx + questionLimit);
   }, [allQuestions, currentQuestionPage, questionLimit]);
+
+  const isCurrentPageLoading = currentPageQuestions.some((q) => q === null);
 
   if (loading) {
     return (
@@ -727,7 +715,7 @@ const QuestionPaper = () => {
         </Box>
 
         <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
-          {loadingQuestions && currentPageQuestions.length === 0 ? (
+          {loadingQuestions || isCurrentPageLoading ? (
             <Box sx={{ textAlign: "center", py: 4 }}>
               <CircularProgress sx={{ color: "white" }} />
             </Box>
@@ -1107,9 +1095,30 @@ const QuestionPaper = () => {
 
           <Grid container spacing={1}>
             {allQuestions.map((q, i) => {
-              const attempted = answers[q._id];
               const pageNum = Math.floor(i / questionLimit) + 1;
-
+              if (!q) {
+                return (
+                  <Grid item key={i}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 1.5,
+                        bgcolor: "#2a2a2a",
+                        color: "white",
+                        opacity: 0.5,
+                      }}
+                    >
+                      {i + 1}
+                    </Paper>
+                  </Grid>
+                );
+              }
+              const attempted = answers[q._id];
               return (
                 <Grid item key={q._id}>
                   <Paper
