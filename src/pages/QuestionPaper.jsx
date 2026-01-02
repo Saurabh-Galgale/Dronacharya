@@ -478,6 +478,8 @@ const QuestionPaper = () => {
     return allQuestions.slice(startIdx, startIdx + questionLimit);
   }, [allQuestions, currentQuestionPage, questionLimit]);
 
+  const isCurrentPageLoading = currentPageQuestions.some((q) => q === null);
+
   if (loading) {
     return (
       <Box
@@ -713,7 +715,7 @@ const QuestionPaper = () => {
         </Box>
 
         <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
-          {loadingQuestions && currentPageQuestions.length === 0 ? (
+          {loadingQuestions || isCurrentPageLoading ? (
             <Box sx={{ textAlign: "center", py: 4 }}>
               <CircularProgress sx={{ color: "white" }} />
             </Box>
@@ -1093,9 +1095,30 @@ const QuestionPaper = () => {
 
           <Grid container spacing={1}>
             {allQuestions.map((q, i) => {
-              const attempted = answers[q._id];
               const pageNum = Math.floor(i / questionLimit) + 1;
-
+              if (!q) {
+                return (
+                  <Grid item key={i}>
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        width: 38,
+                        height: 38,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 1.5,
+                        bgcolor: "#2a2a2a",
+                        color: "white",
+                        opacity: 0.5,
+                      }}
+                    >
+                      {i + 1}
+                    </Paper>
+                  </Grid>
+                );
+              }
+              const attempted = answers[q._id];
               return (
                 <Grid item key={q._id}>
                   <Paper

@@ -35,7 +35,8 @@ const PaperList = ({ paperType }) => {
   const limit = 20;
 
   const userProfile = getStoredUserProfile();
-  const isSubscribed = userProfile?.subscription?.isActive || false;
+  const isSubscribed =
+    userProfile?.subscription?.isActive || userProfile?.subscription?.active || false;
 
   const apiMap = {
     mock: {
@@ -87,7 +88,7 @@ const PaperList = ({ paperType }) => {
       setSubscriptionDialog(true);
       return;
     }
-    const path = filter === 'solved' ? `/${paperType}/${paper._id}` : `/${paperType}/${paper._id}`;
+    const path = `/${paperType}/${paper._id}`;
     const state = filter === 'solved' ? { state: { viewMode: true } } : {};
     navigate(path, state);
   };

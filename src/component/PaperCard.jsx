@@ -104,6 +104,32 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
             mb: 2,
           }}
         >
+                    {isSolved && (
+                      <>
+                        <Box>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "text.secondary", display: "block" }}
+                          >
+                            मिळालेले गुण
+                          </Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                            {paper.obtainedMarks}
+                          </Typography>
+                        </Box>
+                        <Box>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "text.secondary", display: "block" }}
+                          >
+                            सोडवलेली तारीख
+                          </Typography>
+                          <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                            {new Date(paper.solvedAt).toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                      </>
+                    )}
           <Box>
             <Typography
               variant="caption"
