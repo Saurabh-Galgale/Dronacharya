@@ -87,9 +87,10 @@ const QuestionPaper = () => {
   }, [paperId]);
 
   useEffect(() => {
-    const isCached = !!getCachedPaper(paperId);
-    if (paper && !isCached) {
+    // CHANGE THE CONDITION
+    if (paper) {
       loadQuestionsForPage(currentQuestionPage);
+
       // Pre-fetch the next page
       if (currentQuestionPage < totalQuestionPages) {
         loadQuestionsForPage(currentQuestionPage + 1);
