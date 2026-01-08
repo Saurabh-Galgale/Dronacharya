@@ -31,7 +31,7 @@ const PaperList = ({ paperType }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState("unsolved");
   const [subscriptionDialog, setSubscriptionDialog] = useState(false);
-  const limit = 10;
+  const limit = 4;
 
   const userProfile = getStoredUserProfile();
   const isSubscribed =
@@ -201,7 +201,17 @@ const PaperList = ({ paperType }) => {
 
   return (
     <Box sx={{ p: 0.2, pb: 4, px: 2 }}>
-      <Box sx={{ mb: 2 }}>
+      <Box
+        sx={{
+          position: "sticky",
+          top: 52,
+          zIndex: 10,
+          bgcolor: "background.default",
+          mb: 2,
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      >
         <ToggleButtonGroup
           value={filter}
           exclusive

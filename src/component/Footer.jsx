@@ -63,13 +63,16 @@ const Footer = () => {
                 borderRadius: 1,
               }}
             >
-              Subscriptions start from just ₹199/month
+              Subscriptions start from just ₹149/month
             </Typography>
 
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
                 <EmailIcon sx={{ fontSize: 18, color: "#de6925" }} />
-                <Typography variant="body2" sx={{ color: "#bbb" }}>
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#bbb", wordBreak: "break-all", m: 2 }}
+                >
                   help.dronacharyacareeracademy@gmail.com
                 </Typography>
               </Box>

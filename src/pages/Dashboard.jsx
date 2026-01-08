@@ -19,6 +19,9 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
+import NewspaperIcon from "@mui/icons-material/Newspaper";
+import ArticleIcon from "@mui/icons-material/Article";
+
 import { getStoredUserProfile } from "../services/authService";
 
 const Dashboard = () => {
@@ -149,7 +152,7 @@ const Dashboard = () => {
                 cursor: "pointer",
                 borderRadius: 4,
                 background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                boxShadow: "0 8px 24px rgba(102, 126, 234, 0.35)",
+                boxShadow: "0 8px 24px rgba(79, 172, 254, 0.35)",
                 position: "relative",
                 overflow: "hidden",
                 height: "100%",
@@ -273,6 +276,157 @@ const Dashboard = () => {
               </CardContent>
             </Card>
           </Box>
+
+          {/* New Cards Section - Current Affairs and Blogs */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 2,
+              mb: 3,
+            }}
+          >
+            {/* Current Affairs Card */}
+            <Box sx={{ flex: 1, width: "100%" }}>
+              <Card
+                onClick={() => handleNavigation("/ca")}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 4,
+                  background:
+                    "linear-gradient(135deg,rgb(31, 85, 132) 0%, #00f2fe 100%)",
+                  boxShadow: "0 8px 24px rgba(79, 172, 254, 0.35)",
+                  position: "relative",
+                  overflow: "hidden",
+                  height: "100%",
+                  transition: "all 0.3s ease",
+                  "&:hover": { transform: "translateY(-4px)" },
+                }}
+              >
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: -40,
+                    right: -40,
+                    width: 150,
+                    height: 150,
+                    borderRadius: "50%",
+                    background: "rgba(255, 255, 255, 0.1)",
+                  }}
+                />
+                <CardContent sx={{ p: 3, position: "relative", zIndex: 1 }}>
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 3,
+                      background: "rgba(255, 255, 255, 0.2)",
+                      backdropFilter: "blur(10px)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <NewspaperIcon sx={{ fontSize: 32, color: "white" }} />
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 700, color: "white", mb: 1 }}
+                  >
+                    चालू घडामोडी
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "rgba(255, 255, 255, 0.85)", mb: 2 }}
+                  >
+                    मासिके वाचा आणि त्यावर आधारित क्विझ सोडवून तुमचे ज्ञान
+                    वाढवा.
+                  </Typography>
+                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                    <IconButton
+                      sx={{
+                        bgcolor: "rgba(255, 255, 255, 0.2)",
+                        color: "white",
+                      }}
+                    >
+                      <ArrowForwardIcon />
+                    </IconButton>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+
+            {/* Blogs Card */}
+            <Box sx={{ flex: 1, width: "100%" }}>
+              <Card
+                onClick={() => handleNavigation("/blogs")}
+                sx={{
+                  cursor: "pointer",
+                  borderRadius: 4,
+                  background:
+                    "linear-gradient(135deg,rgb(32, 60, 42) 0%,rgba(56, 249, 214, 0.63) 100%)",
+                  boxShadow: "0 8px 24px rgba(32, 60, 42, 0.35)",
+                  position: "relative",
+                  overflow: "hidden",
+                  height: "100%",
+                  transition: "all 0.3s ease",
+                  "&:hover": { transform: "translateY(-4px)" },
+                }}
+              >
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: -40,
+                    right: -40,
+                    width: 150,
+                    height: 150,
+                    borderRadius: "50%",
+                    background: "rgba(255, 255, 255, 0.1)",
+                  }}
+                />
+                <CardContent sx={{ p: 3, position: "relative", zIndex: 1 }}>
+                  <Box
+                    sx={{
+                      width: 60,
+                      height: 60,
+                      borderRadius: 3,
+                      background: "rgba(255, 255, 255, 0.2)",
+                      backdropFilter: "blur(10px)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <ArticleIcon sx={{ fontSize: 32, color: "white" }} />
+                  </Box>
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 700, color: "white", mb: 1 }}
+                  >
+                    ब्लॉग्स
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "rgba(255, 255, 255, 0.85)", mb: 2 }}
+                  >
+                    महत्त्वपूर्ण लेख आणि अभ्यासक्रमाचे विषय सविस्तर वाचा.
+                  </Typography>
+                  <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+                    <IconButton
+                      sx={{
+                        bgcolor: "rgba(255, 255, 255, 0.2)",
+                        color: "white",
+                      }}
+                    >
+                      <ArrowForwardIcon />
+                    </IconButton>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+          </Box>
         </Box>
 
         {/* Subscription Card - Shows Promo or Active Status */}
@@ -327,7 +481,7 @@ const Dashboard = () => {
                       variant="h5"
                       sx={{ fontWeight: 800, color: "white", mb: 1 }}
                     >
-                      फक्त ₹499 मध्ये 3 महिने!
+                      फक्त ₹३९९ मध्ये ३ महिने!
                     </Typography>
                     <Typography
                       variant="body1"

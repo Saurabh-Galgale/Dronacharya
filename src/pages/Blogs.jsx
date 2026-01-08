@@ -234,6 +234,16 @@ const Blogs = () => {
     document.body.style.overflow = "hidden";
   };
 
+  const handleRemoveFiltersAndClose = () => {
+    setBlogs([]);
+    setCurrentIndex(0);
+    setPage(1);
+    setIsFilterOpen(false);
+    setSelectedCategory("");
+    setSelectedSubCategory("");
+    setActiveFilters({ category: "", subCategory: "" });
+  };
+
   const selectStyle = {
     fontSize: "18px", // Increased font size
     padding: "10px",
@@ -544,6 +554,20 @@ const Blogs = () => {
                 }}
               >
                 लागू करा
+              </Button>
+              <Button
+                onClick={handleRemoveFiltersAndClose}
+                fullWidth
+                style={{
+                  backgroundColor: "#dc3545",
+                  color: "white",
+                  borderRadius: "10px",
+                  minWidth: "50px",
+                  fontWeight: "bold",
+                  textTransform: "none",
+                }}
+              >
+                हटवा
               </Button>
               <Button
                 onClick={() => setIsFilterOpen(false)}

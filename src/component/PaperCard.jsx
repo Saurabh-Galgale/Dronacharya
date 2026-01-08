@@ -16,6 +16,23 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
   const isPublished = paper.isPublished !== false;
   const isSolved = filter === "solved";
 
+  const percentage = (paper.obtainedMarks / paper.totalMarks) * 100;
+  let statusColor, statusBgColor, statusText;
+
+  if (percentage <= 40) {
+    statusColor = "#d32f2f"; // red text
+    statusBgColor = "#ffebee"; // light red background
+    statusText = "अपुरे";
+  } else if (percentage <= 60) {
+    statusColor = "#f57c00"; // orange text
+    statusBgColor = "#fff3e0"; // light orange background
+    statusText = "चांगले";
+  } else {
+    statusColor = "#2e7d32"; // green text
+    statusBgColor = "#e8f5e9"; // light green background
+    statusText = "उत्तम";
+  }
+
   return (
     <Card
       key={paper._id}
@@ -71,6 +88,29 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
               />
             )}
           </Box>
+
+          {paper.year && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                width: "fit-content",
+                gap: 0.5,
+                px: 1.5,
+                py: 0.5,
+                mr: 0.5,
+                borderRadius: 2,
+                bgcolor: "rgba(88, 204, 132, 0.2)",
+              }}
+            >
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 700, fontSize: "0.9rem" }}
+              >
+                {paper.year}
+              </Typography>
+            </Box>
+          )}
 
           <Box
             sx={{
@@ -131,14 +171,18 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
               <Box>
                 <Typography
                   variant="caption"
-                  sx={{ color: "text.secondary", display: "block" }}
+                  sx={{ color: statusColor, display: "block", fontWeight: 600 }}
                 >
-                  मिळालेले गुण
+                  मिळालेले गुण - {statusText}
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                <Typography
+                  variant="body1"
+                  sx={{ fontWeight: 700, color: statusColor }}
+                >
                   {paper.obtainedMarks} / {paper.totalMarks}
                 </Typography>
               </Box>
+
               <Box>
                 <Typography
                   variant="caption"
