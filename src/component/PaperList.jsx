@@ -204,7 +204,7 @@ const PaperList = ({ paperType }) => {
       <Box
         sx={{
           position: "sticky",
-          top: 52,
+          top: 66,
           zIndex: 10,
           bgcolor: "background.default",
           mb: 2,

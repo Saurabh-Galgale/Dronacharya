@@ -316,11 +316,11 @@ const QuestionPaper = () => {
       });
 
       // Invalidate the session storage for the paper list
-      Object.keys(sessionStorage).forEach((key) => {
-        if (key.startsWith(`${paperType}_`)) {
-          sessionStorage.removeItem(key);
-        }
-      });
+      Object.keys(sessionStorage)
+        .filter((key) => key.startsWith(`${paperType}_`))
+        .forEach((key) => sessionStorage.removeItem(key));
+
+      sessionStorage.removeItem("user_performance_analysis_data");
     } catch (err) {
       alert(err.message || "सबमिट अयशस्वी झाले. पुन्हा प्रयत्न करा.");
       setTimerActive(true); // Resume timer on error
@@ -341,6 +341,15 @@ const QuestionPaper = () => {
     if (newPage >= 1 && newPage <= totalQuestionPages) {
       setCurrentQuestionPage(newPage);
     }
+  };
+
+  const handleClearResponse = (questionId) => {
+    setAnswers((prev) => {
+      if (!prev[questionId]) return prev;
+      const updated = { ...prev };
+      delete updated[questionId];
+      return updated;
+    });
   };
 
   const renderPagination = () => {
@@ -877,6 +886,36 @@ const QuestionPaper = () => {
                           }}
                         />
                       </Box>
+
+                      {!submissionData && answers[q._id] !== undefined && (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            display: "flex",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          <Button
+                            size="small"
+                            variant="text"
+                            onClick={() => handleClearResponse(q._id)}
+                            sx={{
+                              fontSize: "0.75rem",
+                              textTransform: "none",
+                              borderRadius: 2,
+                              paddingX: 2,
+                              color: "white",
+                              fontWeight: 600,
+                              "&:hover": {
+                                backgroundColor: "rgba(255, 167, 38, 0.08)",
+                              },
+                            }}
+                          >
+                            उत्तर हटवा
+                          </Button>
+                        </Box>
+                      )}
+
                       <Box
                         sx={{
                           display: "flex",

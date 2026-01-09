@@ -49,11 +49,15 @@ api.interceptors.response.use(
     }
 
     // Normalize error message from backend
-    const message =
+    let message =
       error.response?.data?.error ||
       error.response?.data?.message ||
       error.message ||
-      "Something went wrong";
+      "काहीतरी तांत्रिक अडचण आली आहे.";
+
+    if (message.includes("ENOTFOUND") || message.includes("mongodb")) {
+      message = "कृपया तुमचे इंटरनेट तपासा किंवा थोड्या वेळाने प्रयत्न करा.";
+    }
 
     // Create a proper Error object
     const normalizedError = new Error(message);
@@ -236,5 +240,20 @@ export async function getBlogs(page = 1, limit = 2, category, subCategory) {
     return res.data; // { success, count, pagination, data }
   } catch (error) {
     throw new Error(error.message || "Failed to fetch blogs");
+  }
+}
+
+/* ================= ANALYSIS API ================= */
+
+/**
+ * Get User's Performance Analysis
+ * GET /api/analysis/performance
+ */
+export async function getPerformanceAnalysis() {
+  try {
+    const res = await api.get("/api/analysis");
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "विश्लेषण लोड करण्यात त्रुटी आली.");
   }
 }

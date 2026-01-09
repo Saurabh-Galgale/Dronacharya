@@ -16,6 +16,7 @@ const MainLayout = lazy(() => import("./layout/MainLayout"));
 
 // Protected pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const PerformanceAnalysis = lazy(() => import("./pages/PerformanceAnalysis"));
 const MockPapers = lazy(() => import("./pages/MockPapers")); // Mock Papers
 const PYQPapers = lazy(() => import("./pages/PYQPapers")); // PYQ Papers
 const QuestionPaper = lazy(() => import("./pages/QuestionPaper")); // Single Paper View
@@ -90,7 +91,10 @@ export default function App() {
                   <MainLayout>
                     <Routes>
                       <Route path="dashboard" element={<Dashboard />} />
-
+                      <Route
+                        path="analysis"
+                        element={<PerformanceAnalysis />}
+                      />
                       {/* Mock Papers */}
                       <Route path="mock" element={<MockPapers />} />
                       {/* <Route path="mock/:paperId" element={<QuestionPaper />} /> */}

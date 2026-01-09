@@ -33,6 +33,7 @@ import NewspaperIcon from "@mui/icons-material/Newspaper";
 import EditNoteIcon from "@mui/icons-material/EditNote";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
 
 import MenuIcon from "@mui/icons-material/Menu";
 import PersonIcon from "@mui/icons-material/Person";
@@ -91,8 +92,12 @@ export default function Layout({ children }) {
   // Sidebar Menu Logic
   const menuItems = [
     { text: "मुख्यपृष्ठ", icon: <HomeIcon />, path: "/dashboard" },
+    { text: "विश्लेषण", icon: <QueryStatsIcon />, path: "/analysis" },
     { text: "सराव प्रश्नपत्रिका", icon: <QuizIcon />, path: "/mock" },
     { text: "मागील प्रश्नपत्रिका", icon: <MenuBookIcon />, path: "/pyq" },
+  ];
+
+  const studyContentItems = [
     { text: "चालू घडामोडी", icon: <NewspaperIcon />, path: "/ca" },
     { text: "लेख", icon: <EditNoteIcon />, path: "/blogs" },
   ];
@@ -116,6 +121,31 @@ export default function Layout({ children }) {
         {/* मुख्य मेनू Section */}
         <List>
           {menuItems.map((item) => (
+            <ListItem key={item.path} disablePadding>
+              <ListItemButton
+                component={Link}
+                to={item.path}
+                selected={location.pathname === item.path}
+                onClick={() => isMobile && setMobileOpen(false)}
+                sx={listButtonSx}
+              >
+                <ListItemIcon
+                  sx={{
+                    minWidth: 42,
+                    color:
+                      location.pathname === item.path ? "white" : "inherit",
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText primary={item.text} />
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+        <Divider sx={{ my: 1, mx: 2 }} />
+        <List>
+          {studyContentItems.map((item) => (
             <ListItem key={item.path} disablePadding>
               <ListItemButton
                 component={Link}
@@ -231,8 +261,8 @@ export default function Layout({ children }) {
       >
         <Toolbar
           sx={{
-            minHeight: 44,
-            height: 44,
+            minHeight: 56,
+            height: 56,
             display: "flex",
             justifyContent: "space-between",
           }}
@@ -252,7 +282,7 @@ export default function Layout({ children }) {
 
           {/* Center: Brand Name */}
           <Typography
-            variant={isMobile ? "body1" : "h6"}
+            variant={isMobile ? "h6" : "h5"}
             fontWeight="bold"
             textAlign="center"
             sx={{

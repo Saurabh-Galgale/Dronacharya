@@ -29,9 +29,17 @@ class ErrorBoundary extends React.Component {
 
   render() {
     if (this.state.hasError) {
-      // Professional Mobile UI Fallback
+      let errorMsg =
+        this.state.error?.message || "काहीतरी तांत्रिक अडचण आली आहे.";
+
+      // Check if it's the specific MongoDB Connection Error
+      if (errorMsg.includes("ENOTFOUND") || errorMsg.includes("mongodb")) {
+        errorMsg =
+          "काहीतरी तांत्रिक अडचण आली आहे. कृपया थोड्या वेळाने पुन्हा प्रयत्न करा.";
+      }
+
       return (
-        <ErrorPage error={this.state.error} resetError={this.resetError} />
+        <ErrorPage error={{ message: errorMsg }} resetError={this.resetError} />
       );
     }
 
