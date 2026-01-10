@@ -48,6 +48,20 @@ api.interceptors.response.use(
       }
     }
 
+    // Handle subscription-ended force logout from backend
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.action === "FORCE_LOGOUT"
+    ) {
+      // Clear all auth data
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user_profile");
+
+      // Redirect to landing page to force re-login
+      window.location.href = "/";
+    }
+
     // Normalize error message from backend
     let message =
       error.response?.data?.error ||
