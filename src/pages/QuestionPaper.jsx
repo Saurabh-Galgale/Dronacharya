@@ -84,6 +84,7 @@ const QuestionPaper = () => {
 
   useEffect(() => {
     loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paperId]);
 
   useEffect(() => {
@@ -162,44 +163,81 @@ const QuestionPaper = () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Check cache first
+      let currentPaper = null;
+      let currentQuestions = [];
+      let currentSubmission = null;
+
+      // 1. Try to get data from Cache first
       const cachedData = getCachedPaper(paperId);
-      if (cachedData) {
-        setPaper(cachedData.paper);
-        setAllQuestions(cachedData.questions);
-        setTotalQuestionPages(
-          Math.ceil(cachedData.questions.length / questionLimit)
-        );
-        if (cachedData.submission) {
-          setSubmissionData(cachedData.submission);
-        } else if (!isViewMode) {
-          startTimer(cachedData.paper.durationMinutes);
-        }
-        setLoading(false);
-        return;
+
+      if (cachedData && cachedData.paper) {
+        currentPaper = cachedData.paper;
+        currentQuestions = cachedData.questions || [];
+        currentSubmission = cachedData.submission || null;
       }
 
-      // 2. Fetch from API if not cached
-      const data = await getPaperWithQuestions(
-        paperType,
-        paperId,
-        1,
-        questionLimit
-      );
-      setPaper(data.paper);
-      const initialQuestions = Array(data.paper.totalQuestions).fill(null);
-      (data.questions || []).forEach((q, i) => {
-        initialQuestions[i] = q;
-      });
-      setAllQuestions(initialQuestions);
-      setTotalQuestionPages(data.totalPages || 1);
-
-      if (isViewMode) {
-        const submissionRes = await getPaperSubmissions(paperId);
-        const submission = submissionRes?.[0] || null;
-        setSubmissionData(submission);
+      // 2. If Paper is missing (Cache Miss), fetch from API
+      if (!currentPaper) {
+        const data = await getPaperWithQuestions(
+          paperType,
+          paperId,
+          1,
+          questionLimit
+        );
+        currentPaper = data.paper;
+        // Initialize placeholder array for questions
+        currentQuestions = Array(data.paper.totalQuestions).fill(null);
+        (data.questions || []).forEach((q, i) => {
+          currentQuestions[i] = q;
+        });
+        setTotalQuestionPages(data.totalPages || 1);
       } else {
-        startTimer(data.paper.durationMinutes);
+        // If loaded from cache, ensure pagination is correct
+        setTotalQuestionPages(
+          Math.ceil((currentQuestions.length || 0) / questionLimit)
+        );
+      }
+
+      // 3. CRITICAL FIX: Robust Submission Check (Self-Healing Logic)
+      // If we don't have a submission in cache, we MUST check the server.
+      // This handles the "Reload" and "Revisit" cases where state.viewMode is lost.
+      if (!currentSubmission) {
+        try {
+          // Always check if this paper is already submitted
+          const submissions = await getPaperSubmissions(paperId);
+          if (submissions && submissions.length > 0) {
+            // Found a submission on server! Use it.
+            currentSubmission = submissions[0];
+          }
+        } catch (subErr) {
+          console.warn("Background submission check failed:", subErr);
+          // If check fails, we proceed (user might be starting fresh)
+        }
+      }
+
+      // 4. Update State
+      setPaper(currentPaper);
+      setAllQuestions(currentQuestions);
+
+      if (currentSubmission) {
+        // CASE: SUBMISSION EXISTS (Reloaded solved paper or History view)
+        setSubmissionData(currentSubmission);
+        setDrawerHeight(10); // Auto-collapse drawer to show Analysis
+
+        // IMPORTANT: Overwrite Cache with the correct, fresh data
+        // This ensures the next reload/visit uses this valid cached data
+        setCachedPaper(paperId, {
+          paper: currentPaper,
+          questions: currentQuestions,
+          submission: currentSubmission,
+        });
+      } else {
+        // CASE: FRESH ATTEMPT
+        // Only start timer if we are sure it's not a view mode
+        // (If fetching submission failed, we assume it's a fresh attempt)
+        if (!isViewMode) {
+          startTimer(currentPaper.durationMinutes);
+        }
       }
     } catch (err) {
       setError(err.message || "Failed to load paper data.");
