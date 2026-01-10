@@ -6,6 +6,8 @@ import { Box, CircularProgress } from "@mui/material";
 import theme from "./theme";
 import "./index.css";
 import PrivateRoute from "./component/PrivateRoute";
+import { AuthProvider, useAuth } from './hooks/useAuth.jsx';
+import ForceLogoutModal from './component/ForceLogoutModal';
 
 // Public pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -48,14 +50,15 @@ const LoadingFallback = () => (
   </Box>
 );
 
-export default function App() {
+const AppContent = () => {
+  const { isLoggingOut, handleLogout } = useAuth();
   return (
-    <ThemeProvider theme={theme}>
-      <BrowserRouter>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
+    <>
+      <ForceLogoutModal open={isLoggingOut} onLogout={handleLogout} />
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route path="/contact-us" element={<ContactUs />} />
             <Route
@@ -130,6 +133,17 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <ThemeProvider theme={theme}>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
   );

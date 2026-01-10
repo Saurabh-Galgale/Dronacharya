@@ -53,13 +53,8 @@ api.interceptors.response.use(
       error.response?.status === 403 &&
       error.response?.data?.action === "FORCE_LOGOUT"
     ) {
-      // Clear all auth data
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("refresh_token");
-      localStorage.removeItem("user_profile");
-
-      // Redirect to landing page to force re-login
-      window.location.href = "/";
+      // Dispatch a custom event to be caught by a listener in the React tree
+      window.dispatchEvent(new Event('forceLogout'));
     }
 
     // Normalize error message from backend

@@ -43,7 +43,9 @@ import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 import Footer from "../component/Footer";
 import { useTheme } from "@mui/material/styles";
-import { clearToken } from "../services/authService";
+import { clearToken, getStoredUserProfile } from "../services/authService";
+import { useAuth } from '../hooks/useAuth.jsx';
+import { useEffect } from 'react';
 
 const drawerWidth = 280;
 
@@ -76,6 +78,33 @@ export default function Layout({ children }) {
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const location = useLocation();
+  const { triggerForceLogout } = useAuth();
+
+  useEffect(() => {
+    const checkSubscription = () => {
+      const user = getStoredUserProfile();
+      if (user && user.subscription && user.subscription.endDate) {
+        const endDate = new Date(user.subscription.endDate);
+        if (endDate < new Date()) {
+          triggerForceLogout();
+        }
+      }
+    };
+
+    const handleForceLogout = () => {
+      triggerForceLogout();
+    };
+
+    checkSubscription(); // Check immediately on load
+    const intervalId = setInterval(checkSubscription, 30 * 1000); // Check every 30 seconds
+
+    window.addEventListener('forceLogout', handleForceLogout);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('forceLogout', handleForceLogout);
+    };
+  }, [triggerForceLogout]);
 
   const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
