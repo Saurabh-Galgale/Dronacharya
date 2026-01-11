@@ -57,12 +57,6 @@ const darkTextFieldSx = {
   },
 };
 
-const blinkAnimation = keyframes`
-  0% { color: #de6925; }
-  50% { color: #fff; }
-  100% { color: #de6925; }
-`;
-
 const LandingPage = () => {
   const navigate = useNavigate();
   const theme = useTheme();
@@ -92,7 +86,7 @@ const LandingPage = () => {
 
   // Slider Logic
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
-    Autoplay({ delay: 10000 }),
+    Autoplay({ delay: 6000 }),
   ]);
 
   const onSelect = useCallback(() => {
@@ -323,19 +317,32 @@ const LandingPage = () => {
             >
               द्रोणाचार्य करिअर अकॅडमी
             </Typography>
+
             <IconButton
               size="small"
               onClick={() => setUserDrawer(true)}
               sx={{
-                bgcolor: "rgba(255, 255, 255, 0.2)",
-                padding: 0.5,
-                color: "#de6925",
+                bgcolor: "rgba(31, 31, 31, 0.9)", // Increased opacity slightly to make the GIF clearer
+                border: "1px solid rgba(189, 189, 189, 0.9)",
+                padding: 0.8, // Slightly more padding for a better "button" feel
                 ml: 1,
-                boxShadow: 2,
-                animation: `${blinkAnimation} 1s ease-in-out infinite`,
+                "&:hover": {
+                  bgcolor: "white",
+                  transform: "scale(1.1)",
+                  transition: "transform 0.2s",
+                },
               }}
             >
-              <LoginIcon sx={{ m: 0.4 }} />
+              <Box
+                component="img"
+                src="/images/arrow.gif"
+                alt="Login"
+                sx={{
+                  width: 22, // Slightly larger than standard icon for visibility
+                  height: 22,
+                  display: "block",
+                }}
+              />
             </IconButton>
           </Box>
 
@@ -441,11 +448,8 @@ const LandingPage = () => {
           }}
         >
           <Box display="flex" flexDirection="column" alignItems="center">
-            <Typography
-              variant="body2"
-              sx={{ color: "rgba(255,255,255,0.65)", mb: 2 }}
-            >
-              Continue with Google वापरून पुढे जा.
+            <Typography variant="body2" sx={{ color: "white", mb: 2 }}>
+              शक्यतो Google Login वापरूनच पुढे जा.
             </Typography>
             <Suspense fallback={<CircularProgress size={24} />}>
               <GoogleSign onSuccess={handleGoogleSuccess} />
@@ -494,7 +498,7 @@ const LandingPage = () => {
                 borderRadius: "28px",
                 mb: 1,
                 fontWeight: 600,
-                borderColor: "rgba(255,255,255,0.3)",
+                background: "rgba(47, 47, 47, 0.3)",
                 color: "white",
                 "&:hover": {
                   borderColor: "rgba(255,255,255,0.6)",
@@ -514,7 +518,7 @@ const LandingPage = () => {
                 height: 38,
                 borderRadius: "28px",
                 fontWeight: 600,
-                borderColor: "rgba(255,255,255,0.3)",
+                background: "rgba(47, 47, 47, 0.3)",
                 color: "white",
                 "&:hover": {
                   borderColor: "rgba(255,255,255,0.6)",
