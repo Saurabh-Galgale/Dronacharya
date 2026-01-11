@@ -1,124 +1,66 @@
 // src/services/paperCache.js
-
-const CACHE_INDEX_KEY = "paper_cache_index";
-const CACHE_PREFIX = "paper_cache_";
-const MAX_CACHE_SIZE = 5;
-const EXPIRATION_DAYS = 30;
+import { get, set, del } from "idb-keyval";
 
 /**
- * Gets the cache index (list of cached paper IDs)
- * @returns {string[]}
+ * Helper: Generates a unique key based on the User ID.
+ * This prevents data collision when multiple users use the same device.
  */
-function getCacheIndex() {
+const getStorageKey = (paperId) => {
   try {
-    const index = localStorage.getItem(CACHE_INDEX_KEY);
-    return index ? JSON.parse(index) : [];
-  } catch {
-    return [];
-  }
-}
+    // We try to find the user ID to isolate data.
+    // Adjust "user_profile" to whatever key you use to store user details.
+    const userStr = localStorage.getItem("user_profile");
+    let userId = "guest";
 
-/**
- * Updates the cache index
- * @param {string[]} index
- */
-function setCacheIndex(index) {
-  localStorage.setItem(CACHE_INDEX_KEY, JSON.stringify(index));
-}
-
-/**
- * Removes the oldest item from the cache if it exceeds the max size
- */
-function enforceCacheLimit() {
-  const index = getCacheIndex();
-  if (index.length > MAX_CACHE_SIZE) {
-    const oldestPaperId = index.shift(); // Remove the first (oldest)
-    localStorage.removeItem(`${CACHE_PREFIX}${oldestPaperId}`);
-    setCacheIndex(index);
-  }
-}
-
-/**
- * Get a cached paper by its ID
- * @param {string} paperId
- * @returns {object | null}
- */
-export function getCachedPaper(paperId) {
-  try {
-    const itemStr = localStorage.getItem(`${CACHE_PREFIX}${paperId}`);
-    if (!itemStr) {
-      return null;
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      // Handles typical ID formats (_id or id)
+      userId = user._id || user.id || "guest";
     }
 
-    const item = JSON.parse(itemStr);
-    const now = new Date();
+    return `u_${userId}_p_${paperId}`;
+  } catch (e) {
+    // Fallback if JSON parse fails
+    return `u_guest_p_${paperId}`;
+  }
+};
 
-    // Check for expiration
-    if (now.getTime() > item.expiry) {
-      localStorage.removeItem(`${CACHE_PREFIX}${paperId}`);
-      // Also remove from index
-      const index = getCacheIndex().filter((id) => id !== paperId);
-      setCacheIndex(index);
+export async function getCachedPaper(paperId) {
+  try {
+    const key = getStorageKey(paperId);
+    const item = await get(key);
+
+    if (!item) return null;
+
+    // INTEGRITY CHECK:
+    // If the cache was interrupted during save (not complete), ignore it.
+    if (!item.isComplete) {
+      await del(key);
       return null;
     }
 
     return item.data;
-  } catch {
+  } catch (err) {
     return null;
   }
 }
 
-/**
- * Cache a paper's data
- * @param {string} paperId
- * @param {object} data - The paper data to cache { paper, questions, submission }
- */
-export function setCachedPaper(paperId, data) {
+export async function setCachedPaper(paperId, data, isComplete = false) {
   try {
-    const now = new Date();
-    const expiry = now.getTime() + EXPIRATION_DAYS * 24 * 60 * 60 * 1000;
-
+    const key = getStorageKey(paperId);
     const item = {
       data,
-      expiry,
+      isComplete, // Only true if we have 100% of questions
+      version: 1.0,
+      updatedAt: Date.now(),
     };
-
-    localStorage.setItem(`${CACHE_PREFIX}${paperId}`, JSON.stringify(item));
-
-    // Update the index
-    const index = getCacheIndex();
-    // Remove if already exists to move it to the end (most recent)
-    const filteredIndex = index.filter((id) => id !== paperId);
-    filteredIndex.push(paperId);
-    setCacheIndex(filteredIndex);
-
-    enforceCacheLimit();
-  } catch (error) {
-    // console.error("Failed to cache paper:", error);
+    await set(key, item);
+  } catch (err) {
+    console.error("IndexedDB Save Error:", err);
   }
 }
 
-/**
- * Clear the entire paper cache
- */
-export function clearAllPaperCaches() {
-  const index = getCacheIndex();
-  index.forEach((paperId) => {
-    localStorage.removeItem(`${CACHE_PREFIX}${paperId}`);
-  });
-  localStorage.removeItem(CACHE_INDEX_KEY);
-}
-
-/**
- * Removes a single paper from the cache
- * @param {string} paperId
- */
-export function removeCachedPaper(paperId) {
-  try {
-    localStorage.removeItem(`${CACHE_PREFIX}${paperId}`);
-    const index = getCacheIndex().filter((id) => id !== paperId);
-    setCacheIndex(index);
-  } catch (error) {
-    // console.error("Failed to remove cached paper:", error);
-  }
+export async function removeCachedPaper(paperId) {
+  const key = getStorageKey(paperId);
+  await del(key);
 }

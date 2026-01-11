@@ -1,11 +1,13 @@
 // src/App.jsx
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { Box, CircularProgress } from "@mui/material";
 import theme from "./theme";
 import "./index.css";
 import PrivateRoute from "./component/PrivateRoute";
+import { AuthProvider, useAuth } from "./hooks/useAuth.jsx";
+import ForceLogoutModal from "./component/ForceLogoutModal";
 
 // Public pages
 const LandingPage = lazy(() => import("./pages/LandingPage"));
@@ -48,88 +50,110 @@ const LoadingFallback = () => (
   </Box>
 );
 
+const AppContent = () => {
+  const { isLoggingOut, handleLogout, triggerForceLogout } = useAuth();
+
+  useEffect(() => {
+    const handleForceLogout = () => {
+      triggerForceLogout();
+    };
+
+    window.addEventListener("forceLogout", handleForceLogout);
+
+    return () => {
+      window.removeEventListener("forceLogout", handleForceLogout);
+    };
+  }, [triggerForceLogout]);
+
+  return (
+    <>
+      <ForceLogoutModal open={isLoggingOut} onLogout={handleLogout} />
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/contact-us" element={<ContactUs />} />
+          <Route
+            path="/terms-and-conditions"
+            element={<TermsAndConditions />}
+          />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/refund-policy" element={<RefundPolicy />} />
+          <Route path="/shipping-and-delivery" element={<ShippingPolicy />} />
+
+          <Route
+            path="/mock/:paperId"
+            element={
+              <PrivateRoute>
+                <QuestionPaper />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/pyq/:paperId"
+            element={
+              <PrivateRoute>
+                <QuestionPaper />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Protected Routes */}
+          <Route
+            path="/*"
+            element={
+              <PrivateRoute>
+                <MainLayout>
+                  <Routes>
+                    <Route path="dashboard" element={<Dashboard />} />
+                    <Route path="analysis" element={<PerformanceAnalysis />} />
+                    {/* Mock Papers */}
+                    <Route path="mock" element={<MockPapers />} />
+                    {/* <Route path="mock/:paperId" element={<QuestionPaper />} /> */}
+
+                    {/* PYQ Papers */}
+                    <Route path="pyq" element={<PYQPapers />} />
+                    {/* <Route path="pyq/:paperId" element={<QuestionPaper />} /> */}
+
+                    {/* Other Pages */}
+                    <Route path="ca" element={<CurrentAffairs />} />
+                    <Route path="blogs" element={<Blogs />} />
+                    <Route path="subscription" element={<Subscription />} />
+                    <Route path="profile" element={<Profile />} />
+
+                    {/* Default redirect */}
+                    <Route
+                      index
+                      element={<Navigate to="dashboard" replace />}
+                    />
+
+                    {/* 404 fallback */}
+                    <Route
+                      path="*"
+                      element={<Navigate to="dashboard" replace />}
+                    />
+                  </Routes>
+                </MainLayout>
+              </PrivateRoute>
+            }
+          />
+
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </>
+  );
+};
+
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route path="/contact-us" element={<ContactUs />} />
-            <Route
-              path="/terms-and-conditions"
-              element={<TermsAndConditions />}
-            />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            <Route path="/refund-policy" element={<RefundPolicy />} />
-            <Route path="/shipping-and-delivery" element={<ShippingPolicy />} />
-
-            <Route
-              path="/mock/:paperId"
-              element={
-                <PrivateRoute>
-                  <QuestionPaper />
-                </PrivateRoute>
-              }
-            />
-            <Route
-              path="/pyq/:paperId"
-              element={
-                <PrivateRoute>
-                  <QuestionPaper />
-                </PrivateRoute>
-              }
-            />
-
-            {/* Protected Routes */}
-            <Route
-              path="/*"
-              element={
-                <PrivateRoute>
-                  <MainLayout>
-                    <Routes>
-                      <Route path="dashboard" element={<Dashboard />} />
-                      <Route
-                        path="analysis"
-                        element={<PerformanceAnalysis />}
-                      />
-                      {/* Mock Papers */}
-                      <Route path="mock" element={<MockPapers />} />
-                      {/* <Route path="mock/:paperId" element={<QuestionPaper />} /> */}
-
-                      {/* PYQ Papers */}
-                      <Route path="pyq" element={<PYQPapers />} />
-                      {/* <Route path="pyq/:paperId" element={<QuestionPaper />} /> */}
-
-                      {/* Other Pages */}
-                      <Route path="ca" element={<CurrentAffairs />} />
-                      <Route path="blogs" element={<Blogs />} />
-                      <Route path="subscription" element={<Subscription />} />
-                      <Route path="profile" element={<Profile />} />
-
-                      {/* Default redirect */}
-                      <Route
-                        index
-                        element={<Navigate to="dashboard" replace />}
-                      />
-
-                      {/* 404 fallback */}
-                      <Route
-                        path="*"
-                        element={<Navigate to="dashboard" replace />}
-                      />
-                    </Routes>
-                  </MainLayout>
-                </PrivateRoute>
-              }
-            />
-
-            {/* Catch-all redirect */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>
   );

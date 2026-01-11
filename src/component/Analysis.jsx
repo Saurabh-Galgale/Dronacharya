@@ -192,6 +192,74 @@ const Analysis = ({ submissionData }) => {
         </Grid>
       </Paper>
 
+      {/* Progress Overview */}
+      <Paper
+        sx={{
+          p: 2.5,
+          mb: 3,
+          bgcolor: "rgba(255,255,255,0.03)",
+          borderRadius: 2,
+          border: "1px solid rgba(255,255,255,0.15)",
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{ mb: 2, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}
+        >
+          प्रगती विहंगावलोकन
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={4}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 700, color: "#66bb6a" }}
+              >
+                {attempted}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: "rgba(255,255,255,0.7)" }}
+              >
+                प्रयत्न
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={4}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 700, color: "#ffa726" }}
+              >
+                {unattempted}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: "rgba(255,255,255,0.7)" }}
+              >
+                न सोडवलेले
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={4}>
+            <Box sx={{ textAlign: "center" }}>
+              <Typography
+                variant="h5"
+                sx={{ fontWeight: 700, color: "#42a5f5" }}
+              >
+                {attemptRate}%
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: "rgba(255,255,255,0.7)" }}
+              >
+                प्रयत्न दर
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+
       {/* Quick Stats Grid - Forced 2x2 Alignment */}
       <Box
         sx={{
@@ -321,74 +389,6 @@ const Analysis = ({ submissionData }) => {
           </Box>
         </Paper>
       </Box>
-
-      {/* Progress Overview */}
-      <Paper
-        sx={{
-          p: 2.5,
-          mb: 3,
-          bgcolor: "rgba(255,255,255,0.03)",
-          borderRadius: 2,
-          border: "1px solid rgba(255,255,255,0.15)",
-        }}
-      >
-        <Typography
-          variant="body2"
-          sx={{ mb: 2, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}
-        >
-          प्रगती विहंगावलोकन
-        </Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={4}>
-            <Box sx={{ textAlign: "center" }}>
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, color: "#66bb6a" }}
-              >
-                {attempted}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: "rgba(255,255,255,0.7)" }}
-              >
-                प्रयत्न
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box sx={{ textAlign: "center" }}>
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, color: "#ffa726" }}
-              >
-                {unattempted}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: "rgba(255,255,255,0.7)" }}
-              >
-                न सोडवलेले
-              </Typography>
-            </Box>
-          </Grid>
-          <Grid item xs={4}>
-            <Box sx={{ textAlign: "center" }}>
-              <Typography
-                variant="h5"
-                sx={{ fontWeight: 700, color: "#42a5f5" }}
-              >
-                {attemptRate}%
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: "rgba(255,255,255,0.7)" }}
-              >
-                प्रयत्न दर
-              </Typography>
-            </Box>
-          </Grid>
-        </Grid>
-      </Paper>
 
       {/* Category-wise Analysis */}
       {categoryWise && categoryWise.length > 0 && (

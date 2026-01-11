@@ -48,6 +48,15 @@ api.interceptors.response.use(
       }
     }
 
+    // Handle subscription-ended force logout from backend
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.action === "FORCE_LOGOUT"
+    ) {
+      // Dispatch a custom event to be caught by a listener in the React tree
+      window.dispatchEvent(new Event("forceLogout"));
+    }
+
     // Normalize error message from backend
     let message =
       error.response?.data?.error ||
@@ -109,16 +118,9 @@ export const getUnsolvedPYQPapers = (page, limit) =>
  * @param {number} questionPage - Question page number
  * @param {number} questionLimit - Questions per page
  */
-export async function getPaperWithQuestions(
-  type,
-  paperId,
-  questionPage = 1,
-  questionLimit = 10
-) {
+export async function getPaperWithQuestions(type, paperId) {
   try {
-    const res = await api.get(`/api/papers/${type}/${paperId}`, {
-      params: { page: questionPage, limit: questionLimit },
-    });
+    const res = await api.get(`/api/papers/${type}/${paperId}`);
     return res.data.data; // { paper: {}, questions: [], totalPages, currentPage }
   } catch (error) {
     throw new Error(error.message || "Failed to fetch paper");

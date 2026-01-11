@@ -1,5 +1,11 @@
 // src/pages/QuestionPaper.jsx
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
@@ -49,15 +55,19 @@ const QuestionPaper = () => {
   const drawerRef = useRef(null);
   const startTimeRef = useRef(Date.now());
 
+  // Data State from File B
   const [paper, setPaper] = useState(null);
-  const [allQuestions, setAllQuestions] = useState([]);
+  const [allQuestions, setAllQuestions] = useState([]); // Will hold ALL questions
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // UI State from File A
   const [currentQuestionPage, setCurrentQuestionPage] = useState(1);
-  const [totalQuestionPages, setTotalQuestionPages] = useState(1);
-  const [loadingQuestions, setLoadingQuestions] = useState(false);
-  const questionLimit = 10;
+  const questionsPerPage = 10; // UI limit (10 questions per slide)
+
+  // Derived State for Pagination (from File B, adapted for File A UI)
+  const totalQuestionPages =
+    Math.ceil((paper?.totalQuestions || 0) / questionsPerPage) || 1;
 
   const [drawerHeight, setDrawerHeight] = useState(90);
   const [gridOpen, setGridOpen] = useState(false);
@@ -79,50 +89,118 @@ const QuestionPaper = () => {
     ? "mock"
     : "pyq";
 
+  // UI Helpers from File A
   const isLastPage = currentQuestionPage === totalQuestionPages;
   const allPagesVisited = maxVisitedPage >= totalQuestionPages;
 
+  // Effects from File B, adapted for File A
   useEffect(() => {
     loadInitialData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paperId]);
 
   useEffect(() => {
-    // CHANGE THE CONDITION
-    if (paper) {
-      loadQuestionsForPage(currentQuestionPage);
-
-      // Pre-fetch the next page
-      if (currentQuestionPage < totalQuestionPages) {
-        loadQuestionsForPage(currentQuestionPage + 1);
-      }
-    }
-  }, [currentQuestionPage, paper, totalQuestionPages]);
-
-  useEffect(() => {
     setMaxVisitedPage((prev) => Math.max(prev, currentQuestionPage));
   }, [currentQuestionPage]);
 
   useEffect(() => {
-    // Update cache whenever allQuestions changes, but only if not loading initial data
-    if (!loading && paper) {
-      const cachedData = getCachedPaper(paperId) || { paper };
-      const updatedCache = { ...cachedData, questions: allQuestions };
-      setCachedPaper(paperId, updatedCache);
-    }
-  }, [allQuestions, paperId, loading, paper]);
-
-  useEffect(() => {
-    // Logic to show retry button on data mismatch
     if (submissionData && submissionData.attempted === 0) {
       const timeSinceSubmit =
         (Date.now() - new Date(submissionData.submittedAt).getTime()) / 1000;
-      // Only show if submission is fresh (e.g., within 60s) to avoid showing it on old, broken data
       if (timeSinceSubmit < 60) {
         setShowRetry(true);
       }
     }
   }, [submissionData]);
+
+  // SUBMIT LOGIC from File B
+  const handleSubmit = useCallback(
+    async (forcedTime = null) => {
+      const timeSpent =
+        forcedTime !== null
+          ? forcedTime
+          : Math.floor((Date.now() - startTimeRef.current) / 1000);
+
+      setConfirmDialog(false);
+      setSubmitting(true);
+      setTimerActive(false);
+
+      try {
+        const formattedAnswers = {};
+        Object.keys(answers).forEach((qId) => {
+          if (answers[qId]) {
+            formattedAnswers[qId] = answers[qId];
+          }
+        });
+
+        const analysisData = await submitPaper(
+          paperId,
+          paperType,
+          formattedAnswers,
+          timeSpent
+        );
+
+        const questionMap = new Map(allQuestions.map((q) => [q._id, q]));
+        const detailedAnswers = Object.keys(answers)
+          .map((questionId) => {
+            const question = questionMap.get(questionId);
+            if (!question) return null;
+
+            const selectedOptionText = answers[questionId];
+            const selectedIndex = question.options.indexOf(selectedOptionText);
+            if (selectedIndex === -1) return null;
+
+            const isCorrect = selectedIndex === question.correctAnswerIndex;
+
+            return {
+              q: questionId,
+              s: selectedIndex,
+              c: isCorrect,
+              m: isCorrect ? question.marks : 0,
+            };
+          })
+          .filter(Boolean);
+
+        const completeSubmissionData = {
+          ...analysisData,
+          answers: detailedAnswers,
+        };
+
+        setSubmissionData(completeSubmissionData);
+        setDrawerHeight(10);
+
+        await setCachedPaper(
+          paperId,
+          {
+            paper,
+            questions: allQuestions,
+            submission: completeSubmissionData,
+          },
+          true
+        );
+
+        Object.keys(sessionStorage)
+          .filter((key) => key.startsWith(`${paperType}_`))
+          .forEach((key) => sessionStorage.removeItem(key));
+
+        sessionStorage.removeItem("user_performance_analysis_data");
+      } catch (err) {
+        alert(err.message || "सबमिट अयशस्वी झाले. पुन्हा प्रयत्न करा.");
+        setTimerActive(true);
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [answers, paper, paperId, paperType, allQuestions]
+  );
+
+  const handleAutoSubmit = useCallback(async () => {
+    alert("वेळ संपली! पेपर स्वयंचलितपणे सबमिट केला जात आहे.");
+    if (paper) {
+      const maxSeconds = (paper.durationMinutes || 0) * 60;
+      await handleSubmit(maxSeconds);
+    }
+  }, [paper, handleSubmit]);
 
   useEffect(() => {
     if (timerActive && timeRemaining > 0) {
@@ -138,9 +216,8 @@ const QuestionPaper = () => {
       }, 1000);
       return () => clearInterval(interval);
     }
-  }, [timerActive, timeRemaining]);
+  }, [timerActive, timeRemaining, handleAutoSubmit]);
 
-  // Add this useEffect to handle the browser's native "Are you sure?" alert
   useEffect(() => {
     const handleBeforeUnload = (e) => {
       if (!submissionData && !isViewMode && Object.keys(answers).length > 0) {
@@ -159,6 +236,7 @@ const QuestionPaper = () => {
     startTimeRef.current = Date.now();
   };
 
+  // CORE DATA LOADING from File B
   const loadInitialData = async () => {
     setLoading(true);
     setError(null);
@@ -167,8 +245,8 @@ const QuestionPaper = () => {
       let currentQuestions = [];
       let currentSubmission = null;
 
-      // 1. Try to get data from Cache first
-      const cachedData = getCachedPaper(paperId);
+      // 1. Try Cache first
+      const cachedData = await getCachedPaper(paperId);
 
       if (cachedData && cachedData.paper) {
         currentPaper = cachedData.paper;
@@ -176,42 +254,27 @@ const QuestionPaper = () => {
         currentSubmission = cachedData.submission || null;
       }
 
-      // 2. If Paper is missing (Cache Miss), fetch from API
+      // 2. Cache Miss? Fetch FULL paper from API
       if (!currentPaper) {
         const data = await getPaperWithQuestions(
           paperType,
           paperId,
           1,
-          questionLimit
+          1000 // Fetch all
         );
         currentPaper = data.paper;
-        // Initialize placeholder array for questions
-        currentQuestions = Array(data.paper.totalQuestions).fill(null);
-        (data.questions || []).forEach((q, i) => {
-          currentQuestions[i] = q;
-        });
-        setTotalQuestionPages(data.totalPages || 1);
-      } else {
-        // If loaded from cache, ensure pagination is correct
-        setTotalQuestionPages(
-          Math.ceil((currentQuestions.length || 0) / questionLimit)
-        );
+        currentQuestions = data.questions || [];
       }
 
-      // 3. CRITICAL FIX: Robust Submission Check (Self-Healing Logic)
-      // If we don't have a submission in cache, we MUST check the server.
-      // This handles the "Reload" and "Revisit" cases where state.viewMode is lost.
+      // 3. Check for existing submissions on server (Sync)
       if (!currentSubmission) {
         try {
-          // Always check if this paper is already submitted
           const submissions = await getPaperSubmissions(paperId);
           if (submissions && submissions.length > 0) {
-            // Found a submission on server! Use it.
             currentSubmission = submissions[0];
           }
         } catch (subErr) {
           console.warn("Background submission check failed:", subErr);
-          // If check fails, we proceed (user might be starting fresh)
         }
       }
 
@@ -219,22 +282,29 @@ const QuestionPaper = () => {
       setPaper(currentPaper);
       setAllQuestions(currentQuestions);
 
+      // 5. Atomic Save to Cache and finalize state
       if (currentSubmission) {
-        // CASE: SUBMISSION EXISTS (Reloaded solved paper or History view)
         setSubmissionData(currentSubmission);
-        setDrawerHeight(10); // Auto-collapse drawer to show Analysis
-
-        // IMPORTANT: Overwrite Cache with the correct, fresh data
-        // This ensures the next reload/visit uses this valid cached data
-        setCachedPaper(paperId, {
-          paper: currentPaper,
-          questions: currentQuestions,
-          submission: currentSubmission,
-        });
+        setDrawerHeight(10);
+        await setCachedPaper(
+          paperId,
+          {
+            paper: currentPaper,
+            questions: currentQuestions,
+            submission: currentSubmission,
+          },
+          true
+        );
       } else {
-        // CASE: FRESH ATTEMPT
-        // Only start timer if we are sure it's not a view mode
-        // (If fetching submission failed, we assume it's a fresh attempt)
+        await setCachedPaper(
+          paperId,
+          {
+            paper: currentPaper,
+            questions: currentQuestions,
+            submission: null,
+          },
+          true
+        );
         if (!isViewMode) {
           startTimer(currentPaper.durationMinutes);
         }
@@ -249,124 +319,12 @@ const QuestionPaper = () => {
     }
   };
 
-  const loadingPages = useRef(new Set());
-  const loadQuestionsForPage = async (page) => {
-    const startIndex = (page - 1) * questionLimit;
-    if (allQuestions[startIndex] || loadingPages.current.has(page)) return;
-
-    setLoadingQuestions(page === currentQuestionPage);
-    loadingPages.current.add(page);
-
-    try {
-      const data = await getPaperWithQuestions(
-        paperType,
-        paperId,
-        page,
-        questionLimit
-      );
-      setAllQuestions((prev) => {
-        const updated = [...prev];
-        (data.questions || []).forEach((q, i) => {
-          updated[startIndex + i] = q;
-        });
-        return updated;
-      });
-    } catch (err) {
-      // console.error(`Failed to load questions for page ${page}:`, err);
-    } finally {
-      loadingPages.current.delete(page);
-      setLoadingQuestions(false);
-    }
-  };
-
-  const handleAutoSubmit = async () => {
-    alert("वेळ संपली! पेपर स्वयंचलितपणे सबमिट केला जात आहे.");
-    const maxSeconds = (paper.durationMinutes || 0) * 60;
-    await handleSubmit(maxSeconds);
-  };
-
-  const handleRetry = () => {
-    removeCachedPaper(paperId);
+  const handleRetry = async () => {
+    await removeCachedPaper(paperId);
     window.location.reload();
   };
 
-  const handleSubmit = async (forcedTime = null) => {
-    const timeSpent =
-      forcedTime !== null
-        ? forcedTime
-        : Math.floor((Date.now() - startTimeRef.current) / 1000);
-
-    setConfirmDialog(false);
-    setSubmitting(true);
-    setTimerActive(false);
-
-    try {
-      // Format answers for backend: { questionId: selectedOption }
-      const formattedAnswers = {};
-      Object.keys(answers).forEach((qId) => {
-        if (answers[qId]) {
-          formattedAnswers[qId] = answers[qId];
-        }
-      });
-
-      const analysisData = await submitPaper(
-        paperId,
-        paperType,
-        formattedAnswers,
-        timeSpent
-      );
-
-      // Manually construct the detailed answers array for caching, as the API only returns analysis
-      const questionMap = new Map(allQuestions.map((q) => [q._id, q]));
-      const detailedAnswers = Object.keys(answers)
-        .map((questionId) => {
-          const question = questionMap.get(questionId);
-          if (!question) return null;
-
-          const selectedOptionText = answers[questionId];
-          const selectedIndex = question.options.indexOf(selectedOptionText);
-          if (selectedIndex === -1) return null; // Should not happen
-
-          const isCorrect = selectedIndex === question.correctAnswerIndex;
-
-          return {
-            q: questionId,
-            s: selectedIndex,
-            c: isCorrect,
-            m: isCorrect ? question.marks : 0,
-          };
-        })
-        .filter(Boolean);
-
-      const completeSubmissionData = {
-        ...analysisData,
-        answers: detailedAnswers,
-      };
-
-      setSubmissionData(completeSubmissionData);
-      setDrawerHeight(10); // Collapse drawer to show analysis
-
-      // Cache the paper with submission data after successful submission
-      setCachedPaper(paperId, {
-        paper,
-        questions: allQuestions,
-        submission: completeSubmissionData,
-      });
-
-      // Invalidate the session storage for the paper list
-      Object.keys(sessionStorage)
-        .filter((key) => key.startsWith(`${paperType}_`))
-        .forEach((key) => sessionStorage.removeItem(key));
-
-      sessionStorage.removeItem("user_performance_analysis_data");
-    } catch (err) {
-      alert(err.message || "सबमिट अयशस्वी झाले. पुन्हा प्रयत्न करा.");
-      setTimerActive(true); // Resume timer on error
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
+  // UI Handlers from File A
   const handleAnswerChange = (questionId, value) => {
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
@@ -390,6 +348,7 @@ const QuestionPaper = () => {
     });
   };
 
+  // UI rendering logic from File A
   const renderPagination = () => {
     if (totalQuestionPages <= 1) return null;
 
@@ -426,7 +385,7 @@ const QuestionPaper = () => {
         <IconButton
           size="small"
           onClick={() => handlePageChange(currentQuestionPage - 1)}
-          disabled={currentQuestionPage === 1 || loadingQuestions}
+          disabled={currentQuestionPage === 1}
           sx={{ color: "white", p: 0.5, flex: "0 0 auto" }}
         >
           <ChevronLeftIcon fontSize="small" />
@@ -455,7 +414,7 @@ const QuestionPaper = () => {
                 key={page}
                 onClick={() => canClick && handlePageChange(page)}
                 size="small"
-                disabled={loadingQuestions || !canClick}
+                disabled={!canClick}
                 sx={{
                   minWidth: 28,
                   height: 28,
@@ -486,9 +445,7 @@ const QuestionPaper = () => {
         <IconButton
           size="small"
           onClick={() => handlePageChange(currentQuestionPage + 1)}
-          disabled={
-            currentQuestionPage === totalQuestionPages || loadingQuestions
-          }
+          disabled={currentQuestionPage === totalQuestionPages}
           sx={{ color: "white", p: 0.5, flex: "0 0 auto" }}
         >
           <ChevronRightIcon fontSize="small" />
@@ -512,7 +469,6 @@ const QuestionPaper = () => {
 
   const submittedAnswersMap = useMemo(() => {
     if (!submissionData?.answers) return new Map();
-    // The 'q' property might be an object { $oid: "..." } or a string
     return new Map(
       submissionData.answers.map((ans) => {
         const key = typeof ans.q === "object" ? ans.q.$oid : ans.q;
@@ -521,12 +477,11 @@ const QuestionPaper = () => {
     );
   }, [submissionData]);
 
+  // Derived state for client-side pagination from File B
   const currentPageQuestions = useMemo(() => {
-    const startIdx = (currentQuestionPage - 1) * questionLimit;
-    return allQuestions.slice(startIdx, startIdx + questionLimit);
-  }, [allQuestions, currentQuestionPage, questionLimit]);
-
-  const isCurrentPageLoading = currentPageQuestions.some((q) => q === null);
+    const startIdx = (currentQuestionPage - 1) * questionsPerPage;
+    return allQuestions.slice(startIdx, startIdx + questionsPerPage);
+  }, [allQuestions, currentQuestionPage, questionsPerPage]);
 
   if (loading) {
     return (
@@ -596,7 +551,7 @@ const QuestionPaper = () => {
         overflow: "hidden",
       }}
     >
-      {/* Analysis Section */}
+      {/* Analysis Section (UI from File A) */}
       <Box
         sx={{
           position: "absolute",
@@ -673,7 +628,7 @@ const QuestionPaper = () => {
         <Analysis submissionData={submissionData} />
       </Box>
 
-      {/* Bottom Drawer */}
+      {/* Bottom Drawer (UI from File A) */}
       <Box
         ref={drawerRef}
         sx={{
@@ -763,14 +718,15 @@ const QuestionPaper = () => {
         </Box>
 
         <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
-          {loadingQuestions || isCurrentPageLoading ? (
+          {currentPageQuestions.length === 0 && !loading ? (
             <Box sx={{ textAlign: "center", py: 4 }}>
-              <CircularProgress sx={{ color: "white" }} />
+              <Typography>No questions found.</Typography>
             </Box>
           ) : (
             currentPageQuestions.map((q, idx) => {
+              if (!q) return null; // Defensive check
               const globalIndex =
-                (currentQuestionPage - 1) * questionLimit + idx + 1;
+                (currentQuestionPage - 1) * questionsPerPage + idx + 1;
               const submittedAnswer = submittedAnswersMap.get(q._id);
               const isAttempted = submittedAnswer !== undefined;
               const isCorrect = submittedAnswer?.c === true;
@@ -811,7 +767,7 @@ const QuestionPaper = () => {
                       ? `${status.color}.main`
                       : "transparent",
                     position: "relative",
-                    overflow: "visible", // Allow chips to overflow
+                    overflow: "visible",
                   }}
                 >
                   <CardContent>
@@ -826,7 +782,7 @@ const QuestionPaper = () => {
                       name={`q-${q._id}`}
                       value={answers[q._id] || ""}
                       onChange={
-                        !!submissionData
+                        submissionData
                           ? undefined
                           : (e) => handleAnswerChange(q._id, e.target.value)
                       }
@@ -836,19 +792,12 @@ const QuestionPaper = () => {
                         const isUserSelection = i === userSelectedIndex;
 
                         let radioColor = "rgba(255,255,255,0.5)";
-                        let labelColor = "white";
-                        let fontWeight = 400;
-
                         if (submissionData) {
                           if (isCorrectAnswer) {
                             radioColor = "success.main";
-                            labelColor = "success.main";
-                            fontWeight = 700;
                           }
                           if (isUserSelection && !isCorrect) {
                             radioColor = "error.main";
-                            labelColor = "error.main";
-                            fontWeight = 700;
                           }
                         }
 
@@ -858,9 +807,9 @@ const QuestionPaper = () => {
                             value={opt}
                             control={
                               <Radio
-                                disabled={!!submissionData}
+                                disabled={submissionData}
                                 checked={
-                                  !!submissionData
+                                  submissionData
                                     ? isUserSelection || isCorrectAnswer
                                     : answers[q._id] === opt
                                 }
@@ -877,8 +826,6 @@ const QuestionPaper = () => {
                             }
                             label={opt}
                             sx={{
-                              color: labelColor,
-                              fontWeight: fontWeight,
                               "& .MuiFormControlLabel-label": {
                                 fontSize: "0.95rem",
                                 color: "white",
@@ -982,9 +929,9 @@ const QuestionPaper = () => {
                             py: 0.5,
                             borderRadius: 1.5,
                           }}
-                        >{`${submittedAnswer?.m || 0} / ${
-                          q.marks
-                        }`}</Typography>
+                        >
+                          {`${submittedAnswer?.m || 0} / ${q.marks}`}
+                        </Typography>
                       </Box>
                     </Box>
 
@@ -1043,13 +990,11 @@ const QuestionPaper = () => {
             )}
           </IconButton>
           {submissionData ? (
-            // View Mode: Only show Next Page button if not on the last page
             <>
-              {!isLastPage ? (
+              {!isLastPage && (
                 <Button
                   variant="contained"
                   onClick={() => handlePageChange(currentQuestionPage + 1)}
-                  disabled={loadingQuestions}
                   sx={{
                     background: "linear-gradient(135deg, #de6925, #f8b14a)",
                     color: "#fff",
@@ -1059,21 +1004,16 @@ const QuestionPaper = () => {
                 >
                   पुढील पृष्ठ
                 </Button>
-              ) : (
-                <Box /> // Empty box to maintain layout
               )}
             </>
           ) : (
-            // Solve Mode: Show Next Page or Submit button
             <>
               {!allPagesVisited ? (
                 <Button
                   variant="contained"
                   onClick={() => handlePageChange(currentQuestionPage + 1)}
                   disabled={
-                    isLastPage ||
-                    loadingQuestions ||
-                    currentQuestionPage >= maxVisitedPage + 1
+                    isLastPage || currentQuestionPage >= maxVisitedPage + 1
                   }
                   sx={{
                     background: "linear-gradient(135deg, #de6925, #f8b14a)",
@@ -1118,7 +1058,7 @@ const QuestionPaper = () => {
               >
                 प्रयत्न:{" "}
                 <strong style={{ color: "white" }}>{attemptedCount}</strong> /{" "}
-                {paper.totalQuestions || allQuestions.length}
+                {paper.totalQuestions}
               </Typography>
             </>
           )}
@@ -1140,7 +1080,7 @@ const QuestionPaper = () => {
         </Box>
       </Box>
 
-      {/* Grid Modal */}
+      {/* Grid Modal (UI from File A) */}
       <Modal open={gridOpen} onClose={() => setGridOpen(false)}>
         <Box
           sx={{
@@ -1172,33 +1112,12 @@ const QuestionPaper = () => {
           </Box>
 
           <Grid container spacing={1}>
-            {allQuestions.map((q, i) => {
-              const pageNum = Math.floor(i / questionLimit) + 1;
-              if (!q) {
-                return (
-                  <Grid item key={i}>
-                    <Paper
-                      elevation={0}
-                      sx={{
-                        width: 38,
-                        height: 38,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: 1.5,
-                        bgcolor: "#2a2a2a",
-                        color: "white",
-                        opacity: 0.5,
-                      }}
-                    >
-                      {i + 1}
-                    </Paper>
-                  </Grid>
-                );
-              }
-              const attempted = answers[q._id];
+            {Array.from({ length: paper.totalQuestions }).map((_, i) => {
+              const q = allQuestions[i];
+              const pageNum = Math.floor(i / questionsPerPage) + 1;
+              const attempted = q ? answers[q._id] : false;
               return (
-                <Grid item key={q._id}>
+                <Grid item key={i}>
                   <Paper
                     elevation={0}
                     sx={{
@@ -1237,23 +1156,18 @@ const QuestionPaper = () => {
         </Box>
       </Modal>
 
-      {/* Confirm Submit Dialog */}
+      {/* Dialogs (UI from File A) */}
       <Dialog
         open={confirmDialog}
         onClose={() => setConfirmDialog(false)}
         PaperProps={{
-          sx: {
-            bgcolor: "#1a1a1a",
-            color: "white",
-            borderRadius: 3,
-          },
+          sx: { bgcolor: "#1a1a1a", color: "white", borderRadius: 3 },
         }}
       >
         <DialogTitle>पेपर सबमिट करायचे?</DialogTitle>
         <DialogContent>
           <Typography variant="body2" sx={{ mb: 2 }}>
-            तुम्ही{" "}
-            <strong>{paper.totalQuestions || allQuestions.length}</strong> पैकी{" "}
+            तुम्ही <strong>{paper.totalQuestions}</strong> पैकी{" "}
             <strong>{attemptedCount}</strong> प्रश्न सोडवले आहेत.
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.7 }}>
@@ -1280,7 +1194,6 @@ const QuestionPaper = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Refresh/Leave Warning Modal */}
       <Dialog
         open={refreshWarningOpen}
         PaperProps={{
@@ -1340,13 +1253,9 @@ const QuestionPaper = () => {
             fullWidth
             onClick={() => {
               setRefreshWarningOpen(false);
-              navigate(-1); // Or handle cleanup
+              navigate(-1);
             }}
-            sx={{
-              color: "#ef5350",
-              fontWeight: 600,
-              fontSize: "0.9rem",
-            }}
+            sx={{ color: "#ef5350", fontWeight: 600, fontSize: "0.9rem" }}
           >
             हो, परीक्षा थांबवा (Yes, Stop Exam)
           </Button>
