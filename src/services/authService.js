@@ -1,5 +1,6 @@
 // src/services/authService.js
 import api from "./api";
+import { clearAllIndexedDB } from "./paperCache";
 
 /* ================= STORAGE KEYS ================= */
 const TOKEN_KEY = "auth_token";
@@ -40,13 +41,21 @@ export function getToken() {
   }
 }
 
-export function clearToken() {
+export async function clearToken() {
   memoryToken = null;
   try {
+    // 1. Clear IndexedDB (Async)
+    await clearAllIndexedDB();
+
+    // 2. Clear standard storage
     localStorage.clear();
     sessionStorage.clear();
+
+    console.log(
+      "All storage (Local, Session, IndexedDB) cleared successfully."
+    );
   } catch (error) {
-    console.error("Failed to clear localStorage", error);
+    console.error("Failed to clear storage", error);
   }
 }
 

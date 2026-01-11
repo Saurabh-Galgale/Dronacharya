@@ -1,5 +1,5 @@
 // src/services/paperCache.js
-import { get, set, del } from "idb-keyval";
+import { get, set, del, clear } from "idb-keyval";
 
 /**
  * Helper: Generates a unique key based on the User ID.
@@ -63,4 +63,15 @@ export async function setCachedPaper(paperId, data, isComplete = false) {
 export async function removeCachedPaper(paperId) {
   const key = getStorageKey(paperId);
   await del(key);
+}
+
+/**
+ * Completely wipes the IndexedDB store for testing/logout
+ */
+export async function clearAllIndexedDB() {
+  try {
+    await clear();
+  } catch (err) {
+    console.error("Failed to clear IndexedDB:", err);
+  }
 }

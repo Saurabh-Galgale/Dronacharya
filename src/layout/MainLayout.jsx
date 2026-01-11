@@ -26,8 +26,6 @@ import {
   MenuItem,
 } from "@mui/material";
 
-import HomeIcon from "@mui/icons-material/Home";
-import QuizIcon from "@mui/icons-material/Quiz";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import NewspaperIcon from "@mui/icons-material/Newspaper";
 import EditNoteIcon from "@mui/icons-material/EditNote";
@@ -36,16 +34,32 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import QueryStatsIcon from "@mui/icons-material/QueryStats";
 
 import MenuIcon from "@mui/icons-material/Menu";
-import PersonIcon from "@mui/icons-material/Person";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SubscriptionsIcon from "@mui/icons-material/Subscriptions";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
+import HomeIcon from "@mui/icons-material/Home";
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
+import BubbleChartIcon from "@mui/icons-material/BubbleChart";
+import BubbleChartOutlinedIcon from "@mui/icons-material/BubbleChartOutlined";
+import RocketIcon from "@mui/icons-material/Rocket";
+import RocketOutlinedIcon from "@mui/icons-material/RocketOutlined";
+import QuizIcon from "@mui/icons-material/Quiz";
+import QuizOutlinedIcon from "@mui/icons-material/QuizOutlined";
+import LibraryBooksIcon from "@mui/icons-material/LibraryBooks";
+import LibraryBooksOutlinedIcon from "@mui/icons-material/LibraryBooksOutlined";
+import NestCamWiredStandIcon from "@mui/icons-material/NestCamWiredStand";
+import NestCamWiredStandOutlinedIcon from "@mui/icons-material/NestCamWiredStandOutlined";
+import DrawIcon from "@mui/icons-material/Draw";
+import DrawOutlinedIcon from "@mui/icons-material/DrawOutlined";
+import LoyaltyIcon from "@mui/icons-material/Loyalty";
+import LoyaltyOutlinedIcon from "@mui/icons-material/LoyaltyOutlined";
+import PersonIcon from "@mui/icons-material/Person";
+import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+
 import Footer from "../component/Footer";
 import { useTheme } from "@mui/material/styles";
-import { clearToken, getStoredUserProfile } from "../services/authService";
-import { useAuth } from "../hooks/useAuth.jsx";
-import { useEffect } from "react";
+import { clearToken } from "../services/authService";
 
 const drawerWidth = 280;
 
@@ -106,20 +120,66 @@ export default function Layout({ children }) {
 
   // Sidebar Menu Logic
   const menuItems = [
-    { text: "मुख्यपृष्ठ", icon: <HomeIcon />, path: "/dashboard" },
-    { text: "विश्लेषण", icon: <QueryStatsIcon />, path: "/analysis" },
-    { text: "सराव प्रश्नपत्रिका", icon: <QuizIcon />, path: "/mock" },
-    { text: "मागील प्रश्नपत्रिका", icon: <MenuBookIcon />, path: "/pyq" },
+    {
+      text: "मुख्यपृष्ठ",
+      icon: <HomeOutlinedIcon />,
+      iconActive: <HomeIcon />, // Add Filled version
+      path: "/dashboard",
+    },
+    {
+      text: "विश्लेषण",
+      icon: <BubbleChartOutlinedIcon />,
+      iconActive: <BubbleChartIcon />,
+      path: "/analysis",
+    },
+    {
+      text: "लघु प्रश्नपत्रिका",
+      icon: <RocketOutlinedIcon />, // Ensure you import this if not already
+      iconActive: <RocketIcon />,
+      path: "/short",
+    },
+    {
+      text: "सराव प्रश्नपत्रिका",
+      icon: <QuizOutlinedIcon />,
+      iconActive: <QuizIcon />,
+      path: "/mock",
+    },
+    {
+      text: "मागील प्रश्नपत्रिका",
+      icon: <LibraryBooksOutlinedIcon />, // Changed to match your imports
+      iconActive: <LibraryBooksIcon />, // Assuming MenuBook is the filled version you want
+      path: "/pyq",
+    },
   ];
 
   const studyContentItems = [
-    { text: "चालू घडामोडी", icon: <NewspaperIcon />, path: "/ca" },
-    { text: "लेख", icon: <EditNoteIcon />, path: "/blogs" },
+    {
+      text: "चालू घडामोडी",
+      icon: <NestCamWiredStandOutlinedIcon />,
+      iconActive: <NestCamWiredStandIcon />, // If you don't have an outline version, keep same
+      path: "/ca",
+    },
+    {
+      text: "लेख",
+      icon: <DrawOutlinedIcon />,
+      iconActive: <DrawIcon />,
+      path: "/blogs",
+    },
   ];
 
   const accountItems = [
-    { text: "सदस्यता", icon: <CardMembershipIcon />, path: "/subscription" },
-    { text: "माझे खाते", icon: <AccountCircleIcon />, path: "/profile" },
+    {
+      text: "सदस्यता",
+      icon: <LoyaltyOutlinedIcon />,
+      iconActive: <LoyaltyIcon />,
+      path: "/subscription",
+    },
+    {
+      text: "माझे खाते",
+      icon: <PersonOutlinedIcon />,
+      iconActive: <PersonIcon />, // You can import AccountCircleOutlined if needed
+      path: "/profile",
+    },
   ];
 
   const drawerContent = (
@@ -135,79 +195,88 @@ export default function Layout({ children }) {
         <Toolbar />
         {/* मुख्य मेनू Section */}
         <List>
-          {menuItems.map((item) => (
-            <ListItem key={item.path} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={item.path}
-                selected={location.pathname === item.path}
-                onClick={() => isMobile && setMobileOpen(false)}
-                sx={listButtonSx}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 42,
-                    color:
-                      location.pathname === item.path ? "white" : "inherit",
-                  }}
+          {menuItems.map((item) => {
+            const isSelected = location.pathname === item.path; // Check selection
+            return (
+              <ListItem key={item.path} disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to={item.path}
+                  selected={location.pathname === item.path}
+                  onClick={() => isMobile && setMobileOpen(false)}
+                  sx={listButtonSx}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 42,
+                      color:
+                        location.pathname === item.path ? "white" : "inherit",
+                    }}
+                  >
+                    {isSelected ? item.iconActive : item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
         <Divider sx={{ my: 1, mx: 2 }} />
         <List>
-          {studyContentItems.map((item) => (
-            <ListItem key={item.path} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={item.path}
-                selected={location.pathname === item.path}
-                onClick={() => isMobile && setMobileOpen(false)}
-                sx={listButtonSx}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 42,
-                    color:
-                      location.pathname === item.path ? "white" : "inherit",
-                  }}
+          {studyContentItems.map((item) => {
+            const isSelected = location.pathname === item.path; // Check selection
+            return (
+              <ListItem key={item.path} disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to={item.path}
+                  selected={location.pathname === item.path}
+                  onClick={() => isMobile && setMobileOpen(false)}
+                  sx={listButtonSx}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 42,
+                      color:
+                        location.pathname === item.path ? "white" : "inherit",
+                    }}
+                  >
+                    {isSelected ? item.iconActive : item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
         </List>
         <Divider sx={{ my: 1, mx: 2 }} />
         {/* माहिती व खाते Section */}
         <List>
-          {accountItems.map((item) => (
-            <ListItem key={item.path} disablePadding>
-              <ListItemButton
-                component={Link}
-                to={item.path}
-                selected={location.pathname === item.path}
-                onClick={() => isMobile && setMobileOpen(false)}
-                sx={listButtonSx}
-              >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 42,
-                    color:
-                      location.pathname === item.path ? "white" : "inherit",
-                  }}
+          {accountItems.map((item) => {
+            const isSelected = location.pathname === item.path; // Check selection
+            return (
+              <ListItem key={item.path} disablePadding>
+                <ListItemButton
+                  component={Link}
+                  to={item.path}
+                  selected={location.pathname === item.path}
+                  onClick={() => isMobile && setMobileOpen(false)}
+                  sx={listButtonSx}
                 >
-                  {item.icon}
-                </ListItemIcon>
-                <ListItemText primary={item.text} />
-              </ListItemButton>
-            </ListItem>
-          ))}
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 42,
+                      color:
+                        location.pathname === item.path ? "white" : "inherit",
+                    }}
+                  >
+                    {isSelected ? item.iconActive : item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} />
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
 
           {/* Logout Option in Sidebar */}
           <ListItem disablePadding>

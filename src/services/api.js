@@ -110,6 +110,12 @@ export const getSolvedPYQPapers = (page, limit) =>
 export const getUnsolvedPYQPapers = (page, limit) =>
   fetchPapers("pyq", "unsolved", page, limit);
 
+// Short Papers
+export const getSolvedShortPapers = (page, limit) =>
+  fetchPapers("short", "solved", page, limit);
+export const getUnsolvedShortPapers = (page, limit) =>
+  fetchPapers("short", "unsolved", page, limit);
+
 /**
  * Get Single Paper with Questions (paginated)
  * GET /api/papers/:type/:paperId?page=1&limit=10

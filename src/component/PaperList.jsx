@@ -16,6 +16,8 @@ import {
   getUnsolvedMockPapers,
   getSolvedPYQPapers,
   getUnsolvedPYQPapers,
+  getSolvedShortPapers,
+  getUnsolvedShortPapers,
 } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
 import PaperCard from "./PaperCard";
@@ -48,10 +50,15 @@ const PaperList = ({ paperType }) => {
       solved: getSolvedPYQPapers,
       unsolved: getUnsolvedPYQPapers,
     },
+    short: {
+      solved: getSolvedShortPapers,
+      unsolved: getUnsolvedShortPapers,
+    },
   };
 
   useEffect(() => {
     fetchPapers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, filter, paperType]);
 
   const fetchPapers = async () => {
@@ -187,6 +194,8 @@ const PaperList = ({ paperType }) => {
         <Typography variant="body2" sx={{ mb: 2, fontWeight: 700 }}>
           {paperType === "mock"
             ? "सराव प्रश्नपत्रिका"
+            : paperType === "short"
+            ? "लघु प्रश्नपत्रिका"
             : "मागील वर्षीय प्रश्नपत्रिका"}
         </Typography>
         <Alert severity="error" sx={{ mb: 2 }}>

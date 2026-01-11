@@ -21,6 +21,7 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const PerformanceAnalysis = lazy(() => import("./pages/PerformanceAnalysis"));
 const MockPapers = lazy(() => import("./pages/MockPapers")); // Mock Papers
 const PYQPapers = lazy(() => import("./pages/PYQPapers")); // PYQ Papers
+const ShortPapers = lazy(() => import("./pages/ShortPapers"));
 const QuestionPaper = lazy(() => import("./pages/QuestionPaper")); // Single Paper View
 
 // Payment Gateway terms & policy pages imports
@@ -98,6 +99,14 @@ const AppContent = () => {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/short/:paperId"
+            element={
+              <PrivateRoute>
+                <QuestionPaper />
+              </PrivateRoute>
+            }
+          />
 
           {/* Protected Routes */}
           <Route
@@ -115,6 +124,7 @@ const AppContent = () => {
                     {/* PYQ Papers */}
                     <Route path="pyq" element={<PYQPapers />} />
                     {/* <Route path="pyq/:paperId" element={<QuestionPaper />} /> */}
+                    <Route path="short" element={<ShortPapers />} />
 
                     {/* Other Pages */}
                     <Route path="ca" element={<CurrentAffairs />} />
