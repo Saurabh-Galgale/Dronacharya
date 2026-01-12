@@ -6,19 +6,6 @@ import { createOrder, verifyPayment } from "../services/paymentApi";
 
 const RAZORPAY_SDK_URL = "https://checkout.razorpay.com/v1/checkout.js";
 
-// Testing creds for cards
-// Card Number: 5267 3181 8797 5449
-// Expiry: 12/30
-// CVV: 123
-// OTP: 123456
-
-// Failure testing:
-// Card Number: 4000 0000 0000 0002
-// Card Number: 4111 1111 1111 1111
-// Expiry: 12/30
-// CVV: 123
-// OTP: 123456
-
 const usePaymentGateway = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();

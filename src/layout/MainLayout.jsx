@@ -113,9 +113,16 @@ export default function Layout({ children }) {
   const hideFooterPaths = ["/blogs", "/short", "/mock", "/pyq"];
   const shouldShowFooter = !hideFooterPaths.includes(location.pathname);
 
-  const handleLogout = () => {
-    clearToken?.();
-    window.location.assign("/");
+  const handleLogout = async () => {
+    try {
+      await clearToken();
+      window.location.assign("/");
+    } catch (error) {
+      console.error(
+        "बाहेर पडण्यास काही अडचण आली आहे. पुन्हा बाहेर पडण्याचा प्रयत्न करा",
+        error
+      );
+    }
   };
 
   // Sidebar Menu Logic
