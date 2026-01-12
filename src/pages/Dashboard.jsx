@@ -187,6 +187,12 @@ const Dashboard = () => {
                       variant="h5"
                       sx={{ fontWeight: 800, color: "white", mb: 1 }}
                     >
+                      फक्त ₹१४९ मध्ये १ महिना!
+                    </Typography>
+                    <Typography
+                      variant="h5"
+                      sx={{ fontWeight: 800, color: "white", mb: 1 }}
+                    >
                       फक्त ₹३९९ मध्ये ३ महिने!
                     </Typography>
                     <Typography

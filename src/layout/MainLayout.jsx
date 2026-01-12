@@ -110,7 +110,7 @@ export default function Layout({ children }) {
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
-  const hideFooterPaths = ["/blogs"];
+  const hideFooterPaths = ["/blogs", "/short", "/mock", "/pyq"];
   const shouldShowFooter = !hideFooterPaths.includes(location.pathname);
 
   const handleLogout = () => {
@@ -366,7 +366,7 @@ export default function Layout({ children }) {
 
           {/* Center: Brand Name */}
           <Typography
-            variant={isMobile ? "h6" : "h5"}
+            variant={isMobile ? "body1" : "h6"}
             fontWeight="bold"
             textAlign="center"
             sx={{
@@ -419,7 +419,7 @@ export default function Layout({ children }) {
               sx={{ py: 1.5 }}
             >
               <ListItemIcon>
-                <SubscriptionsIcon fontSize="small" />
+                <LoyaltyIcon fontSize="small" />
               </ListItemIcon>
               सदस्यता
             </MenuItem>

@@ -41,11 +41,10 @@ const SubscriptionDialog = ({ open, onClose }) => {
           <LockIcon sx={{ fontSize: 40, color: "white" }} />
         </Box>
 
-        <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
-          प्रीमियम सामग्री 🔒
-        </Typography>
-
-        <Typography variant="body1" sx={{ mb: 3, color: "text.secondary" }}>
+        <Typography
+          variant="body1"
+          sx={{ mb: 3, fontWeight: 800, color: "text.secondary" }}
+        >
           हे प्रश्नपत्र केवळ सदस्यांसाठी उपलब्ध आहे. संपूर्ण प्रवेश मिळवण्यासाठी
           आत्ताच सदस्यता घ्या!
         </Typography>
@@ -60,12 +59,23 @@ const SubscriptionDialog = ({ open, onClose }) => {
           }}
         >
           <Typography variant="body2" sx={{ mb: 1 }}>
-            ✓ सर्व सराव प्रश्नपत्रिका प्रवेश
+            ✓ सर्व सराव प्रश्नपत्रिकांसाठी प्रवेश
           </Typography>
           <Typography variant="body2" sx={{ mb: 1 }}>
-            ✓ सर्व मागील वर्षांच्या प्रश्नपत्रिका
+            ✓ सर्व मागील वर्षांच्या प्रश्नपत्रिकांसाठी प्रवेश
           </Typography>
-          <Typography variant="body2">✓ तपशीलवार विश्लेषण</Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            ✓ सर्व लघु प्रश्नपत्रिकांसाठी प्रवेश
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            ✓ प्रत्येक पेपरचे तपशीलवार स्वतंत्र विश्लेषण
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            ✓ सर्व प्रश्नपत्रिकांचे एकूण विश्लेषण
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            ✓ संपूर्ण करंट अफेअर्स आणि लेख उपलब्ध
+          </Typography>
         </Box>
 
         <Button

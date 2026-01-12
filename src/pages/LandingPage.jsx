@@ -384,7 +384,18 @@ const LandingPage = () => {
                 fullWidth
                 variant="contained"
                 onClick={() => setUserDrawer(true)}
-                startIcon={<LoginIcon sx={{ color: "black" }} />}
+                startIcon={
+                  <Box
+                    component="img"
+                    src="/images/arrow.gif"
+                    alt="Login"
+                    sx={{
+                      width: 22, // Slightly larger than standard icon for visibility
+                      height: 22,
+                      display: "block",
+                    }}
+                  />
+                }
                 sx={{
                   background: "linear-gradient(135deg, #de6925, #f8b14a)",
                   color: "black",
@@ -392,7 +403,7 @@ const LandingPage = () => {
                   px: 4,
                 }}
               >
-                Sign In
+                प्रवेश करा
               </Button>
             </Box>
           )}

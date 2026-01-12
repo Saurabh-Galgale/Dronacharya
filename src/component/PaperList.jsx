@@ -5,6 +5,7 @@ import {
   Typography,
   Button,
   Alert,
+  useMediaQuery,
   IconButton,
   ToggleButton,
   ToggleButtonGroup,
@@ -23,9 +24,13 @@ import { getStoredUserProfile } from "../services/authService";
 import PaperCard from "./PaperCard";
 import PaperCardSkeleton from "./PaperCardSkeleton";
 import SubscriptionDialog from "./SubscriptionDialog";
+import { useTheme } from "@mui/material/styles";
 
 const PaperList = ({ paperType }) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [papers, setPapers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,7 +38,7 @@ const PaperList = ({ paperType }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState("unsolved");
   const [subscriptionDialog, setSubscriptionDialog] = useState(false);
-  const limit = 4;
+  const limit = 3;
 
   const userProfile = getStoredUserProfile();
   const isSubscribed =
@@ -115,67 +120,212 @@ const PaperList = ({ paperType }) => {
     }
   };
 
+  // const renderPagination = () => {
+  //   if (totalPages <= 1) return null;
+  //   const pages = [];
+  //   const maxVisible = 5;
+  //   let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+  //   let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+  //   if (endPage - startPage < maxVisible - 1) {
+  //     startPage = Math.max(1, endPage - maxVisible + 1);
+  //   }
+  //   for (let i = startPage; i <= endPage; i++) {
+  //     pages.push(i);
+  //   }
+  //   return (
+  //     <Box
+  //       sx={{
+  //         display: "flex",
+  //         justifyContent: "center",
+  //         alignItems: "center",
+  //         gap: 1,
+  //         mt: 3,
+  //         mb: 2,
+  //         flexWrap: "wrap",
+  //       }}
+  //     >
+  //       <IconButton
+  //         onClick={() => handlePageChange(currentPage - 1)}
+  //         disabled={currentPage === 1}
+  //         size="small"
+  //         sx={{
+  //           bgcolor: "background.paper",
+  //           "&:hover": { bgcolor: "action.hover" },
+  //         }}
+  //       >
+  //         <ChevronLeftIcon />
+  //       </IconButton>
+  //       {pages.map((page) => (
+  //         <Button
+  //           key={page}
+  //           onClick={() => handlePageChange(page)}
+  //           variant={currentPage === page ? "contained" : "outlined"}
+  //           size="small"
+  //           sx={{
+  //             minWidth: 36,
+  //             height: 36,
+  //             ...(currentPage === page && {
+  //               background: "linear-gradient(135deg, #de6925, #f8b14a)",
+  //               color: "#000",
+  //               fontWeight: 700,
+  //             }),
+  //           }}
+  //         >
+  //           {page}
+  //         </Button>
+  //       ))}
+  //       <IconButton
+  //         onClick={() => handlePageChange(currentPage + 1)}
+  //         disabled={currentPage === totalPages}
+  //         size="small"
+  //         sx={{
+  //           bgcolor: "background.paper",
+  //           "&:hover": { bgcolor: "action.hover" },
+  //         }}
+  //       >
+  //         <ChevronRightIcon />
+  //       </IconButton>
+  //     </Box>
+  //   );
+  // };
+
+  // ... inside your component ...
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
-    const pages = [];
-    const maxVisible = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-    if (endPage - startPage < maxVisible - 1) {
-      startPage = Math.max(1, endPage - maxVisible + 1);
-    }
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+
+    // 2. Configuration based on screen size
+    // Mobile: 0 siblings (e.g., 1 ... 5 ... 10)
+    // Desktop: 1 sibling (e.g., 1 ... 4 5 6 ... 10)
+    const siblingCount = isMobile ? 1 : 1;
+    const boundaryCount = 1; // Always show first and last page
+
+    // 3. Logic to generate the page list (numbers and "...")
+    const range = (start, end) => {
+      let length = end - start + 1;
+      return Array.from({ length }, (_, idx) => idx + start);
+    };
+
+    const paginationRange = (() => {
+      const totalPageNumbers = siblingCount + 5; // sibling + current + boundary + dots
+
+      // Case 1: If the number of pages is less than the page numbers we want to show, return the range [1..totalPages]
+      if (totalPageNumbers >= totalPages) {
+        return range(1, totalPages);
+      }
+
+      const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
+      const rightSiblingIndex = Math.min(
+        currentPage + siblingCount,
+        totalPages
+      );
+
+      const shouldShowLeftDots = leftSiblingIndex > 2;
+      const shouldShowRightDots = rightSiblingIndex < totalPages - 2;
+
+      const firstPageIndex = 1;
+      const lastPageIndex = totalPages;
+
+      // Case 2: No left dots, but right dots shown
+      if (!shouldShowLeftDots && shouldShowRightDots) {
+        let leftItemCount = 3 + 2 * siblingCount;
+        let leftRange = range(1, leftItemCount);
+        return [...leftRange, "...", totalPages];
+      }
+
+      // Case 3: No right dots, but left dots shown
+      if (shouldShowLeftDots && !shouldShowRightDots) {
+        let rightItemCount = 3 + 2 * siblingCount;
+        let rightRange = range(totalPages - rightItemCount + 1, totalPages);
+        return [firstPageIndex, "...", ...rightRange];
+      }
+
+      // Case 4: Both left and right dots shown
+      if (shouldShowLeftDots && shouldShowRightDots) {
+        let middleRange = range(leftSiblingIndex, rightSiblingIndex);
+        return [firstPageIndex, "...", ...middleRange, "...", lastPageIndex];
+      }
+    })();
+
     return (
       <Box
         sx={{
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          gap: 1,
+          gap: 0.4,
           mt: 3,
           mb: 2,
           flexWrap: "wrap",
         }}
       >
+        {/* PREVIOUS BUTTON */}
         <IconButton
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           size="small"
           sx={{
-            bgcolor: "background.paper",
-            "&:hover": { bgcolor: "action.hover" },
+            bgcolor: "rgb(255, 255, 255)", // Solid Blue
+            color: "black", // White Icon
+            boxShadow: 2,
+            mr: 1,
           }}
         >
           <ChevronLeftIcon />
         </IconButton>
-        {pages.map((page) => (
-          <Button
-            key={page}
-            onClick={() => handlePageChange(page)}
-            variant={currentPage === page ? "contained" : "outlined"}
-            size="small"
-            sx={{
-              minWidth: 36,
-              height: 36,
-              ...(currentPage === page && {
-                background: "linear-gradient(135deg, #de6925, #f8b14a)",
-                color: "#000",
-                fontWeight: 700,
-              }),
-            }}
-          >
-            {page}
-          </Button>
-        ))}
+
+        {/* PAGE NUMBERS LOOP */}
+        {paginationRange.map((page, index) => {
+          // If it is the "..." separator
+          if (page === "...") {
+            return (
+              <Typography
+                key={`dots-${index}`}
+                variant="body2"
+                color="text.secondary"
+                sx={{ mx: 0.5 }}
+              >
+                ...
+              </Typography>
+            );
+          }
+
+          // If it is a Page Number
+          return (
+            <Button
+              key={page}
+              onClick={() => handlePageChange(page)}
+              variant={currentPage === page ? "contained" : "outlined"}
+              size="small"
+              sx={{
+                minWidth: { xs: 30, sm: 32 }, // Slightly smaller on mobile
+                height: { xs: 30, sm: 32 },
+                padding: 0,
+                background: "white",
+                border: "0.1px solid black",
+                color: "black",
+                ...(currentPage === page && {
+                  background: "linear-gradient(135deg, #de6925, #f8b14a)",
+                  color: "#000",
+                  fontWeight: 800,
+                }),
+              }}
+            >
+              {page}
+            </Button>
+          );
+        })}
+
+        {/* NEXT BUTTON */}
         <IconButton
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           size="small"
           sx={{
-            bgcolor: "background.paper",
-            "&:hover": { bgcolor: "action.hover" },
+            bgcolor: "rgb(255, 255, 255)", // Solid Blue
+            color: "black", // White Icon
+            boxShadow: 2,
+            ml: 1,
           }}
         >
           <ChevronRightIcon />

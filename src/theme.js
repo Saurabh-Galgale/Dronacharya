@@ -18,7 +18,7 @@ const theme = createTheme({
     borderRadius: 12,
   },
   typography: {
-    fontFamily: "'Gotu', sans-serif",
+    fontFamily: "'Gotu', 'Noto Sans Devanagari', 'Hind', sans-serif",
   },
   components: {
     MuiCard: {

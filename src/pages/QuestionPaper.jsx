@@ -1211,7 +1211,7 @@ const QuestionPaper = () => {
         <DialogTitle
           sx={{ textAlign: "center", fontWeight: 900, color: "#de6925" }}
         >
-          सावधान! (Warning)
+          सावधान!
         </DialogTitle>
         <DialogContent>
           <Typography
@@ -1242,7 +1242,7 @@ const QuestionPaper = () => {
             variant="contained"
             onClick={() => setRefreshWarningOpen(false)}
             sx={{
-              background: "linear-gradient(135deg, #de6925, #f8b14a)",
+              background: "black",
               color: "white",
               fontWeight: 800,
               borderRadius: "12px",
@@ -1257,7 +1257,12 @@ const QuestionPaper = () => {
               setRefreshWarningOpen(false);
               navigate(-1);
             }}
-            sx={{ color: "#ef5350", fontWeight: 600, fontSize: "0.9rem" }}
+            sx={{
+              color: "#ef5350",
+              fontWeight: 600,
+              fontSize: "0.9rem",
+              background: "black",
+            }}
           >
             हो, परीक्षा थांबवा (Yes, Stop Exam)
           </Button>
