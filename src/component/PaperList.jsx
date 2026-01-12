@@ -21,6 +21,7 @@ import {
   getUnsolvedShortPapers,
 } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
+import { getPaginatedCache, setPaginatedCache } from "../utils/sessionCache";
 import PaperCard from "./PaperCard";
 import PaperCardSkeleton from "./PaperCardSkeleton";
 import SubscriptionDialog from "./SubscriptionDialog";
@@ -70,13 +71,13 @@ const PaperList = ({ paperType }) => {
     setLoading(true);
     setError(null);
 
-    const cacheKey = `${paperType}_${filter}_papers_page_${currentPage}`;
-    const cachedData = sessionStorage.getItem(cacheKey);
+    const cachePrefix = `${paperType}_${filter}_papers`;
+    const cacheKey = `${cachePrefix}_page_${currentPage}`;
+    const cachedData = getPaginatedCache(cacheKey, cachePrefix);
 
     if (cachedData) {
-      const data = JSON.parse(cachedData);
-      setPapers(data.papers || []);
-      setTotalPages(data.totalPages || 1);
+      setPapers(cachedData.papers || []);
+      setTotalPages(cachedData.totalPages || 1);
       setLoading(false);
       return;
     }
@@ -86,7 +87,7 @@ const PaperList = ({ paperType }) => {
       const data = await fetcher(currentPage, limit);
       setPapers(data.papers || []);
       setTotalPages(data.totalPages || 1);
-      sessionStorage.setItem(cacheKey, JSON.stringify(data));
+      setPaginatedCache(cacheKey, data, cachePrefix);
     } catch (err) {
       setError(err.message || "Failed to load papers");
       setPapers([]);
