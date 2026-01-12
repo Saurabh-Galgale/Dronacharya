@@ -10,6 +10,7 @@ import {
   getCategoryKeys,
   getSubCategoryKeysForCategory,
 } from "../utils/translations";
+import { getSimpleCache, setSimpleCache } from "../utils/sessionCache";
 
 const FALLBACK_IMAGE =
   "https://d1mhg19mxhvn2h.cloudfront.net/blogs/errorPage01.webp";
@@ -121,14 +122,12 @@ const Blogs = () => {
           const updatedBlogs = isInitialLoad
             ? newBlogs
             : [...prev, ...newBlogs];
-          sessionStorage.setItem(
-            getCacheKey(),
-            JSON.stringify({
-              blogs: updatedBlogs,
-              page: pagination.currentPage,
-              hasNextPage: pagination.currentPage < pagination.totalPages,
-            })
-          );
+          const cacheData = {
+            blogs: updatedBlogs,
+            page: pagination.currentPage,
+            hasNextPage: pagination.currentPage < pagination.totalPages,
+          };
+          setSimpleCache(getCacheKey(), cacheData);
           return updatedBlogs;
         });
         setPage(pagination.currentPage);
@@ -144,9 +143,9 @@ const Blogs = () => {
   );
 
   useEffect(() => {
-    const cachedData = sessionStorage.getItem(getCacheKey());
+    const cachedData = getSimpleCache(getCacheKey());
     if (cachedData) {
-      const { blogs: b, page: p, hasNextPage: h } = JSON.parse(cachedData);
+      const { blogs: b, page: p, hasNextPage: h } = cachedData;
       setBlogs(b);
       setPage(p);
       setHasNextPage(h);

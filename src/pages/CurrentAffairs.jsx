@@ -5,6 +5,7 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import { getMagazines, getMagazineById } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
 import Quiz from "../component/Quiz";
+import { getSimpleCache, setSimpleCache } from "../utils/sessionCache";
 
 const gradients = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -375,27 +376,16 @@ const MagazinePage = () => {
   useEffect(() => {
     const fetchMagazines = async () => {
       try {
-        const cachedData = sessionStorage.getItem("magazines");
+        const cachedData = getSimpleCache("magazines");
         if (cachedData) {
-          const { timestamp, data } = JSON.parse(cachedData);
-          const isCacheValid =
-            (new Date().getTime() - timestamp) / (1000 * 60 * 60 * 24) < 7;
-          if (isCacheValid) {
-            setMagazines(data);
-            setIsLoading(false);
-            return;
-          }
+          setMagazines(cachedData);
+          setIsLoading(false);
+          return;
         }
 
         const data = await getMagazines();
         setMagazines(data.magazines);
-        sessionStorage.setItem(
-          "magazines",
-          JSON.stringify({
-            timestamp: new Date().getTime(),
-            data: data.magazines,
-          })
-        );
+        setSimpleCache("magazines", data.magazines);
       } catch (err) {
         const backendMessage = err.response?.data?.message || err.message;
         setError(getMarathiMessage(backendMessage));
