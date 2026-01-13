@@ -8,9 +8,12 @@ const FullScreenVideoPlayer = ({ currentVideo, onEnded }) => {
   const baseUrl = import.meta.env.VITE_PRISON_GAME_ASSETS_URL;
   const videoSrc = baseUrl && VIDEO_FILES[currentVideo] ? `${baseUrl}${VIDEO_FILES[currentVideo]}` : '';
 
+  console.log("Attempting to play video:", videoSrc); // Debugging line
+
   useEffect(() => {
-    if (videoRef.current) {
+    if (videoRef.current && videoSrc) {
       videoRef.current.src = videoSrc;
+      videoRef.current.load();
       videoRef.current.play().catch(error => {
         // Autoplay is often blocked, but we can try.
         console.error("Video autoplay failed:", error);
@@ -38,7 +41,6 @@ const FullScreenVideoPlayer = ({ currentVideo, onEnded }) => {
         loop={isLoop}
         playsInline
         muted // Muted is often required for autoplay
-        autoPlay
         style={{
           width: '100%',
           height: '100%',
