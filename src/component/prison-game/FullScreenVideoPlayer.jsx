@@ -1,16 +1,39 @@
 // src/component/prison-game/FullScreenVideoPlayer.jsx
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
 import { VIDEO_FILES } from '../../config/prisonGame';
 
 const FullScreenVideoPlayer = ({ currentVideo, onEnded }) => {
+  const videoRef = useRef(null);
   const baseUrl = import.meta.env.VITE_PRISON_GAME_ASSETS_URL;
   const videoSrc = baseUrl && VIDEO_FILES[currentVideo] ? `${baseUrl}${VIDEO_FILES[currentVideo]}` : '';
 
   const isLoop = currentVideo === 'idle' || currentVideo === 'coverBefore' || currentVideo === 'coverAfter';
 
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (videoElement && videoSrc) {
+      // Set the source programmatically
+      videoElement.src = videoSrc;
+
+      // Attempt to play the video
+      const playPromise = videoElement.play();
+
+      if (playPromise !== undefined) {
+        playPromise.then(_ => {
+          // Autoplay started!
+        }).catch(error => {
+          // Autoplay was prevented.
+          console.error("Autoplay prevented:", error);
+          // We can't show a play button because it's a background,
+          // but logging the error is important for debugging.
+        });
+      }
+    }
+  }, [videoSrc]); // Rerun this effect when the video source changes
+
   if (!videoSrc) {
-    return null; // Don't render anything if there's no source
+    return null;
   }
 
   return (
@@ -23,17 +46,15 @@ const FullScreenVideoPlayer = ({ currentVideo, onEnded }) => {
         height: '100%',
         zIndex: -1,
         overflow: 'hidden',
-        backgroundColor: 'black', // Add a black background as a fallback
+        backgroundColor: 'black',
       }}
     >
       <video
-        key={videoSrc} // This is the crucial part to force re-mount on src change
+        ref={videoRef}
         onEnded={onEnded}
         loop={isLoop}
-        playsInline
-        muted // Muted is essential for autoplay
-        autoPlay
-        src={videoSrc}
+        playsInline // Crucial for iOS
+        muted // Essential for autoplay
         style={{
           width: '100%',
           height: '100%',
