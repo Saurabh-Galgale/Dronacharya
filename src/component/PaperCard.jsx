@@ -207,6 +207,21 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
           }}
         >
           <Box>
+            {isFree && (
+              <Chip
+                label="मोफत"
+                size="medium"
+                sx={{
+                  fontWeight: 1000,
+                  fontSize: "0.8rem",
+                  letterSpacing: "0.5px",
+                  color: "#2e7d32",
+                  backgroundColor: "#e8f5e9",
+                  border: "1px solid #2e7d32",
+                }}
+              />
+            )}
+
             {!isFree && !isSubscribed ? (
               <>
                 <IconButton

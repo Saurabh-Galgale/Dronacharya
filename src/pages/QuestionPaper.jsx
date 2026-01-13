@@ -17,6 +17,7 @@ import {
   Radio,
   Button,
   IconButton,
+  Fade,
   Modal,
   Grid,
   Paper,
@@ -78,6 +79,7 @@ const QuestionPaper = () => {
   const [maxVisitedPage, setMaxVisitedPage] = useState(1);
 
   const [refreshWarningOpen, setRefreshWarningOpen] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
   // Submission states
   const [submitting, setSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState(null);
@@ -114,6 +116,21 @@ const QuestionPaper = () => {
       }
     }
   }, [submissionData]);
+
+  // LOGIC: Show tutorial hint only when in 'Review Mode' (submissionData exists)
+  // and the drawer is closed (height < 50). Hide after 5 seconds.
+  useEffect(() => {
+    let timeout;
+    if (submissionData && drawerHeight < 50) {
+      setShowTutorial(true);
+      timeout = setTimeout(() => {
+        setShowTutorial(false);
+      }, 5000); // Disappear after 5 seconds
+    } else {
+      setShowTutorial(false);
+    }
+    return () => clearTimeout(timeout);
+  }, [submissionData, drawerHeight]);
 
   // SUBMIT LOGIC from File B
   const handleSubmit = useCallback(
@@ -646,7 +663,7 @@ const QuestionPaper = () => {
           transition: "height 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           display: "flex",
           flexDirection: "column",
-          overflow: "hidden",
+          overflow: "visible",
         }}
       >
         <Box
@@ -681,21 +698,76 @@ const QuestionPaper = () => {
             borderBottom: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          <IconButton
-            onClick={toggleDrawer}
-            sx={{
-              bgcolor: "rgba(255,255,255,0.1)",
-              color: "white",
-              p: 0.4,
-              "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
-            }}
-          >
-            {drawerHeight > 50 ? (
-              <KeyboardArrowDownIcon />
-            ) : (
-              <KeyboardArrowUpIcon />
-            )}
-          </IconButton>
+          <Box sx={{ position: "relative", display: "inline-flex" }}>
+            <Fade in={showTutorial} timeout={500}>
+              <Box
+                sx={{
+                  position: "absolute",
+                  bottom: "100%",
+                  left: -10, // Slight offset to align with button edge
+                  mb: 2,
+                  zIndex: 9999,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start", // Change: Align items to the left (start)
+                  pointerEvents: "none",
+                  width: "max-content",
+                  animation: "float 1.5s infinite ease-in-out",
+                  "@keyframes float": {
+                    // Change: Removed translateX(-50%) so it doesn't shift left
+                    "0%, 100%": { transform: "translateY(0)" },
+                    "50%": { transform: "translateY(-8px)" },
+                  },
+                }}
+              >
+                {/* Text Bubble */}
+                <Box
+                  sx={{
+                    bgcolor: "white",
+                    color: "black",
+                    px: 2,
+                    py: 1,
+                    borderRadius: 2,
+                    border: "2px solid white",
+                    boxShadow: "0 4px 15px rgba(0,0,0,0.5)",
+                    minWidth: "max-content",
+                  }}
+                >
+                  <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                    प्रश्नपत्रिका पाहण्यासाठी इथे क्लिक करा
+                  </Typography>
+                </Box>
+                {/* Down Arrow */}
+                <Box
+                  sx={{
+                    width: 0,
+                    height: 0,
+                    ml: 2.5,
+                    borderLeft: "8px solid transparent",
+                    borderRight: "8px solid transparent",
+                    borderTop: "10px solid white",
+                  }}
+                />
+              </Box>
+            </Fade>
+            <IconButton
+              onClick={toggleDrawer}
+              sx={{
+                bgcolor: "rgba(255,255,255,0.1)",
+                color: "white",
+                p: 0.4,
+                border: showTutorial ? "1px solid white" : "none",
+                transition: "all 0.3s",
+                "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+              }}
+            >
+              {drawerHeight > 50 ? (
+                <KeyboardArrowDownIcon />
+              ) : (
+                <KeyboardArrowUpIcon />
+              )}
+            </IconButton>
+          </Box>
 
           {renderPagination()}
 
