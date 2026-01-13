@@ -265,3 +265,61 @@ export async function getPerformanceAnalysis() {
     throw new Error(error.message || "विश्लेषण लोड करण्यात त्रुटी आली.");
   }
 }
+
+/* ================= PRISON GAME API ================= */
+
+/**
+ * Get Prison Game Info (Lobby)
+ * GET /api/prison-game/info
+ */
+export async function getPrisonGameInfo() {
+  try {
+    const res = await api.get("/api/prison-game/info");
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch game info");
+  }
+}
+
+/**
+ * Start Prison Game and Get Questions
+ * GET /api/prison-game/start
+ */
+export async function startPrisonGame() {
+  try {
+    const res = await api.get("/api/prison-game/start");
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to start game");
+  }
+}
+
+/**
+ * Refund a game attempt if client fails after starting
+ * POST /api/prison-game/refund-attempt
+ */
+export async function refundPrisonGameAttempt() {
+  try {
+    // No body needed, just a trigger
+    const res = await api.post("/api/prison-game/refund-attempt");
+    return res.data; // Should be { success: true }
+  } catch (error) {
+    // This is a fail-safe, so we don't want to throw a loud error to the user
+    console.error("Failed to refund game attempt:", error.message);
+  }
+}
+
+
+/**
+ * Record a player's win
+ * POST /api/prison-game/win
+ * @param {number} attemptsTaken - Number of attempts for the winning session
+ */
+export async function recordPrisonGameWin(attemptsTaken) {
+  try {
+    const res = await api.post("/api/prison-game/win", { attemptsTaken });
+    return res.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to record win");
+  }
+}
