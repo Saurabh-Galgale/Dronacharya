@@ -1,27 +1,17 @@
 // src/component/prison-game/FullScreenVideoPlayer.jsx
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { Box } from '@mui/material';
 import { VIDEO_FILES } from '../../config/prisonGame';
 
 const FullScreenVideoPlayer = ({ currentVideo, onEnded }) => {
-  const videoRef = useRef(null);
   const baseUrl = import.meta.env.VITE_PRISON_GAME_ASSETS_URL;
   const videoSrc = baseUrl && VIDEO_FILES[currentVideo] ? `${baseUrl}${VIDEO_FILES[currentVideo]}` : '';
 
-  console.log("Attempting to play video:", videoSrc); // Debugging line
-
-  useEffect(() => {
-    if (videoRef.current && videoSrc) {
-      videoRef.current.src = videoSrc;
-      videoRef.current.load();
-      videoRef.current.play().catch(error => {
-        // Autoplay is often blocked, but we can try.
-        console.error("Video autoplay failed:", error);
-      });
-    }
-  }, [videoSrc]);
-
   const isLoop = currentVideo === 'idle' || currentVideo === 'coverBefore' || currentVideo === 'coverAfter';
+
+  if (!videoSrc) {
+    return null; // Don't render anything if there's no source
+  }
 
   return (
     <Box
@@ -33,14 +23,17 @@ const FullScreenVideoPlayer = ({ currentVideo, onEnded }) => {
         height: '100%',
         zIndex: -1,
         overflow: 'hidden',
+        backgroundColor: 'black', // Add a black background as a fallback
       }}
     >
       <video
-        ref={videoRef}
+        key={videoSrc} // This is the crucial part to force re-mount on src change
         onEnded={onEnded}
         loop={isLoop}
         playsInline
-        muted // Muted is often required for autoplay
+        muted // Muted is essential for autoplay
+        autoPlay
+        src={videoSrc}
         style={{
           width: '100%',
           height: '100%',
