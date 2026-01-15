@@ -852,6 +852,102 @@ const QuestionPaper = () => {
                       {globalIndex}. {q.questionText}
                     </Typography>
 
+                    {/* {q.fig && (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          mb: 2,
+                          borderRadius: 2,
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <img
+                          // COMBINING ENV VARIABLE + PATH
+                          src={`${import.meta.env.VITE_CLOUDFRONT_URL}${
+                            q.fig.startsWith("/") ? q.fig.slice(1) : q.fig
+                          }`}
+                          alt="Question Figure"
+                          style={{
+                            width: "100%",
+                            height: "auto",
+                            display: "block",
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = "none"; // Hides the broken image icon
+                          }}
+                        />
+                      </Box>
+                    )} */}
+
+                    {q.fig && (
+                      <Box
+                        sx={{
+                          width: "100%",
+                          mb: 2,
+                          borderRadius: 2,
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          overflow: "hidden",
+                          position: "relative", // Needed for positioning
+                        }}
+                      >
+                        {/* 1. The Image */}
+                        <img
+                          src={`${import.meta.env.VITE_CLOUDFRONT_URL}/${
+                            q.fig.startsWith("/") ? q.fig.slice(1) : q.fig
+                          }`}
+                          alt="Question Figure"
+                          style={{
+                            width: "100%",
+                            height: "auto",
+                            display: "block",
+                            minHeight: "50px",
+                          }}
+                          onError={(e) => {
+                            e.target.style.display = "none"; // Hide the broken image
+                            // Find the next sibling (the error box) and show it
+                            const errorBox = e.target.nextSibling;
+                            if (errorBox) {
+                              errorBox.style.display = "flex";
+                            }
+                          }}
+                        />
+
+                        {/* 2. The Error Fallback Message (Hidden by default) */}
+                        <Box
+                          sx={{
+                            display: "none", // Hidden until onError fires
+                            width: "100%",
+                            height: "200px", // Fixed height for the error message
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            bgcolor: "rgba(255, 82, 82, 0.1)", // Light red background
+                            color: "#ff5252", // Red text
+                            textAlign: "center",
+                            p: 2,
+                          }}
+                        >
+                          {/* You can use CloseIcon here since you already imported it */}
+                          <CloseIcon
+                            sx={{ fontSize: 40, mb: 1, opacity: 0.7 }}
+                          />
+                          <Typography
+                            variant="body2"
+                            sx={{ fontWeight: "bold" }}
+                          >
+                            {" "}
+                            इथे प्रतिमा आवश्यक आहे पण लोड झाली नाही{" "}
+                          </Typography>{" "}
+                          <Typography variant="caption" sx={{ opacity: 0.7 }}>
+                            {" "}
+                            कृपया कनेक्शन तपासा किंवा काहीतरी चुकले आहे, आम्ही
+                            लवकरच दुरुस्त करू{" "}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
+
                     <RadioGroup
                       name={`q-${q._id}`}
                       value={answers[q._id] || ""}
