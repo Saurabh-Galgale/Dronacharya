@@ -85,11 +85,19 @@ api.interceptors.response.use(
  * @param {string} filter - 'solved' or 'unsolved'
  * @param {number} page
  * @param {number} limit
+ * @param {object} options - Additional options like subject and topic
  */
-async function fetchPapers(type, filter = "unsolved", page = 1, limit = 20) {
+async function fetchPapers(
+  type,
+  filter = "unsolved",
+  page = 1,
+  limit = 20,
+  options = {}
+) {
   const url = `/api/papers/${type}/${filter}`;
+  const params = { page, limit, ...options };
   try {
-    const res = await api.get(url, { params: { page, limit } });
+    const res = await api.get(url, { params });
     return res.data.data; // { papers: [], totalPages, currentPage }
   } catch (error) {
     throw new Error(
@@ -115,6 +123,25 @@ export const getSolvedShortPapers = (page, limit) =>
   fetchPapers("short", "solved", page, limit);
 export const getUnsolvedShortPapers = (page, limit) =>
   fetchPapers("short", "unsolved", page, limit);
+
+// Subject Papers
+export const getSolvedSubjectPapers = (page, limit, subject, topic) =>
+  fetchPapers("subject", "solved", page, limit, { subject, topic });
+export const getUnsolvedSubjectPapers = (page, limit, subject, topic) =>
+  fetchPapers("subject", "unsolved", page, limit, { subject, topic });
+
+/**
+ * Get all subjects and topics for subject papers
+ * GET /api/papers/subject/topics
+ */
+export async function getSubjectTopics() {
+  try {
+    const res = await api.get("/api/papers/subject/topics");
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch subject topics");
+  }
+}
 
 /**
  * Get Single Paper with Questions (paginated)

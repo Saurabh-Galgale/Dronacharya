@@ -140,6 +140,12 @@ export default function Layout({ children }) {
       path: "/analysis",
     },
     {
+      text: "विषय प्रश्नपत्रिका",
+      icon: <MenuBookIcon />,
+      iconActive: <MenuBookIcon />,
+      path: "/subject",
+    },
+    {
       text: "लघु प्रश्नपत्रिका",
       icon: <RocketOutlinedIcon />, // Ensure you import this if not already
       iconActive: <RocketIcon />,
