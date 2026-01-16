@@ -92,6 +92,8 @@ const QuestionPaper = () => {
     ? "mock"
     : window.location.pathname.includes("/short/")
     ? "short"
+    : window.location.pathname.includes("/subject/")
+    ? "subject"
     : "pyq";
 
   // UI Helpers from File A
