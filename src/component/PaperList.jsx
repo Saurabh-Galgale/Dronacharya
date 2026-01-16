@@ -39,7 +39,7 @@ const PaperList = ({ paperType }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [filter, setFilter] = useState("unsolved");
   const [subscriptionDialog, setSubscriptionDialog] = useState(false);
-  const limit = 3;
+  const limit = 4;
 
   const userProfile = getStoredUserProfile();
   const isSubscribed =

@@ -80,6 +80,7 @@ const QuestionPaper = () => {
 
   const [refreshWarningOpen, setRefreshWarningOpen] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showGridTutorial, setShowGridTutorial] = useState(false);
   // Submission states
   const [submitting, setSubmitting] = useState(false);
   const [submissionData, setSubmissionData] = useState(null);
@@ -131,6 +132,28 @@ const QuestionPaper = () => {
     }
     return () => clearTimeout(timeout);
   }, [submissionData, drawerHeight]);
+
+  useEffect(() => {
+    let showTimeout, hideTimeout;
+
+    // Only show if exam is active (not submitted, not view mode)
+    if (!submissionData && !isViewMode) {
+      // Show bubble after 2 seconds
+      showTimeout = setTimeout(() => {
+        setShowGridTutorial(true);
+      }, 3000);
+
+      // Hide bubble after showing it for 5 seconds
+      hideTimeout = setTimeout(() => {
+        setShowGridTutorial(false);
+      }, 8000);
+    }
+
+    return () => {
+      clearTimeout(showTimeout);
+      clearTimeout(hideTimeout);
+    };
+  }, [submissionData, isViewMode]);
 
   // SUBMIT LOGIC from File B
   const handleSubmit = useCallback(
@@ -1234,18 +1257,79 @@ const QuestionPaper = () => {
           )}
 
           {!isViewMode && (
-            <IconButton
-              size="small"
-              onClick={() => setGridOpen(true)}
-              sx={{
-                p: 1,
-                bgcolor: "rgba(255,255,255,0.1)",
-                color: "white",
-                "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
-              }}
-            >
-              <GridViewIcon fontSize="medium" />
-            </IconButton>
+            <Box sx={{ position: "relative", display: "inline-flex" }}>
+              {/* TUTORIAL BUBBLE START */}
+              <Fade in={showGridTutorial} timeout={500}>
+                <Box
+                  sx={{
+                    position: "absolute",
+                    bottom: "100%",
+                    right: 0, // Align to right since icon is on the right
+                    mb: 2,
+                    zIndex: 9999,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-end", // Align arrow to the right
+                    pointerEvents: "none",
+                    width: "max-content",
+                    animation: "float 1.5s infinite ease-in-out",
+                    "@keyframes float": {
+                      "0%, 100%": { transform: "translateY(0)" },
+                      "50%": { transform: "translateY(-8px)" },
+                    },
+                  }}
+                >
+                  {/* Text Bubble */}
+                  <Box
+                    sx={{
+                      bgcolor: "white",
+                      color: "black",
+                      px: 2,
+                      py: 1,
+                      borderRadius: 2,
+                      border: "2px solid white",
+                      boxShadow: "0 4px 15px rgba(0,0,0,0.5)",
+                      minWidth: "max-content",
+                      maxWidth: "200px", // Limit width so it doesn't go off screen
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{ fontWeight: 800, textAlign: "right" }}
+                    >
+                      राहिलेले प्रश्न इथे तपासा.
+                    </Typography>
+                  </Box>
+                  {/* Down Arrow */}
+                  <Box
+                    sx={{
+                      width: 0,
+                      height: 0,
+                      mr: 1.5, // Offset to align with the icon center
+                      borderLeft: "8px solid transparent",
+                      borderRight: "8px solid transparent",
+                      borderTop: "10px solid white",
+                    }}
+                  />
+                </Box>
+              </Fade>
+              {/* TUTORIAL BUBBLE END */}
+
+              <IconButton
+                size="small"
+                onClick={() => setGridOpen(true)}
+                sx={{
+                  p: 1,
+                  bgcolor: "rgba(255,255,255,0.1)",
+                  color: "white",
+                  // Highlight border when tutorial is active
+                  border: showGridTutorial ? "1px solid white" : "none",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+                }}
+              >
+                <GridViewIcon fontSize="medium" />
+              </IconButton>
+            </Box>
           )}
         </Box>
       </Box>
