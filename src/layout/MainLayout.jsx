@@ -27,15 +27,8 @@ import {
 } from "@mui/material";
 
 import MenuBookIcon from "@mui/icons-material/MenuBook";
-import NewspaperIcon from "@mui/icons-material/Newspaper";
-import EditNoteIcon from "@mui/icons-material/EditNote";
-import CardMembershipIcon from "@mui/icons-material/CardMembership";
-import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import QueryStatsIcon from "@mui/icons-material/QueryStats";
-
 import MenuIcon from "@mui/icons-material/Menu";
 import LogoutIcon from "@mui/icons-material/Logout";
-import SubscriptionsIcon from "@mui/icons-material/Subscriptions";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 
 import HomeIcon from "@mui/icons-material/Home";
@@ -56,6 +49,8 @@ import LoyaltyIcon from "@mui/icons-material/Loyalty";
 import LoyaltyOutlinedIcon from "@mui/icons-material/LoyaltyOutlined";
 import PersonIcon from "@mui/icons-material/Person";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
+import CategoryIcon from "@mui/icons-material/Category";
+import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 
 import Footer from "../component/Footer";
 import { useTheme } from "@mui/material/styles";
@@ -110,7 +105,7 @@ export default function Layout({ children }) {
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
-  const hideFooterPaths = ["/blogs", "/short", "/mock", "/pyq"];
+  const hideFooterPaths = ["/blogs", "/short", "/mock", "/pyq", "/subject"];
   const shouldShowFooter = !hideFooterPaths.includes(location.pathname);
 
   const handleLogout = async () => {
@@ -138,6 +133,12 @@ export default function Layout({ children }) {
       icon: <BubbleChartOutlinedIcon />,
       iconActive: <BubbleChartIcon />,
       path: "/analysis",
+    },
+    {
+      text: "विषय प्रश्नपत्रिका",
+      icon: <CategoryOutlinedIcon />,
+      iconActive: <CategoryIcon />,
+      path: "/subject",
     },
     {
       text: "लघु प्रश्नपत्रिका",
