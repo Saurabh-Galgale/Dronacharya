@@ -9,6 +9,10 @@ import {
   IconButton,
   ToggleButton,
   ToggleButtonGroup,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -19,9 +23,17 @@ import {
   getUnsolvedPYQPapers,
   getSolvedShortPapers,
   getUnsolvedShortPapers,
+  getSolvedSubjectPapers,
+  getUnsolvedSubjectPapers,
+  getSubjectTopics,
 } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
-import { getPaginatedCache, setPaginatedCache } from "../utils/sessionCache";
+import {
+  getPaginatedCache,
+  setPaginatedCache,
+  getSimpleCache,
+  setSimpleCache,
+} from "../utils/sessionCache";
 import PaperCard from "./PaperCard";
 import PaperCardSkeleton from "./PaperCardSkeleton";
 import SubscriptionDialog from "./SubscriptionDialog";
@@ -40,6 +52,12 @@ const PaperList = ({ paperType }) => {
   const [filter, setFilter] = useState("unsolved");
   const [subscriptionDialog, setSubscriptionDialog] = useState(false);
   const limit = 4;
+
+  // State for subject papers
+  const [subjects, setSubjects] = useState([]);
+  const [topics, setTopics] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
 
   const userProfile = getStoredUserProfile();
   const isSubscribed =
@@ -60,18 +78,69 @@ const PaperList = ({ paperType }) => {
       solved: getSolvedShortPapers,
       unsolved: getUnsolvedShortPapers,
     },
+    subject: {
+      solved: getSolvedSubjectPapers,
+      unsolved: getUnsolvedSubjectPapers,
+    },
   };
+
+  useEffect(() => {
+    if (paperType === "subject") {
+      const fetchSubjectData = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+          const cachedData = getSimpleCache("subject_topics_data");
+          if (cachedData) {
+            setSubjects(cachedData);
+          } else {
+            const data = await getSubjectTopics();
+            setSubjects(data);
+            setSimpleCache("subject_topics_data", data);
+          }
+        } catch (err) {
+          setError(
+            err.message || "Failed to load subject and topic filters."
+          );
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchSubjectData();
+    }
+  }, [paperType]);
+
+  // When selectedSubject changes, update the topics list
+  useEffect(() => {
+    if (selectedSubject) {
+      const subjectData = subjects.find(
+        (s) => s.subjectKey === selectedSubject
+      );
+      setTopics(subjectData?.topics || []);
+      setSelectedTopic(""); // Reset topic selection
+      setCurrentPage(1); // Reset page
+    }
+  }, [selectedSubject, subjects]);
 
   useEffect(() => {
     fetchPapers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, filter, paperType]);
+  }, [currentPage, filter, paperType, selectedSubject, selectedTopic]);
 
   const fetchPapers = async () => {
+    if (paperType === "subject" && !selectedSubject) {
+      setPapers([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
-    const cachePrefix = `${paperType}_${filter}_papers`;
+    let cachePrefix = `${paperType}_${filter}_papers`;
+    if (paperType === "subject") {
+      cachePrefix += `_${selectedSubject}_${selectedTopic || "all"}`;
+    }
     const cacheKey = `${cachePrefix}_page_${currentPage}`;
     const cachedData = getPaginatedCache(cacheKey, cachePrefix);
 
@@ -84,7 +153,17 @@ const PaperList = ({ paperType }) => {
 
     try {
       const fetcher = apiMap[paperType][filter];
-      const data = await fetcher(currentPage, limit);
+      let data;
+      if (paperType === "subject") {
+        data = await fetcher(
+          currentPage,
+          limit,
+          selectedSubject,
+          selectedTopic
+        );
+      } else {
+        data = await fetcher(currentPage, limit);
+      }
       setPapers(data.papers || []);
       setTotalPages(data.totalPages || 1);
       setPaginatedCache(cacheKey, data, cachePrefix);
@@ -397,9 +476,67 @@ const PaperList = ({ paperType }) => {
           <ToggleButton value="unsolved">न सोडवलेले</ToggleButton>
           <ToggleButton value="solved">सोडवलेले</ToggleButton>
         </ToggleButtonGroup>
+        {paperType === "subject" && (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: { xs: "column", md: "row" },
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            {/* Subject Dropdown */}
+            <FormControl fullWidth sx={{ width: { xs: "100%", md: "50%" } }}>
+              <InputLabel>विषय</InputLabel>
+              <Select
+                value={selectedSubject}
+                onChange={(e) => setSelectedSubject(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>विषय निवडा</em>
+                </MenuItem>
+                {subjects.map((subject) => (
+                  <MenuItem
+                    key={subject.subjectKey}
+                    value={subject.subjectKey}
+                  >
+                    {subject.subjectLabel}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {/* Topic Dropdown */}
+            <FormControl
+              fullWidth
+              disabled={!selectedSubject}
+              sx={{ width: { xs: "100%", md: "50%" } }}
+            >
+              <InputLabel>घटक</InputLabel>
+              <Select
+                value={selectedTopic}
+                onChange={(e) => setSelectedTopic(e.target.value)}
+              >
+                <MenuItem value="">
+                  <em>घटक निवडा</em>
+                </MenuItem>
+                {topics.map((topic) => (
+                  <MenuItem key={topic.key} value={topic.key}>
+                    {topic.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        )}
       </Box>
 
-      {papers.length === 0 ? (
+      {paperType === "subject" && !selectedSubject ? (
+        <Box sx={{ textAlign: "center", mt: 6 }}>
+          <Typography variant="h6" color="text.secondary">
+            कृपया प्रश्नपत्रिका मिळविण्यासाठी विषय आणि घटक निवडा
+          </Typography>
+        </Box>
+      ) : papers.length === 0 ? (
         <Box sx={{ textAlign: "center", mt: 6 }}>
           <Typography variant="h6" color="text.secondary">
             {filter === "solved"
