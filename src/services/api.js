@@ -216,9 +216,9 @@ export async function getPaperSubmissions(paperId) {
  * Get all magazines
  * GET /api/magazines
  */
-export async function getMagazines() {
+export async function getMagazines(page = 1) {
   try {
-    const res = await api.get("/api/magazines");
+    const res = await api.get("/api/magazines", { params: { page } });
     return res.data.data;
   } catch (error) {
     throw new Error(error.message || "Failed to fetch magazines");

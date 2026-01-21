@@ -35,6 +35,7 @@ const RefundPolicy = lazy(() => import("./pages/policy/RefundPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/policy/ShippingPolicy"));
 
 const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
+const MagazineView = lazy(() => import("./pages/MagazineView"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -138,6 +139,7 @@ const AppContent = () => {
 
                     {/* Other Pages */}
                     <Route path="ca" element={<CurrentAffairs />} />
+                    <Route path="ca/:magazineId" element={<MagazineView />} />
                     <Route path="blogs" element={<Blogs />} />
                     <Route path="subscription" element={<Subscription />} />
                     <Route path="profile" element={<Profile />} />
