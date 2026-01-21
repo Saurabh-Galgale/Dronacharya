@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Viewer, Worker, SpecialZoomLevel } from "@react-pdf-viewer/core";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Button, CircularProgress } from "@mui/material";
 import "@react-pdf-viewer/core/lib/styles/index.css";
 import { getMagazines, getMagazineById } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
@@ -62,7 +63,7 @@ const MagazineCard = ({
   magazine,
   isOpen,
   onToggle,
-  onOpenPdf,
+  onNavigateToMagazine,
   onOpenQuiz,
   index,
 }) => {
@@ -87,7 +88,7 @@ const MagazineCard = ({
         marginBottom: "24px",
         width: "100%",
         perspective: "2000px",
-        height: isOpen ? "830px" : "200px",
+        height: isOpen ? "350px" : "200px",
         transition: "height 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
@@ -214,23 +215,6 @@ const MagazineCard = ({
                 <span title="Subscription Required">🔒</span>
               ) : null}
             </div>
-            {/* <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggle();
-              }}
-              style={{
-                background: "rgba(255, 255, 255, 0.2)",
-                border: "none",
-                color: "white",
-                width: "30px",
-                height: "30px",
-                borderRadius: "8px",
-                cursor: "pointer",
-              }}
-            >
-              ✕
-            </button> */}
           </div>
 
           <div
@@ -242,57 +226,32 @@ const MagazineCard = ({
               flexDirection: "column",
             }}
           >
-            {isLocked && !isSubscribed ? (
-              <div
-                style={{
-                  backgroundColor: "#fff3e0",
-                  color: "#e65100",
-                  padding: "8px",
-                  textAlign: "center",
-                  fontSize: "13px",
-                  fontWeight: "bold",
-                  flexShrink: 0,
-                }}
-              >
-                सबस्क्रिप्शन आवश्यक 🔒
-              </div>
-            ) : null}
-
             <div
               style={{
                 flexGrow: 1,
-                flexShrink: 1,
-                minHeight: 0,
+                padding: "20px",
                 display: "flex",
-                alignItems: "flex-start",
+                flexDirection: "column",
                 justifyContent: "center",
-                overflow: "hidden",
-                backgroundColor: "black",
               }}
             >
-              {magazine.coverUrl ? (
-                <img
-                  src={magazine.coverUrl}
-                  alt={`${magazine.month} cover`}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "contain",
-                    display: "block",
-                    opacity: isLocked ? 0.8 : 1,
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    padding: "40px",
-                    textAlign: "center",
-                    color: "#999",
-                  }}
-                >
-                  फोटो उपलब्ध नाही
-                </div>
-              )}
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  color: "#333",
+                  mb: 1,
+                  fontSize: "1rem",
+                }}
+              >
+                या मासिकातील प्रमुख विषय:
+              </Typography>
+              <Typography
+                variant="body2"
+                sx={{ color: "#666", lineHeight: 1.6, fontSize: "0.9rem" }}
+              >
+                {magazine.indexContent || "अनुक्रमणिका लवकरच उपलब्ध होईल."}
+              </Typography>
             </div>
 
             <div
@@ -309,7 +268,7 @@ const MagazineCard = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onOpenPdf(magazine._id);
+                  onNavigateToMagazine(magazine._id);
                 }}
                 style={{
                   width: "100%",
@@ -362,30 +321,25 @@ const MagazineCard = ({
 };
 
 const MagazinePage = () => {
+  const navigate = useNavigate();
   const [magazines, setMagazines] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isSubscriptionError, setIsSubscriptionError] = useState(false);
   const [openMonthIndex, setOpenMonthIndex] = useState(null);
-  const [openReader, setOpenReader] = useState(false);
-  const [pdfUrl, setPdfUrl] = useState("");
   const [selectedMagazineId, setSelectedMagazineId] = useState(null);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
-  const [isPdfLoading, setIsPdfLoading] = useState(false);
 
   useEffect(() => {
     const fetchMagazines = async () => {
+      setIsLoading(true);
       try {
-        const cachedData = getSimpleCache("magazines");
-        if (cachedData) {
-          setMagazines(cachedData);
-          setIsLoading(false);
-          return;
-        }
-
-        const data = await getMagazines();
-        setMagazines(data.magazines);
-        setSimpleCache("magazines", data.magazines);
+        // Caching for paginated data can be complex; fetching fresh for simplicity.
+        const data = await getMagazines(page);
+        setMagazines((prev) => [...prev, ...data.magazines]);
+        setTotalPages(data.pagination.totalPages);
       } catch (err) {
         const backendMessage = err.response?.data?.message || err.message;
         setError(getMarathiMessage(backendMessage));
@@ -395,49 +349,45 @@ const MagazinePage = () => {
     };
 
     fetchMagazines();
-  }, []);
+  }, [page]);
 
-  const handleOpenPdf = async (magazineId) => {
-    setIsPdfLoading(true);
-    try {
-      const magazine = await getMagazineById(magazineId);
-      if (magazine && magazine.magazineUrl) {
-        setPdfUrl(magazine.magazineUrl);
-        setOpenReader(true);
-      } else {
-        setError("पीडीएफ लिंक सापडली नाही (PDF Link not found)");
-      }
-    } catch (err) {
-      const backendMessage = err.response?.data?.message || err.message;
-      const lowerMsg = backendMessage.toLowerCase();
-
-      // Check if it's a subscription error
-      if (lowerMsg.includes("subscription")) {
-        setIsSubscriptionError(true);
-      } else {
-        setIsSubscriptionError(false);
-      }
-
-      setError(getMarathiMessage(backendMessage));
-    } finally {
-      setIsPdfLoading(false);
+  const handleNavigateToMagazine = (magazineId) => {
+    const magazine = magazines.find((m) => m._id === magazineId);
+    if (magazine && !magazine.isFree && !isSubscribed) {
+      setError(getMarathiMessage("subscription required"));
+      setIsSubscriptionError(true);
+      return;
     }
+    navigate(`/ca/${magazineId}`);
   };
 
   const handleOpenQuiz = (magazineId) => {
+    const magazine = magazines.find((m) => m._id === magazineId);
+    if (magazine && !magazine.isFree && !isSubscribed) {
+      setError(getMarathiMessage("subscription required"));
+      setIsSubscriptionError(true);
+      return;
+    }
     setSelectedMagazineId(magazineId);
     setIsQuizOpen(true);
   };
 
   const handleGoToSubscription = () => {
-    window.location.href = "/subscription";
+    navigate("/subscription");
   };
 
-  if (isLoading) {
+  if (magazines.length === 0 && isLoading) {
     return (
-      <div style={errorStyles.overlay}>
-        <div style={errorStyles.content}>लोड होत आहे (Loading)...</div>
-      </div>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "80vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
     );
   }
 
@@ -596,87 +546,27 @@ const MagazinePage = () => {
           onToggle={() =>
             setOpenMonthIndex(openMonthIndex === index ? null : index)
           }
-          onOpenPdf={handleOpenPdf}
+          onNavigateToMagazine={handleNavigateToMagazine}
           onOpenQuiz={handleOpenQuiz}
         />
       ))}
 
-      {/* PDF Loading Overlay */}
-      {isPdfLoading && (
-        <div style={errorStyles.overlay}>
-          <div style={errorStyles.content}>
-            <div style={{ textAlign: "center", padding: "20px" }}>
-              <div style={loadingStyles.spinner}></div>
-              <p style={{ marginTop: "20px", color: "#555", fontSize: "16px" }}>
-                मासिक लोड होत आहे...
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {openReader && pdfUrl && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "#1a1a1a",
-            zIndex: 9999,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              padding: "16px",
-              backgroundColor: "#000",
-              color: "#fff",
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-              flexShrink: 0,
+      <Box sx={{ textAlign: "center", mt: 4 }}>
+        {page < totalPages && !isLoading && (
+          <Button
+            variant="contained"
+            onClick={() => setPage((p) => p + 1)}
+            sx={{
+              fontWeight: "bold",
+              borderRadius: "12px",
+              padding: "10px 24px",
             }}
           >
-            <button
-              onClick={() => setOpenReader(false)}
-              style={{
-                background: "none",
-                border: "none",
-                color: "white",
-                fontSize: "24px",
-                cursor: "pointer",
-              }}
-            >
-              ←
-            </button>
-            <h2 style={{ margin: 0, fontSize: "18px" }}>Magazine</h2>
-          </div>
-
-          <div
-            className="pdf-viewer-container"
-            style={{
-              flex: 1,
-              overflow: "hidden",
-              backgroundColor: "#1a1a1a",
-              display: "flex",
-              flexDirection: "column",
-            }}
-          >
-            <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
-              <div style={{ height: "100%", width: "100%" }}>
-                <Viewer
-                  fileUrl={pdfUrl}
-                  defaultScale={SpecialZoomLevel.PageWidth}
-                  theme="dark"
-                />
-              </div>
-            </Worker>
-          </div>
-        </div>
-      )}
+            आणखी लोड करा
+          </Button>
+        )}
+        {isLoading && <CircularProgress size={24} />}
+      </Box>
 
       {isQuizOpen && (
         <Quiz
