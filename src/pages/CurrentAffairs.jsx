@@ -23,24 +23,30 @@ const gradients = [
   "linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)",
 ];
 
-const monthTranslations = {
-  january: "जानेवारी",
-  february: "फेब्रुवारी",
-  march: "मार्च",
-  april: "एप्रिल",
-  may: "मे",
-  june: "जून",
-  july: "जुलै",
-  august: "ऑगस्ट",
-  september: "सप्टेंबर",
-  october: "ऑक्टोबर",
-  november: "नोव्हेंबर",
-  december: "डिसेंबर",
-};
+const marathiMonths = [
+  "जानेवारी",
+  "फेब्रुवारी",
+  "मार्च",
+  "एप्रिल",
+  "मे",
+  "जून",
+  "जुलै",
+  "ऑगस्ट",
+  "सप्टेंबर",
+  "ऑक्टोबर",
+  "नोव्हेंबर",
+  "डिसेंबर",
+];
 
-const getMarathiMonth = (englishMonth) => {
-  if (!englishMonth) return "";
-  return monthTranslations[englishMonth.toLowerCase()] || englishMonth;
+const getMarathiMonth = (monthNumber) => {
+  if (
+    typeof monthNumber !== "number" ||
+    monthNumber < 1 ||
+    monthNumber > 12
+  ) {
+    return ""; // Return empty string for invalid input
+  }
+  return marathiMonths[monthNumber - 1];
 };
 
 const getMarathiMessage = (msg) => {
