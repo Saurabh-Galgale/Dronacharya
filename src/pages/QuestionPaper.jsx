@@ -91,10 +91,10 @@ const QuestionPaper = () => {
   const paperType = window.location.pathname.includes("/mock/")
     ? "mock"
     : window.location.pathname.includes("/short/")
-    ? "short"
-    : window.location.pathname.includes("/subject/")
-    ? "subject"
-    : "pyq";
+      ? "short"
+      : window.location.pathname.includes("/subject/")
+        ? "subject"
+        : "pyq";
 
   // UI Helpers from File A
   const isLastPage = currentQuestionPage === totalQuestionPages;
@@ -181,7 +181,7 @@ const QuestionPaper = () => {
           paperId,
           paperType,
           formattedAnswers,
-          timeSpent
+          timeSpent,
         );
 
         const questionMap = new Map(allQuestions.map((q) => [q._id, q]));
@@ -220,7 +220,7 @@ const QuestionPaper = () => {
             questions: allQuestions,
             submission: completeSubmissionData,
           },
-          true
+          true,
         );
 
         Object.keys(sessionStorage)
@@ -235,7 +235,7 @@ const QuestionPaper = () => {
         setSubmitting(false);
       }
     },
-    [answers, paper, paperId, paperType, allQuestions]
+    [answers, paper, paperId, paperType, allQuestions],
   );
 
   const handleAutoSubmit = useCallback(async () => {
@@ -304,7 +304,7 @@ const QuestionPaper = () => {
           paperType,
           paperId,
           1,
-          1000 // Fetch all
+          1000, // Fetch all
         );
         currentPaper = data.paper;
         currentQuestions = data.questions || [];
@@ -337,7 +337,7 @@ const QuestionPaper = () => {
             questions: currentQuestions,
             submission: currentSubmission,
           },
-          true
+          true,
         );
       } else {
         await setCachedPaper(
@@ -347,7 +347,7 @@ const QuestionPaper = () => {
             questions: currentQuestions,
             submission: null,
           },
-          true
+          true,
         );
         if (!isViewMode) {
           startTimer(currentPaper.durationMinutes);
@@ -400,7 +400,7 @@ const QuestionPaper = () => {
     const maxVisible = 4;
     let startPage = Math.max(
       1,
-      currentQuestionPage - Math.floor(maxVisible / 2)
+      currentQuestionPage - Math.floor(maxVisible / 2),
     );
     let endPage = Math.min(totalQuestionPages, startPage + maxVisible - 1);
 
@@ -508,7 +508,7 @@ const QuestionPaper = () => {
   };
 
   const attemptedCount = Object.keys(answers).filter(
-    (k) => answers[k] !== undefined && answers[k] !== null && answers[k] !== ""
+    (k) => answers[k] !== undefined && answers[k] !== null && answers[k] !== "",
   ).length;
 
   const submittedAnswersMap = useMemo(() => {
@@ -517,7 +517,7 @@ const QuestionPaper = () => {
       submissionData.answers.map((ans) => {
         const key = typeof ans.q === "object" ? ans.q.$oid : ans.q;
         return [key, ans];
-      })
+      }),
     );
   }, [submissionData]);
 
@@ -872,7 +872,12 @@ const QuestionPaper = () => {
                   <CardContent>
                     <Typography
                       variant="body1"
-                      sx={{ mb: 2, fontWeight: 600, pr: 1 }}
+                      sx={{
+                        mb: 2,
+                        fontWeight: 600,
+                        pr: 1,
+                        whiteSpace: "pre-line",
+                      }}
                     >
                       {globalIndex}. {q.questionText}
                     </Typography>
@@ -1147,7 +1152,12 @@ const QuestionPaper = () => {
                         >
                           Explanation:
                         </Typography>
-                        <Typography variant="body2">{q.explanation}</Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ whiteSpace: "pre-line" }}
+                        >
+                          {q.explanation}
+                        </Typography>
                       </Box>
                     )}
                   </CardContent>
