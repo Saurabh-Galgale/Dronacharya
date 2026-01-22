@@ -261,28 +261,37 @@ const Quiz = ({ magazineId, onClose }) => {
             <button
               onClick={() => handleNavigate(-1)}
               disabled={currentQuestionIndex === 0}
-              style={styles.navButton}
+              style={{
+                ...styles.navButton,
+                ...(currentQuestionIndex === 0 ? styles.disabledNavButton : {}),
+              }}
             >
               {"<"} पूर्वीचे
             </button>
             <span style={styles.progressText}>
               {currentQuestionIndex + 1} / {questions.length}
             </span>
-            {currentQuestionIndex < maxReachedIndex ? (
-              <button
-                onClick={() => handleNavigate(1)}
-                style={styles.navButton}
-              >
-                पुढील {">"}
-              </button>
-            ) : (
-              <button onClick={goToNextQuestion} style={styles.navButton}>
-                {answers.hasOwnProperty(currentQuestionIndex)
-                  ? "पुढील"
-                  : "वगळा"}{" "}
-                {">"}
-              </button>
-            )}
+            <button
+              onClick={() =>
+                currentQuestionIndex < maxReachedIndex
+                  ? handleNavigate(1)
+                  : goToNextQuestion()
+              }
+              style={{
+                ...styles.navButton,
+                ...(currentQuestionIndex === questions.length - 1 &&
+                answers.hasOwnProperty(currentQuestionIndex)
+                  ? styles.disabledNavButton
+                  : {}),
+              }}
+            >
+              {currentQuestionIndex < maxReachedIndex
+                ? "पुढील"
+                : answers.hasOwnProperty(currentQuestionIndex)
+                ? "पुढील"
+                : "वगळा"}{" "}
+              {">"}
+            </button>
           </div>
         </div>
       </div>
@@ -391,10 +400,12 @@ const styles = {
     color: "white",
     fontWeight: "bold",
     cursor: "pointer",
-    "&:disabled": {
-      background: "#ccc",
-      cursor: "not-allowed",
-    },
+    transition: "background-color 0.2s",
+  },
+  disabledNavButton: {
+    background: "#d3d3d3",
+    cursor: "not-allowed",
+    color: "#888",
   },
   progressText: {
     fontWeight: "bold",

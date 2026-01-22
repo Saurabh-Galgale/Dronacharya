@@ -6,7 +6,7 @@ import "@react-pdf-viewer/core/lib/styles/index.css";
 import { getMagazines, getMagazineById } from "../services/api";
 import { getStoredUserProfile } from "../services/authService";
 import Quiz from "../component/Quiz";
-import { getSimpleCache, setSimpleCache } from "../utils/sessionCache";
+import { getPaginatedCache, setPaginatedCache } from "../utils/sessionCache";
 
 const gradients = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
@@ -341,9 +341,20 @@ const MagazinePage = () => {
   useEffect(() => {
     const fetchMagazines = async () => {
       setIsLoading(true);
+      const cacheKey = `magazines_page_${page}`;
+      const cachePrefix = "magazines";
+
       try {
-        // Caching for paginated data can be complex; fetching fresh for simplicity.
+        const cachedData = getPaginatedCache(cacheKey, cachePrefix);
+        if (cachedData) {
+          setMagazines((prev) => [...prev, ...cachedData.magazines]);
+          setTotalPages(cachedData.pagination.totalPages);
+          setIsLoading(false);
+          return;
+        }
+
         const data = await getMagazines(page);
+        setPaginatedCache(cacheKey, data, cachePrefix);
         setMagazines((prev) => [...prev, ...data.magazines]);
         setTotalPages(data.pagination.totalPages);
       } catch (err) {
