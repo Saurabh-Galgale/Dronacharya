@@ -469,126 +469,266 @@ const MagazinePage = () => {
   }
 
   return (
-    <div
-      style={{
-        backgroundColor: "#f8f9fa",
-        minHeight: "100vh",
-        paddingBottom: "50px",
-        marginLeft: 12,
-        marginRight: 12,
+    <Box
+      sx={{
+        height: "85vh",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        textAlign: "center",
+        p: 3,
+        bgcolor: "#f8f9fa",
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 2,
-          mb: 4,
-          textAlign: "center",
+          p: { xs: 3, md: 5 },
+          borderRadius: "30px",
+          bgcolor: "white",
+          boxShadow: "0 15px 50px rgba(0,0,0,0.06)",
+          maxWidth: "550px",
+          width: "100%",
+          border: "1px solid rgba(0,0,0,0.05)",
+          position: "relative",
+          overflow: "hidden",
         }}
       >
-        <Box sx={{ position: "relative" }}>
+        {/* Top Decorative Bar */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "6px",
+            background: "linear-gradient(90deg, #de6925, #f39c12)",
+          }}
+        />
+
+        <Box sx={{ fontSize: "3.5rem", mb: 2 }}>🚀</Box>
+
+        <Typography
+          variant="h4"
+          sx={{
+            fontWeight: 900,
+            mb: 2,
+            color: "#1a1a1a",
+            fontSize: { xs: "1.8rem", md: "2.2rem" },
+          }}
+        >
+          काही वेळ प्रतिक्षा करा!
+        </Typography>
+
+        <Typography
+          variant="body1"
+          sx={{ color: "#666", mb: 4, lineHeight: 1.6 }}
+        >
+          आम्ही हा विभाग अधिक चांगला बनवण्यासाठी अपडेट करत आहोत. नवीन मासिके आणि
+          क्विझ लवकरच उपलब्ध होतील.
+        </Typography>
+
+        <Box
+          sx={{
+            bgcolor: "rgba(222, 105, 37, 0.05)",
+            border: "1px solid rgba(222, 105, 37, 0.2)",
+            py: 2.5,
+            px: 3,
+            borderRadius: "16px",
+          }}
+        >
           <Typography
-            variant="h2"
-            component="h1"
+            variant="subtitle2"
             sx={{
-              paddingTop: 2,
-              paddingBottom: 1,
-              fontWeight: 900,
-              background:
-                "linear-gradient(135deg, #de6925 0%, #f39c12 50%, #e67e22 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
-              letterSpacing: "-0.02em",
-              lineHeight: 1.2,
-              textShadow: "0 4px 12px rgba(222, 105, 37, 0.15)",
+              color: "#de6925",
+              fontWeight: 700,
+              mb: 1,
+              textTransform: "uppercase",
+              letterSpacing: 1,
             }}
           >
-            चालू घडामोडी मासिके
+            पुन्हा कधी सुरू होईल?
           </Typography>
 
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: -8,
-              left: "50%",
-              transform: "translateX(-50%)",
-              width: "60%",
-              height: "4px",
-              background:
-                "linear-gradient(90deg, transparent, #de6925, transparent)",
-              borderRadius: "2px",
-              animation: "glow 2s ease-in-out infinite",
-              "@keyframes glow": {
-                "0%, 100%": {
-                  opacity: 0.5,
-                  width: "60%",
-                },
-                "50%": {
-                  opacity: 1,
-                  width: "70%",
-                },
-              },
-            }}
-          />
+          <Typography variant="h5" sx={{ fontWeight: 800, color: "#1a1a1a" }}>
+            २३ जानेवारी २०२६
+          </Typography>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: "#444" }}>
+            दुपारी २:०० वाजता
+          </Typography>
         </Box>
 
         <Typography
-          variant="h6"
-          sx={{
-            color: "#666",
-            fontWeight: 600,
-            fontSize: { xs: "1rem", sm: "1.15rem", md: "1.25rem" },
-            maxWidth: "600px",
-            mt: 1,
-          }}
+          variant="body2"
+          sx={{ mt: 4, color: "#aaa", fontStyle: "italic" }}
         >
-          📚 संपूर्ण महिन्याचे महत्त्वाचे विषय एका ठिकाणी
+          सहकार्याबद्दल धन्यवाद!
         </Typography>
       </Box>
-
-      {magazines.map((magazine, index) => (
-        <MagazineCard
-          key={magazine._id}
-          magazine={magazine}
-          index={index}
-          isOpen={openMonthIndex === index}
-          onToggle={() =>
-            setOpenMonthIndex(openMonthIndex === index ? null : index)
-          }
-          onNavigateToMagazine={handleNavigateToMagazine}
-          onOpenQuiz={handleOpenQuiz}
-        />
-      ))}
-
-      <Box sx={{ textAlign: "center", mt: 4 }}>
-        {page < totalPages && !isLoading && (
-          <Button
-            variant="contained"
-            onClick={() => setPage((p) => p + 1)}
-            sx={{
-              fontWeight: "bold",
-              borderRadius: "12px",
-              padding: "10px 24px",
-            }}
-          >
-            आणखी लोड करा
-          </Button>
-        )}
-        {isLoading && <CircularProgress size={24} />}
-      </Box>
-
-      {isQuizOpen && (
-        <Quiz
-          magazineId={selectedMagazineId}
-          onClose={() => setIsQuizOpen(false)}
-        />
-      )}
-    </div>
+    </Box>
   );
+
+  // return (
+  //   <div
+  //     style={{
+  //       backgroundColor: "#f8f9fa",
+  //       minHeight: "100vh",
+  //       paddingBottom: "50px",
+  //       marginLeft: 12,
+  //       marginRight: 12,
+  //     }}
+  //   >
+  //     <Box
+  //       sx={{
+  //         display: "flex",
+  //         flexDirection: "column",
+  //         alignItems: "center",
+  //         gap: 2,
+  //         mb: 4,
+  //         textAlign: "center",
+  //       }}
+  //     >
+  //       <Box sx={{ position: "relative" }}>
+  //         <Typography
+  //           variant="h2"
+  //           component="h1"
+  //           sx={{
+  //             paddingTop: 2,
+  //             paddingBottom: 1,
+  //             fontWeight: 900,
+  //             background:
+  //               "linear-gradient(135deg, #de6925 0%, #f39c12 50%, #e67e22 100%)",
+  //             WebkitBackgroundClip: "text",
+  //             WebkitTextFillColor: "transparent",
+  //             backgroundClip: "text",
+  //             fontSize: { xs: "2rem", sm: "2.5rem", md: "3rem" },
+  //             letterSpacing: "-0.02em",
+  //             lineHeight: 1.2,
+  //             textShadow: "0 4px 12px rgba(222, 105, 37, 0.15)",
+  //           }}
+  //         >
+  //           चालू घडामोडी मासिके
+  //         </Typography>
+
+  //         <Box
+  //           sx={{
+  //             position: "absolute",
+  //             bottom: -8,
+  //             left: "50%",
+  //             transform: "translateX(-50%)",
+  //             width: "60%",
+  //             height: "4px",
+  //             background:
+  //               "linear-gradient(90deg, transparent, #de6925, transparent)",
+  //             borderRadius: "2px",
+  //             animation: "glow 2s ease-in-out infinite",
+  //             "@keyframes glow": {
+  //               "0%, 100%": {
+  //                 opacity: 0.5,
+  //                 width: "60%",
+  //               },
+  //               "50%": {
+  //                 opacity: 1,
+  //                 width: "70%",
+  //               },
+  //             },
+  //           }}
+  //         />
+  //       </Box>
+
+  //       <Typography
+  //         variant="h6"
+  //         sx={{
+  //           color: "#666",
+  //           fontWeight: 600,
+  //           fontSize: { xs: "1rem", sm: "1.15rem", md: "1.25rem" },
+  //           maxWidth: "600px",
+  //           mt: 1,
+  //         }}
+  //       >
+  //         📚 संपूर्ण महिन्याचे महत्त्वाचे विषय एका ठिकाणी
+  //       </Typography>
+  //     </Box>
+
+  //     <Box
+  //       sx={{
+  //         my: 2,
+  //         width: "100%",
+  //         maxWidth: "500px",
+  //         backgroundColor: "rgba(222, 105, 37, 0.08)",
+  //         border: "1px dashed #de6925",
+  //         borderRadius: "12px",
+  //         padding: "10px 16px",
+  //         display: "flex",
+  //         alignItems: "center",
+  //         gap: 1.5,
+  //       }}
+  //     >
+  //       <Box
+  //         sx={{
+  //           animation: "pulse 1.5s infinite",
+  //           "@keyframes pulse": {
+  //             "0%": { transform: "scale(1)", opacity: 1 },
+  //             "50%": { transform: "scale(1.2)", opacity: 0.7 },
+  //             "100%": { transform: "scale(1)", opacity: 1 },
+  //           },
+  //         }}
+  //       >
+  //         ⚙️
+  //       </Box>
+  //       <Typography
+  //         variant="body2"
+  //         sx={{
+  //           color: "#de6925",
+  //           fontWeight: 700,
+  //           fontSize: "0.9rem",
+  //           textAlign: "left",
+  //         }}
+  //       >
+  //         सर्व उरलेली मासिके आणि त्यांच्या क्विझ (Quizzes) हळूहळू उपलब्ध केल्या
+  //         जातील!
+  //       </Typography>
+  //     </Box>
+
+  //     {magazines.map((magazine, index) => (
+  //       <MagazineCard
+  //         key={magazine._id}
+  //         magazine={magazine}
+  //         index={index}
+  //         isOpen={openMonthIndex === index}
+  //         onToggle={() =>
+  //           setOpenMonthIndex(openMonthIndex === index ? null : index)
+  //         }
+  //         onNavigateToMagazine={handleNavigateToMagazine}
+  //         onOpenQuiz={handleOpenQuiz}
+  //       />
+  //     ))}
+
+  //     <Box sx={{ textAlign: "center", mt: 4 }}>
+  //       {page < totalPages && !isLoading && (
+  //         <Button
+  //           variant="contained"
+  //           onClick={() => setPage((p) => p + 1)}
+  //           sx={{
+  //             fontWeight: "bold",
+  //             borderRadius: "12px",
+  //             padding: "10px 24px",
+  //           }}
+  //         >
+  //           आणखी लोड करा
+  //         </Button>
+  //       )}
+  //       {isLoading && <CircularProgress size={24} />}
+  //     </Box>
+
+  //     {isQuizOpen && (
+  //       <Quiz
+  //         magazineId={selectedMagazineId}
+  //         onClose={() => setIsQuizOpen(false)}
+  //       />
+  //     )}
+  //   </div>
+  // );
 };
 
 export default MagazinePage;

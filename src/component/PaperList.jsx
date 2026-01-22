@@ -544,12 +544,52 @@ const PaperList = ({ paperType }) => {
           </Typography>
         </Box>
       ) : papers.length === 0 ? (
-        <Box sx={{ textAlign: "center", mt: 6 }}>
-          <Typography variant="h6" color="text.secondary">
-            {filter === "solved"
-              ? "तुम्ही अजून कोणतेही पेपर सोडवलेले नाही"
-              : "सध्या कोणतेही प्रश्नपत्र उपलब्ध नाही"}
+        <Box sx={{ textAlign: "center", mt: 6, px: 3 }}>
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            sx={{ lineHeight: 1.6 }}
+          >
+            {filter === "solved" ? (
+              "तुम्ही अजून कोणतेही पेपर सोडवलेले नाही"
+            ) : filter === "unsolved" ? (
+              <>
+                <Box
+                  sx={{
+                    fontSize: "3rem",
+                    mb: 2,
+                    opacity: 0.5,
+                  }}
+                >
+                  📚
+                </Box>
+                हा एक नवीन विभाग आहे. सध्या काही विषयांच्या प्रश्नपत्रिका उपलब्ध
+                नाहीत, <br />
+                पण आम्ही त्या लवकरच जोडत आहोत. कृपया प्रतीक्षा करा!
+              </>
+            ) : (
+              "सध्या कोणतेही प्रश्नपत्र उपलब्ध नाही"
+            )}
           </Typography>
+
+          {filter === "unsolved" && (
+            <Box
+              sx={{
+                mt: 2,
+                display: "inline-block",
+                px: 2,
+                py: 0.5,
+                borderRadius: 5,
+                bgcolor: "rgba(222, 105, 37, 0.1)",
+                border: "1px solid #de6925",
+                color: "#de6925",
+                fontSize: "0.85rem",
+                fontWeight: "bold",
+              }}
+            >
+              Coming Soon...
+            </Box>
+          )}
         </Box>
       ) : (
         <>
