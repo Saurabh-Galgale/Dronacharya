@@ -392,7 +392,7 @@ const Dashboard = () => {
                                 day: "numeric",
                                 month: "long",
                                 year: "numeric",
-                              }
+                              },
                             )}
                           </Typography>
                         </Box>

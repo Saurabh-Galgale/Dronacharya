@@ -27,14 +27,15 @@ const QuestionPaper = lazy(() => import("./pages/QuestionPaper")); // Single Pap
 
 // Payment Gateway terms & policy pages imports
 const ContactUs = lazy(() => import("./pages/policy/ContactUs"));
-const TermsAndConditions = lazy(() =>
-  import("./pages/policy/TermsAndConditions")
+const TermsAndConditions = lazy(
+  () => import("./pages/policy/TermsAndConditions"),
 );
 const PrivacyPolicy = lazy(() => import("./pages/policy/PrivacyPolicy"));
 const RefundPolicy = lazy(() => import("./pages/policy/RefundPolicy"));
 const ShippingPolicy = lazy(() => import("./pages/policy/ShippingPolicy"));
 
 const CurrentAffairs = lazy(() => import("./pages/CurrentAffairs"));
+const MagazineView = lazy(() => import("./pages/MagazineView"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -138,6 +139,7 @@ const AppContent = () => {
 
                     {/* Other Pages */}
                     <Route path="ca" element={<CurrentAffairs />} />
+                    <Route path="ca/:magazineId" element={<MagazineView />} />
                     <Route path="blogs" element={<Blogs />} />
                     <Route path="subscription" element={<Subscription />} />
                     <Route path="profile" element={<Profile />} />

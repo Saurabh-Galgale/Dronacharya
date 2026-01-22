@@ -40,13 +40,14 @@ const QuizAnalysis = ({ score, totalQuestions, onClose }) => {
 const Quiz = ({ magazineId, onClose }) => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [answers, setAnswers] = useState({}); // Stores { questionIndex: selectedOption }
   const [score, setScore] = useState(0);
   const [timer, setTimer] = useState(15);
   const [showAnswer, setShowAnswer] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [maxReachedIndex, setMaxReachedIndex] = useState(0);
 
   // Marathi Error Mapping Logic
   const getMarathiMessage = (msg) => {
@@ -85,20 +86,30 @@ const Quiz = ({ magazineId, onClose }) => {
     fetchQuiz();
   }, [magazineId]);
 
-  const handleNextQuestion = useCallback(() => {
+  const goToNextQuestion = useCallback(() => {
     setShowAnswer(false);
-    setSelectedOption(null);
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      const nextIndex = currentQuestionIndex + 1;
+      setCurrentQuestionIndex(nextIndex);
+      if (nextIndex > maxReachedIndex) {
+        setMaxReachedIndex(nextIndex);
+      }
       setTimer(15);
     } else {
       setQuizFinished(true);
     }
-  }, [currentQuestionIndex, questions.length]);
+  }, [currentQuestionIndex, questions.length, maxReachedIndex]);
 
   useEffect(() => {
+    const isCurrentQuestionAnswered =
+      answers.hasOwnProperty(currentQuestionIndex);
+    if (isCurrentQuestionAnswered) {
+      setShowAnswer(true); // Persist showing the answer if already answered
+      return; // No timer for answered questions
+    }
+
     if (showAnswer) {
-      const timeout = setTimeout(handleNextQuestion, 3000); // Reduced to 3s for better UX
+      const timeout = setTimeout(goToNextQuestion, 3000);
       return () => clearTimeout(timeout);
     }
 
@@ -106,6 +117,8 @@ const Quiz = ({ magazineId, onClose }) => {
       const interval = setInterval(() => {
         setTimer((prev) => {
           if (prev === 1) {
+            // Auto-skip if timer runs out
+            setAnswers((prev) => ({ ...prev, [currentQuestionIndex]: null }));
             setShowAnswer(true);
             return 0;
           }
@@ -119,16 +132,27 @@ const Quiz = ({ magazineId, onClose }) => {
     isLoading,
     questions.length,
     quizFinished,
-    handleNextQuestion,
+    goToNextQuestion,
+    answers,
+    currentQuestionIndex,
   ]);
 
   const handleOptionSelect = (index) => {
     if (showAnswer) return;
-    setSelectedOption(index);
+    setAnswers((prev) => ({ ...prev, [currentQuestionIndex]: index }));
     if (index === questions[currentQuestionIndex].correctAnswer) {
       setScore(score + 1);
     }
     setShowAnswer(true);
+  };
+
+  const handleNavigate = (direction) => {
+    const newIndex = currentQuestionIndex + direction;
+    if (newIndex >= 0 && newIndex <= maxReachedIndex) {
+      setCurrentQuestionIndex(newIndex);
+      setShowAnswer(answers.hasOwnProperty(newIndex));
+      setTimer(15); // Reset timer for safety, though it won't run on answered Qs
+    }
   };
 
   if (isLoading) {
@@ -182,10 +206,11 @@ const Quiz = ({ magazineId, onClose }) => {
   }
 
   const currentQuestion = questions[currentQuestionIndex];
+  const selectedOption = answers[currentQuestionIndex];
 
   const getOptionStyle = (index) => {
     if (!showAnswer) {
-      return selectedOption === index ? styles.selectedOption : {};
+      return {}; // No style if answer is not shown yet
     }
     if (index === currentQuestion.correctAnswer) {
       return styles.correctOption;
@@ -204,7 +229,9 @@ const Quiz = ({ magazineId, onClose }) => {
             ✕
           </button>
           <div style={styles.timerContainer}>
-            <div style={styles.timer}>{timer}</div>
+            <div style={styles.timer}>
+              {answers.hasOwnProperty(currentQuestionIndex) ? "✓" : timer}
+            </div>
           </div>
         </div>
         <div style={styles.questionContainer}>
@@ -229,9 +256,33 @@ const Quiz = ({ magazineId, onClose }) => {
           ))}
         </div>
         <div style={styles.footer}>
-          <button onClick={handleNextQuestion} style={styles.nextButton}>
-            {selectedOption === null ? "पुढील प्रश्न (Skip)" : "पुढील प्रश्न"}
-          </button>
+          <div style={styles.navigationButtons}>
+            <button
+              onClick={() => handleNavigate(-1)}
+              disabled={currentQuestionIndex === 0}
+              style={styles.navButton}
+            >
+              {"<"} पूर्वीचे
+            </button>
+            <span style={styles.progressText}>
+              {currentQuestionIndex + 1} / {questions.length}
+            </span>
+            {currentQuestionIndex < maxReachedIndex ? (
+              <button
+                onClick={() => handleNavigate(1)}
+                style={styles.navButton}
+              >
+                पुढील {">"}
+              </button>
+            ) : (
+              <button onClick={goToNextQuestion} style={styles.navButton}>
+                {answers.hasOwnProperty(currentQuestionIndex)
+                  ? "पुढील"
+                  : "वगळा"}{" "}
+                {">"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -309,10 +360,6 @@ const styles = {
     fontSize: "16px",
     transition: "background-color 0.3s, border-color 0.3s",
   },
-  selectedOption: {
-    borderColor: "#6a1b9a",
-    backgroundColor: "#f3e5f5",
-  },
   correctOption: {
     borderColor: "#4caf50",
     backgroundColor: "#e8f5e9",
@@ -328,17 +375,29 @@ const styles = {
   },
   footer: {
     marginTop: "auto",
+    paddingTop: "10px",
   },
-  nextButton: {
-    width: "100%",
-    padding: "16px",
-    borderRadius: "14px",
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  navigationButtons: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  navButton: {
+    padding: "10px 20px",
+    borderRadius: "10px",
     border: "none",
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
     color: "white",
-    fontWeight: 800,
+    fontWeight: "bold",
     cursor: "pointer",
-    fontSize: "16px",
+    "&:disabled": {
+      background: "#ccc",
+      cursor: "not-allowed",
+    },
+  },
+  progressText: {
+    fontWeight: "bold",
+    color: "#333",
   },
   closeButton: {
     borderRadius: "25%",

@@ -113,7 +113,7 @@ const PaperList = ({ paperType }) => {
   useEffect(() => {
     if (selectedSubject) {
       const subjectData = subjects.find(
-        (s) => s.subjectKey === selectedSubject
+        (s) => s.subjectKey === selectedSubject,
       );
       setTopics(subjectData?.topics || []);
       setSelectedTopic(""); // Reset topic selection
@@ -158,7 +158,7 @@ const PaperList = ({ paperType }) => {
           currentPage,
           limit,
           selectedSubject,
-          selectedTopic
+          selectedTopic,
         );
       } else {
         data = await fetcher(currentPage, limit);
@@ -296,7 +296,7 @@ const PaperList = ({ paperType }) => {
       const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
       const rightSiblingIndex = Math.min(
         currentPage + siblingCount,
-        totalPages
+        totalPages,
       );
 
       const shouldShowLeftDots = leftSiblingIndex > 2;
@@ -424,8 +424,8 @@ const PaperList = ({ paperType }) => {
           {paperType === "mock"
             ? "सराव प्रश्नपत्रिका"
             : paperType === "short"
-            ? "लघु प्रश्नपत्रिका"
-            : "मागील वर्षीय प्रश्नपत्रिका"}
+              ? "लघु प्रश्नपत्रिका"
+              : "मागील वर्षीय प्रश्नपत्रिका"}
         </Typography>
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}

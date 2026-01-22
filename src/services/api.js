@@ -25,7 +25,7 @@ api.interceptors.request.use(
   (error) => {
     console.error("Request interceptor error:", error);
     return Promise.reject(error);
-  }
+  },
 );
 
 /* ================= RESPONSE INTERCEPTOR ================= */
@@ -74,7 +74,7 @@ api.interceptors.response.use(
     normalizedError.originalError = error;
 
     return Promise.reject(normalizedError);
-  }
+  },
 );
 
 /* ================= PAPERS API ================= */
@@ -92,7 +92,7 @@ async function fetchPapers(
   filter = "unsolved",
   page = 1,
   limit = 20,
-  options = {}
+  options = {},
 ) {
   const url = `/api/papers/${type}/${filter}`;
   const params = { page, limit, ...options };
@@ -101,7 +101,7 @@ async function fetchPapers(
     return res.data.data; // { papers: [], totalPages, currentPage }
   } catch (error) {
     throw new Error(
-      error.message || `Failed to fetch ${filter} ${type} papers`
+      error.message || `Failed to fetch ${filter} ${type} papers`,
     );
   }
 }
@@ -216,9 +216,9 @@ export async function getPaperSubmissions(paperId) {
  * Get all magazines
  * GET /api/magazines
  */
-export async function getMagazines() {
+export async function getMagazines(page = 1) {
   try {
-    const res = await api.get("/api/magazines");
+    const res = await api.get("/api/magazines", { params: { page } });
     return res.data.data;
   } catch (error) {
     throw new Error(error.message || "Failed to fetch magazines");

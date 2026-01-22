@@ -79,6 +79,57 @@ const listButtonSx = {
   },
 };
 
+const caShimmerAnimation = {
+  position: "relative",
+  overflow: "hidden",
+
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    inset: 0,
+    background:
+      "linear-gradient(120deg, transparent 40%, rgba(255,255,255,0.55) 50%, transparent 60%)",
+    backgroundSize: "200% 200%",
+    backgroundPosition: "0% 100%",
+    animation: "caShimmerMove 1s linear infinite",
+    pointerEvents: "none",
+  },
+
+  "@keyframes caShimmerMove": {
+    "0%": {
+      backgroundPosition: "100% 0%",
+    },
+    "100%": {
+      backgroundPosition: "0% 100%",
+    },
+  },
+};
+
+const caGradientStyle = {
+  "& .MuiListItemText-primary": {
+    fontWeight: 900,
+    background: "linear-gradient(135deg, rgb(255, 24, 24), #7f00ff)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+    letterSpacing: "0.5px",
+  },
+
+  "& .MuiListItemIcon-root": {
+    color: "rgb(255, 24, 24)",
+  },
+
+  "&.Mui-selected .MuiListItemText-primary": {
+    fontWeight: 900,
+    background: "linear-gradient(135deg, #7f00ff,rgb(255, 24, 24))",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
+  },
+
+  "&.Mui-selected .MuiListItemIcon-root": {
+    color: "#7f00ff",
+  },
+};
+
 export default function Layout({ children }) {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -105,8 +156,19 @@ export default function Layout({ children }) {
   const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleMenuClose = () => setAnchorEl(null);
 
-  const hideFooterPaths = ["/blogs", "/short", "/mock", "/pyq", "/subject"];
-  const shouldShowFooter = !hideFooterPaths.includes(location.pathname);
+  const hideFooterPaths = [
+    "/blogs",
+    "/short",
+    "/mock",
+    "/pyq",
+    "/subject",
+    "/profile",
+    "/analysis",
+    "/ca",
+  ];
+  const shouldShowFooter = !hideFooterPaths.some((path) =>
+    location.pathname.startsWith(path),
+  );
 
   const handleLogout = async () => {
     try {
@@ -115,7 +177,7 @@ export default function Layout({ children }) {
     } catch (error) {
       console.error(
         "बाहेर पडण्यास काही अडचण आली आहे. पुन्हा बाहेर पडण्याचा प्रयत्न करा",
-        error
+        error,
       );
     }
   };
@@ -131,7 +193,7 @@ export default function Layout({ children }) {
     {
       text: "विश्लेषण",
       icon: <BubbleChartOutlinedIcon />,
-      iconActive: <BubbleChartIcon />,
+      iconActive: <BubbleChartOutlinedIcon />,
       path: "/analysis",
     },
     {
@@ -164,15 +226,15 @@ export default function Layout({ children }) {
     {
       text: "चालू घडामोडी",
       icon: <NestCamWiredStandOutlinedIcon />,
-      iconActive: <NestCamWiredStandIcon />, // If you don't have an outline version, keep same
+      iconActive: <NestCamWiredStandOutlinedIcon />,
       path: "/ca",
     },
-    {
-      text: "लेख",
-      icon: <DrawOutlinedIcon />,
-      iconActive: <DrawIcon />,
-      path: "/blogs",
-    },
+    // {
+    //   text: "लेख",
+    //   icon: <DrawOutlinedIcon />,
+    //   iconActive: <DrawIcon />,
+    //   path: "/blogs",
+    // },
   ];
 
   const accountItems = [
@@ -212,7 +274,11 @@ export default function Layout({ children }) {
                   to={item.path}
                   selected={location.pathname === item.path}
                   onClick={() => isMobile && setMobileOpen(false)}
-                  sx={listButtonSx}
+                  sx={{
+                    ...listButtonSx,
+                    ...(item.path === "/analysis" ? caShimmerAnimation : {}),
+                    ...(item.path === "/analysis" ? caGradientStyle : {}),
+                  }}
                 >
                   <ListItemIcon
                     sx={{
@@ -240,7 +306,11 @@ export default function Layout({ children }) {
                   to={item.path}
                   selected={location.pathname === item.path}
                   onClick={() => isMobile && setMobileOpen(false)}
-                  sx={listButtonSx}
+                  sx={{
+                    ...listButtonSx,
+                    ...(item.path === "/ca" ? caShimmerAnimation : {}),
+                    ...(item.path === "/ca" ? caGradientStyle : {}),
+                  }}
                 >
                   <ListItemIcon
                     sx={{
@@ -295,7 +365,10 @@ export default function Layout({ children }) {
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <LogoutIcon color="error" />
               </ListItemIcon>
-              <ListItemText primary="बाहेर पडा" sx={{ color: "error.main" }} />
+              <ListItemText
+                primary="बाहेर पडा (Logout)"
+                sx={{ color: "error.main" }}
+              />
             </ListItemButton>
           </ListItem>
         </List>
@@ -442,7 +515,7 @@ export default function Layout({ children }) {
               <ListItemIcon>
                 <LogoutIcon fontSize="small" color="error" />
               </ListItemIcon>
-              बाहेर पडा
+              बाहेर पडा (Logout)
             </MenuItem>
           </Menu>
         </Toolbar>
@@ -499,9 +572,13 @@ export default function Layout({ children }) {
         onClose={() => setLogoutDialogOpen(false)}
         PaperProps={{ sx: { borderRadius: "20px" } }}
       >
-        <DialogTitle sx={{ fontWeight: "bold" }}>बाहेर पडायचे?</DialogTitle>
-        <DialogContent>नक्की बाहेर पडायचे आहे का?</DialogContent>
-        <DialogActions sx={{ p: 3 }}>
+        <DialogTitle sx={{ fontWeight: "bold" }}>
+          तुम्हाला नक्की बाहेर पडायचे आहे का?
+        </DialogTitle>
+        <DialogContent>
+          चुकून बटण दबले असल्यास हा डायलॉग रद्द करा.
+        </DialogContent>
+        <DialogActions sx={{ p: 3, justifyContent: "space-between" }}>
           <Button
             onClick={() => setLogoutDialogOpen(false)}
             variant="outlined"

@@ -128,7 +128,7 @@ const PerformanceAnalysis = () => {
     const loadData = async () => {
       try {
         const cachedData = sessionStorage.getItem(
-          "user_performance_analysis_data"
+          "user_performance_analysis_data",
         );
 
         if (cachedData) {
@@ -144,10 +144,10 @@ const PerformanceAnalysis = () => {
 
         sessionStorage.setItem(
           "user_performance_analysis_data",
-          JSON.stringify(result)
+          JSON.stringify(result),
         );
       } catch (err) {
-        setError(err.message || "Failed to load performance data");
+        setError(err.message || "डेटा लोड करण्यात अयशस्वी");
       } finally {
         setLoading(false);
       }
@@ -246,7 +246,7 @@ const PerformanceAnalysis = () => {
                     fontSize: { xs: "0.65rem", sm: "0.75rem" },
                   }}
                 >
-                  CAREER SUMMARY
+                  एकूण सारांश
                 </Typography>
                 <Stack
                   direction="row"
@@ -273,7 +273,7 @@ const PerformanceAnalysis = () => {
                         fontWeight: 600,
                       }}
                     >
-                      Tests
+                      चाचण्या
                     </Typography>
                   </Box>
                   <Box>
@@ -295,7 +295,7 @@ const PerformanceAnalysis = () => {
                         fontWeight: 600,
                       }}
                     >
-                      Questions
+                      प्रश्न
                     </Typography>
                   </Box>
                   <Box>
@@ -323,7 +323,7 @@ const PerformanceAnalysis = () => {
                         fontWeight: 600,
                       }}
                     >
-                      Accuracy
+                      अचूकता
                     </Typography>
                   </Box>
                 </Stack>
@@ -344,7 +344,7 @@ const PerformanceAnalysis = () => {
                       fontSize: { xs: "0.7rem", sm: "0.75rem" },
                     }}
                   >
-                    Strongest:
+                    सर्वात मजबूत:
                   </Typography>
                   <Chip
                     label={overview.strongestSubject}
@@ -372,7 +372,7 @@ const PerformanceAnalysis = () => {
                       fontSize: { xs: "0.7rem", sm: "0.75rem" },
                     }}
                   >
-                    Weakest:
+                    सर्वात कमकुवत:
                   </Typography>
                   <Chip
                     label={overview.weakestSubject}
@@ -564,7 +564,7 @@ const PerformanceAnalysis = () => {
                         letterSpacing: "1px",
                       }}
                     >
-                      ACCURACY
+                      अचूकता
                     </Typography>
                   </Box>
 
@@ -573,35 +573,35 @@ const PerformanceAnalysis = () => {
                     <Grid container spacing={{ xs: 1, sm: 1.5 }}>
                       <Grid item xs={4}>
                         <StatPill
-                          label="Total"
+                          label="एकूण"
                           value={stats.total}
                           color={color}
                         />
                       </Grid>
                       <Grid item xs={4}>
                         <StatPill
-                          label="Attempted"
+                          label="सोडवलेले"
                           value={stats.attempted}
                           color={color}
                         />
                       </Grid>
                       <Grid item xs={4}>
                         <StatPill
-                          label="Skipped"
+                          label="वगळलेले"
                           value={stats.unattempted}
                           color="#FFAB00"
                         />
                       </Grid>
                       <Grid item xs={6}>
                         <StatPill
-                          label="Correct"
+                          label="बरोबर"
                           value={stats.correct}
                           color="#00E5FF"
                         />
                       </Grid>
                       <Grid item xs={6}>
                         <StatPill
-                          label="Wrong"
+                          label="चूक"
                           value={stats.wrong}
                           color="#FF2975"
                         />
@@ -640,7 +640,7 @@ const PerformanceAnalysis = () => {
                               letterSpacing: "0.5px",
                             }}
                           >
-                            TOTAL MARKS
+                            एकूण गुण
                           </Typography>
                           <Typography
                             variant="h6"
@@ -808,7 +808,7 @@ const PerformanceAnalysis = () => {
                     color: "#fff",
                   }}
                 >
-                  Skill Shape
+                  कौशल्य आकार
                 </Typography>
                 <Box sx={{ height: { xs: 220, sm: 250 }, width: "100%" }}>
                   <ResponsiveContainer>
