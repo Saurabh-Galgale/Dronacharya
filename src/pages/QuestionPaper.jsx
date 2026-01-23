@@ -775,23 +775,30 @@ const QuestionPaper = () => {
                 />
               </Box>
             </Fade>
-            <IconButton
+            <Button
               onClick={toggleDrawer}
+              variant="contained"
               sx={{
-                bgcolor: "rgba(255,255,255,0.1)",
+                background: "#000",
                 color: "white",
-                p: 0.4,
-                border: showTutorial ? "1px solid white" : "none",
+                textTransform: "none",
+                fontWeight: 800,
+                fontSize: "0.7rem",
+                borderRadius: 2,
+                px: 0.7,
+                py: 0.9,
+                border: showTutorial
+                  ? "1px solid white"
+                  : "0.2px solid rgba(255, 255, 255, 0.33)",
                 transition: "all 0.3s",
-                "&:hover": { bgcolor: "rgba(255,255,255,0.2)" },
+                "&:hover": {
+                  background: "#000",
+                },
+                whiteSpace: "nowrap",
               }}
             >
-              {drawerHeight > 50 ? (
-                <KeyboardArrowDownIcon />
-              ) : (
-                <KeyboardArrowUpIcon />
-              )}
-            </IconButton>
+              {drawerHeight > 50 ? "विश्लेषण पहा" : "प्रश्नपत्रिका पहा"}
+            </Button>
           </Box>
 
           {renderPagination()}

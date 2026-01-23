@@ -590,10 +590,11 @@ export default function MagazineView() {
 
   const handleToggleAll = () => {
     if (!magazine) return;
-    const isAllOpen = Object.values(expandedSections).every((v) => v === true);
+    const shouldOpenAll = !isAnySectionOpen;
+
     const newState = {};
     magazine.sections.forEach((s) => {
-      newState[s.sectionId] = !isAllOpen;
+      newState[s.sectionId] = shouldOpenAll;
     });
     setExpandedSections(newState);
   };
@@ -630,7 +631,9 @@ export default function MagazineView() {
     return null;
   }
 
-  const isAllOpen = Object.values(expandedSections).every((v) => v === true);
+  const isAnySectionOpen = Object.values(expandedSections).some(
+    (v) => v === true,
+  );
 
   return (
     <SecurityOverlay>
@@ -714,7 +717,9 @@ export default function MagazineView() {
             onClick={handleToggleAll}
             fullWidth
             size="medium"
-            startIcon={isAllOpen ? <UnfoldLessIcon /> : <UnfoldMoreIcon />}
+            startIcon={
+              isAnySectionOpen ? <UnfoldLessIcon /> : <UnfoldMoreIcon />
+            }
             sx={{
               color: "white",
               fontWeight: "bold",
@@ -724,9 +729,16 @@ export default function MagazineView() {
               mb: 1.5,
               py: 1,
               background: "#000",
+              "&:hover": {
+                background: "#1a1a1a", // Slightly lighter black on hover
+                boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+              },
+              "&:active": {
+                background: "#000", // Back to pure black when clicked
+              },
             }}
           >
-            {isAllOpen ? "सर्व बंद करा" : "सर्व उघडा"}
+            {isAnySectionOpen ? "सर्व माहिती लपवा" : "सर्व माहिती उलगडा"}
           </Button>
 
           {/* Sections */}
