@@ -53,6 +53,7 @@ import {
   removeInProgressPaper,
 } from "../utils/sessionCache";
 import RestoreSessionDialog from "../component/RestoreSessionDialog";
+import QuestionImage from "../component/QuestionImage";
 import Analysis from "../component/Analysis";
 
 const QuestionPaper = () => {
@@ -61,6 +62,7 @@ const QuestionPaper = () => {
   const { state } = useLocation();
   const drawerRef = useRef(null);
   const startTimeRef = useRef(Date.now());
+  const hasAutoSubmitted = useRef(false);
 
   // Data State from File B
   const [paper, setPaper] = useState(null);
@@ -254,6 +256,9 @@ const QuestionPaper = () => {
   );
 
   const handleAutoSubmit = useCallback(async () => {
+    if (hasAutoSubmitted.current) return;
+    hasAutoSubmitted.current = true;
+
     alert("वेळ संपली! पेपर स्वयंचलितपणे सबमिट केला जात आहे.");
     if (paper) {
       const maxSeconds = (paper.durationMinutes || 0) * 60;
@@ -552,6 +557,9 @@ const QuestionPaper = () => {
   };
 
   const formatTime = (seconds) => {
+    if (typeof seconds !== "number" || isNaN(seconds) || seconds < 0) {
+      return "00:00:00";
+    }
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
@@ -564,11 +572,18 @@ const QuestionPaper = () => {
     (k) => answers[k] !== undefined && answers[k] !== null && answers[k] !== "",
   ).length;
 
+  const normalizeId = (id) => {
+    if (typeof id === "object" && id !== null && "$oid" in id) {
+      return id.$oid;
+    }
+    return String(id);
+  };
+
   const submittedAnswersMap = useMemo(() => {
     if (!submissionData?.answers) return new Map();
     return new Map(
       submissionData.answers.map((ans) => {
-        const key = typeof ans.q === "object" ? ans.q.$oid : ans.q;
+        const key = normalizeId(ans.q);
         return [key, ans];
       }),
     );
@@ -886,7 +901,8 @@ const QuestionPaper = () => {
               if (!q) return null; // Defensive check
               const globalIndex =
                 (currentQuestionPage - 1) * questionsPerPage + idx + 1;
-              const submittedAnswer = submittedAnswersMap.get(q._id);
+              const normalizedQuestionId = normalizeId(q._id);
+              const submittedAnswer = submittedAnswersMap.get(normalizedQuestionId);
               const isAttempted = submittedAnswer !== undefined;
               const isCorrect = submittedAnswer?.c === true;
               const userSelectedIndex = submittedAnswer?.s;
@@ -942,101 +958,7 @@ const QuestionPaper = () => {
                       {globalIndex}. {q.questionText}
                     </Typography>
 
-                    {/* {q.fig && (
-                      <Box
-                        sx={{
-                          width: "100%",
-                          mb: 2,
-                          borderRadius: 2,
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <img
-                          // COMBINING ENV VARIABLE + PATH
-                          src={`${import.meta.env.VITE_CLOUDFRONT_URL}${
-                            q.fig.startsWith("/") ? q.fig.slice(1) : q.fig
-                          }`}
-                          alt="Question Figure"
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            display: "block",
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = "none"; // Hides the broken image icon
-                          }}
-                        />
-                      </Box>
-                    )} */}
-
-                    {q.fig && (
-                      <Box
-                        sx={{
-                          width: "100%",
-                          mb: 2,
-                          borderRadius: 2,
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          overflow: "hidden",
-                          position: "relative", // Needed for positioning
-                        }}
-                      >
-                        {/* 1. The Image */}
-                        <img
-                          src={`${import.meta.env.VITE_CLOUDFRONT_URL}/${
-                            q.fig.startsWith("/") ? q.fig.slice(1) : q.fig
-                          }`}
-                          alt="Question Figure"
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            display: "block",
-                            minHeight: "50px",
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = "none"; // Hide the broken image
-                            // Find the next sibling (the error box) and show it
-                            const errorBox = e.target.nextSibling;
-                            if (errorBox) {
-                              errorBox.style.display = "flex";
-                            }
-                          }}
-                        />
-
-                        {/* 2. The Error Fallback Message (Hidden by default) */}
-                        <Box
-                          sx={{
-                            display: "none", // Hidden until onError fires
-                            width: "100%",
-                            height: "200px", // Fixed height for the error message
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            bgcolor: "rgba(255, 82, 82, 0.1)", // Light red background
-                            color: "#ff5252", // Red text
-                            textAlign: "center",
-                            p: 2,
-                          }}
-                        >
-                          {/* You can use CloseIcon here since you already imported it */}
-                          <CloseIcon
-                            sx={{ fontSize: 40, mb: 1, opacity: 0.7 }}
-                          />
-                          <Typography
-                            variant="body2"
-                            sx={{ fontWeight: "bold" }}
-                          >
-                            {" "}
-                            इथे प्रतिमा आवश्यक आहे पण लोड झाली नाही{" "}
-                          </Typography>{" "}
-                          <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                            {" "}
-                            कृपया कनेक्शन तपासा किंवा काहीतरी चुकले आहे, आम्ही
-                            लवकरच दुरुस्त करू{" "}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )}
+                    {q.fig && <QuestionImage fig={q.fig} />}
 
                     <RadioGroup
                       name={`q-${q._id}`}
@@ -1047,7 +969,7 @@ const QuestionPaper = () => {
                           : (e) => handleAnswerChange(q._id, e.target.value)
                       }
                     >
-                      {q.options.map((opt, i) => {
+                      {(q.options || []).map((opt, i) => {
                         const isCorrectAnswer = i === q.correctAnswerIndex;
                         const isUserSelection = i === userSelectedIndex;
 
@@ -1070,7 +992,9 @@ const QuestionPaper = () => {
                                 disabled={submissionData}
                                 checked={
                                   submissionData
-                                    ? isUserSelection || isCorrectAnswer
+                                    ? isAttempted
+                                      ? isUserSelection
+                                      : isCorrectAnswer
                                     : answers[q._id] === opt
                                 }
                                 sx={{
@@ -1119,17 +1043,19 @@ const QuestionPaper = () => {
                           mt: { xs: 1, sm: 0 },
                         }}
                       >
-                        <Chip
-                          label={q.category.toUpperCase()}
-                          size="small"
-                          sx={{
-                            bgcolor: "rgba(255,255,255,0.1)",
-                            color: "white",
-                            fontWeight: 800,
-                            fontSize: "0.7rem",
-                            letterSpacing: "0.5px",
-                          }}
-                        />
+                        {q.category && (
+                          <Chip
+                            label={q.category.toUpperCase()}
+                            size="small"
+                            sx={{
+                              bgcolor: "rgba(255,255,255,0.1)",
+                              color: "white",
+                              fontWeight: 800,
+                              fontSize: "0.7rem",
+                              letterSpacing: "0.5px",
+                            }}
+                          />
+                        )}
                       </Box>
 
                       {!submissionData && answers[q._id] !== undefined && (
@@ -1438,10 +1364,12 @@ const QuestionPaper = () => {
           </Box>
 
           <Grid container spacing={1}>
-            {Array.from({ length: paper.totalQuestions }).map((_, i) => {
-              const q = allQuestions[i];
+            {Array.from({ length: paper?.totalQuestions || 0 }).map((_, i) => {
+              const q = allQuestions[i]; // q can be undefined if totalQuestions > allQuestions.length
               const pageNum = Math.floor(i / questionsPerPage) + 1;
               const attempted = q ? answers[q._id] : false;
+              const isClickable = !!q;
+
               return (
                 <Grid item key={i}>
                   <Paper
@@ -1453,24 +1381,36 @@ const QuestionPaper = () => {
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: 1.5,
-                      bgcolor: attempted ? "#4caf50" : "#2a2a2a",
-                      color: "white",
-                      cursor: "pointer",
+                      bgcolor: attempted
+                        ? "#4caf50"
+                        : isClickable
+                          ? "#2a2a2a"
+                          : "#1e1e1e", // Darker for disabled
+                      color: isClickable ? "white" : "grey.700",
+                      cursor: isClickable ? "pointer" : "not-allowed",
                       fontWeight: 700,
                       border: "1px solid",
                       borderColor: attempted
                         ? "#4caf50"
-                        : "rgba(255,255,255,0.2)",
+                        : isClickable
+                          ? "rgba(255,255,255,0.2)"
+                          : "rgba(255,255,255,0.1)",
                       transition: "all 0.2s",
                       "&:hover": {
-                        bgcolor: attempted ? "#43a047" : "#333",
-                        transform: "scale(1.05)",
+                        bgcolor: isClickable
+                          ? attempted
+                            ? "#43a047"
+                            : "#333"
+                          : "#1e1e1e",
+                        transform: isClickable ? "scale(1.05)" : "none",
                       },
                     }}
                     onClick={() => {
-                      setCurrentQuestionPage(pageNum);
-                      setDrawerHeight(90);
-                      setGridOpen(false);
+                      if (isClickable) {
+                        setCurrentQuestionPage(pageNum);
+                        setDrawerHeight(90);
+                        setGridOpen(false);
+                      }
                     }}
                   >
                     {i + 1}
