@@ -109,6 +109,26 @@ const PaperList = ({ paperType }) => {
     }
   }, [paperType]);
 
+  // NEW: Automatically select Math subject by default when subjects are loaded
+  useEffect(() => {
+    if (paperType === "subject" && subjects.length > 0 && !selectedSubject) {
+      // Tries to find 'math', 'mathematics', 'ankganit', or 'गणित' (Marathi)
+      const mathSubject = subjects.find(
+        (s) =>
+          s.subjectKey === "math" ||
+          s.subjectKey === "mathematics" ||
+          s.subjectKey === "ankganit" ||
+          s.subjectLabel.toLowerCase().includes("math") ||
+          s.subjectLabel.includes("गणित"),
+      );
+
+      if (mathSubject) {
+        setSelectedSubject(mathSubject.subjectKey);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subjects, paperType]);
+
   // When selectedSubject changes, update the topics list
   useEffect(() => {
     if (selectedSubject) {
@@ -199,96 +219,20 @@ const PaperList = ({ paperType }) => {
     }
   };
 
-  // const renderPagination = () => {
-  //   if (totalPages <= 1) return null;
-  //   const pages = [];
-  //   const maxVisible = 5;
-  //   let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-  //   let endPage = Math.min(totalPages, startPage + maxVisible - 1);
-  //   if (endPage - startPage < maxVisible - 1) {
-  //     startPage = Math.max(1, endPage - maxVisible + 1);
-  //   }
-  //   for (let i = startPage; i <= endPage; i++) {
-  //     pages.push(i);
-  //   }
-  //   return (
-  //     <Box
-  //       sx={{
-  //         display: "flex",
-  //         justifyContent: "center",
-  //         alignItems: "center",
-  //         gap: 1,
-  //         mt: 3,
-  //         mb: 2,
-  //         flexWrap: "wrap",
-  //       }}
-  //     >
-  //       <IconButton
-  //         onClick={() => handlePageChange(currentPage - 1)}
-  //         disabled={currentPage === 1}
-  //         size="small"
-  //         sx={{
-  //           bgcolor: "background.paper",
-  //           "&:hover": { bgcolor: "action.hover" },
-  //         }}
-  //       >
-  //         <ChevronLeftIcon />
-  //       </IconButton>
-  //       {pages.map((page) => (
-  //         <Button
-  //           key={page}
-  //           onClick={() => handlePageChange(page)}
-  //           variant={currentPage === page ? "contained" : "outlined"}
-  //           size="small"
-  //           sx={{
-  //             minWidth: 36,
-  //             height: 36,
-  //             ...(currentPage === page && {
-  //               background: "linear-gradient(135deg, #de6925, #f8b14a)",
-  //               color: "#000",
-  //               fontWeight: 700,
-  //             }),
-  //           }}
-  //         >
-  //           {page}
-  //         </Button>
-  //       ))}
-  //       <IconButton
-  //         onClick={() => handlePageChange(currentPage + 1)}
-  //         disabled={currentPage === totalPages}
-  //         size="small"
-  //         sx={{
-  //           bgcolor: "background.paper",
-  //           "&:hover": { bgcolor: "action.hover" },
-  //         }}
-  //       >
-  //         <ChevronRightIcon />
-  //       </IconButton>
-  //     </Box>
-  //   );
-  // };
-
-  // ... inside your component ...
-
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
-    // 2. Configuration based on screen size
-    // Mobile: 0 siblings (e.g., 1 ... 5 ... 10)
-    // Desktop: 1 sibling (e.g., 1 ... 4 5 6 ... 10)
     const siblingCount = isMobile ? 1 : 1;
-    const boundaryCount = 1; // Always show first and last page
+    const boundaryCount = 1;
 
-    // 3. Logic to generate the page list (numbers and "...")
     const range = (start, end) => {
       let length = end - start + 1;
       return Array.from({ length }, (_, idx) => idx + start);
     };
 
     const paginationRange = (() => {
-      const totalPageNumbers = siblingCount + 5; // sibling + current + boundary + dots
+      const totalPageNumbers = siblingCount + 5;
 
-      // Case 1: If the number of pages is less than the page numbers we want to show, return the range [1..totalPages]
       if (totalPageNumbers >= totalPages) {
         return range(1, totalPages);
       }
@@ -305,21 +249,18 @@ const PaperList = ({ paperType }) => {
       const firstPageIndex = 1;
       const lastPageIndex = totalPages;
 
-      // Case 2: No left dots, but right dots shown
       if (!shouldShowLeftDots && shouldShowRightDots) {
         let leftItemCount = 3 + 2 * siblingCount;
         let leftRange = range(1, leftItemCount);
         return [...leftRange, "...", totalPages];
       }
 
-      // Case 3: No right dots, but left dots shown
       if (shouldShowLeftDots && !shouldShowRightDots) {
         let rightItemCount = 3 + 2 * siblingCount;
         let rightRange = range(totalPages - rightItemCount + 1, totalPages);
         return [firstPageIndex, "...", ...rightRange];
       }
 
-      // Case 4: Both left and right dots shown
       if (shouldShowLeftDots && shouldShowRightDots) {
         let middleRange = range(leftSiblingIndex, rightSiblingIndex);
         return [firstPageIndex, "...", ...middleRange, "...", lastPageIndex];
@@ -338,14 +279,13 @@ const PaperList = ({ paperType }) => {
           flexWrap: "wrap",
         }}
       >
-        {/* PREVIOUS BUTTON */}
         <IconButton
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
           size="small"
           sx={{
-            bgcolor: "rgb(255, 255, 255)", // Solid Blue
-            color: "black", // White Icon
+            bgcolor: "rgb(255, 255, 255)",
+            color: "black",
             boxShadow: 2,
             mr: 1,
           }}
@@ -353,9 +293,7 @@ const PaperList = ({ paperType }) => {
           <ChevronLeftIcon />
         </IconButton>
 
-        {/* PAGE NUMBERS LOOP */}
         {paginationRange.map((page, index) => {
-          // If it is the "..." separator
           if (page === "...") {
             return (
               <Typography
@@ -369,7 +307,6 @@ const PaperList = ({ paperType }) => {
             );
           }
 
-          // If it is a Page Number
           return (
             <Button
               key={page}
@@ -377,7 +314,7 @@ const PaperList = ({ paperType }) => {
               variant={currentPage === page ? "contained" : "outlined"}
               size="small"
               sx={{
-                minWidth: { xs: 30, sm: 32 }, // Slightly smaller on mobile
+                minWidth: { xs: 30, sm: 32 },
                 height: { xs: 30, sm: 32 },
                 padding: 0,
                 background: "white",
@@ -395,14 +332,13 @@ const PaperList = ({ paperType }) => {
           );
         })}
 
-        {/* NEXT BUTTON */}
         <IconButton
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
           size="small"
           sx={{
-            bgcolor: "rgb(255, 255, 255)", // Solid Blue
-            color: "black", // White Icon
+            bgcolor: "rgb(255, 255, 255)",
+            color: "black",
             boxShadow: 2,
             ml: 1,
           }}
@@ -487,14 +423,6 @@ const PaperList = ({ paperType }) => {
           >
             {/* Subject Dropdown */}
             <FormControl fullWidth sx={{ width: "100%" }}>
-              {/* <InputLabel
-                sx={{
-                  fontSize: "0.8rem",
-                  fontWeight: 580,
-                }}
-              >
-                विषय
-              </InputLabel> */}
               <Select
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}

@@ -47,6 +47,13 @@ import {
   setCachedPaper,
   removeCachedPaper,
 } from "../services/paperCache";
+import {
+  getInProgressPaper,
+  saveInProgressPaper,
+  removeInProgressPaper,
+} from "../utils/sessionCache";
+import RestoreSessionDialog from "../component/RestoreSessionDialog";
+import QuestionImage from "../component/QuestionImage";
 import Analysis from "../component/Analysis";
 
 const QuestionPaper = () => {
@@ -55,6 +62,7 @@ const QuestionPaper = () => {
   const { state } = useLocation();
   const drawerRef = useRef(null);
   const startTimeRef = useRef(Date.now());
+  const hasAutoSubmitted = useRef(false);
 
   // Data State from File B
   const [paper, setPaper] = useState(null);
@@ -86,6 +94,10 @@ const QuestionPaper = () => {
   const [submissionData, setSubmissionData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
+  const [restoreDialogState, setRestoreDialogState] = useState({
+    open: false,
+    savedState: null,
+  });
   const isViewMode = state?.viewMode || false;
 
   const paperType = window.location.pathname.includes("/mock/")
@@ -160,10 +172,12 @@ const QuestionPaper = () => {
   // SUBMIT LOGIC from File B
   const handleSubmit = useCallback(
     async (forcedTime = null) => {
-      const timeSpent =
-        forcedTime !== null
-          ? forcedTime
-          : Math.floor((Date.now() - startTimeRef.current) / 1000);
+      const totalDuration = (paper?.durationMinutes || 0) * 60;
+      const calculatedTimeSpent = Math.max(
+        0,
+        Math.min(totalDuration, totalDuration - timeRemaining),
+      );
+      const timeSpent = forcedTime !== null ? forcedTime : calculatedTimeSpent;
 
       setConfirmDialog(false);
       setSubmitting(true);
@@ -223,6 +237,8 @@ const QuestionPaper = () => {
           true,
         );
 
+        removeInProgressPaper(paperId); // Clear session state on submit
+
         Object.keys(sessionStorage)
           .filter((key) => key.startsWith(`${paperType}_`))
           .forEach((key) => sessionStorage.removeItem(key));
@@ -235,10 +251,13 @@ const QuestionPaper = () => {
         setSubmitting(false);
       }
     },
-    [answers, paper, paperId, paperType, allQuestions],
+    [answers, paper, paperId, paperType, allQuestions, timeRemaining],
   );
 
   const handleAutoSubmit = useCallback(async () => {
+    if (hasAutoSubmitted.current) return;
+    hasAutoSubmitted.current = true;
+
     alert("वेळ संपली! पेपर स्वयंचलितपणे सबमिट केला जात आहे.");
     if (paper) {
       const maxSeconds = (paper.durationMinutes || 0) * 60;
@@ -339,6 +358,7 @@ const QuestionPaper = () => {
           },
           true,
         );
+        removeInProgressPaper(paperId); // Clean up any stale in-progress data
       } else {
         await setCachedPaper(
           paperId,
@@ -350,7 +370,16 @@ const QuestionPaper = () => {
           true,
         );
         if (!isViewMode) {
-          startTimer(currentPaper.durationMinutes);
+          const savedSession = getInProgressPaper(paperId);
+          if (
+            savedSession &&
+            savedSession.answers &&
+            Object.keys(savedSession.answers).length > 0
+          ) {
+            setRestoreDialogState({ open: true, savedState: savedSession });
+          } else {
+            startTimer(currentPaper.durationMinutes);
+          }
         }
       }
     } catch (err) {
@@ -368,9 +397,34 @@ const QuestionPaper = () => {
     window.location.reload();
   };
 
+  const handleContinueSession = () => {
+    const { savedState } = restoreDialogState;
+    if (savedState) {
+      setAnswers(savedState.answers || {});
+      const restoredTime = Math.max(0, savedState.timeRemaining);
+      setTimeRemaining(restoredTime);
+      setTimerActive(true);
+    }
+    setRestoreDialogState({ open: false, savedState: null });
+  };
+
+  const handleStartFresh = () => {
+    removeInProgressPaper(paperId);
+    setAnswers({});
+    startTimer(paper.durationMinutes);
+    setRestoreDialogState({ open: false, savedState: null });
+  };
+
   // UI Handlers from File A
   const handleAnswerChange = (questionId, value) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+    const newAnswers = { ...answers, [questionId]: value };
+    setAnswers(newAnswers);
+    if (!isViewMode) {
+      saveInProgressPaper(paperId, {
+        answers: newAnswers,
+        timeRemaining,
+      });
+    }
   };
 
   const toggleDrawer = () => {
@@ -384,12 +438,15 @@ const QuestionPaper = () => {
   };
 
   const handleClearResponse = (questionId) => {
-    setAnswers((prev) => {
-      if (!prev[questionId]) return prev;
-      const updated = { ...prev };
-      delete updated[questionId];
-      return updated;
-    });
+    const updated = { ...answers };
+    delete updated[questionId];
+    setAnswers(updated);
+    if (!isViewMode) {
+      saveInProgressPaper(paperId, {
+        answers: updated,
+        timeRemaining,
+      });
+    }
   };
 
   // UI rendering logic from File A
@@ -499,6 +556,9 @@ const QuestionPaper = () => {
   };
 
   const formatTime = (seconds) => {
+    if (typeof seconds !== "number" || isNaN(seconds) || seconds < 0) {
+      return "00:00:00";
+    }
     const hrs = Math.floor(seconds / 3600);
     const mins = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
@@ -511,11 +571,18 @@ const QuestionPaper = () => {
     (k) => answers[k] !== undefined && answers[k] !== null && answers[k] !== "",
   ).length;
 
+  const normalizeId = (id) => {
+    if (typeof id === "object" && id !== null && "$oid" in id) {
+      return id.$oid;
+    }
+    return String(id);
+  };
+
   const submittedAnswersMap = useMemo(() => {
     if (!submissionData?.answers) return new Map();
     return new Map(
       submissionData.answers.map((ans) => {
-        const key = typeof ans.q === "object" ? ans.q.$oid : ans.q;
+        const key = normalizeId(ans.q);
         return [key, ans];
       }),
     );
@@ -833,7 +900,9 @@ const QuestionPaper = () => {
               if (!q) return null; // Defensive check
               const globalIndex =
                 (currentQuestionPage - 1) * questionsPerPage + idx + 1;
-              const submittedAnswer = submittedAnswersMap.get(q._id);
+              const normalizedQuestionId = normalizeId(q._id);
+              const submittedAnswer =
+                submittedAnswersMap.get(normalizedQuestionId);
               const isAttempted = submittedAnswer !== undefined;
               const isCorrect = submittedAnswer?.c === true;
               const userSelectedIndex = submittedAnswer?.s;
@@ -886,104 +955,11 @@ const QuestionPaper = () => {
                         whiteSpace: "pre-line",
                       }}
                     >
-                      {globalIndex}. {q.questionText}
+                      {globalIndex}.{" "}
+                      {(q.questionText || "").replace(/\\n/g, "\n")}
                     </Typography>
 
-                    {/* {q.fig && (
-                      <Box
-                        sx={{
-                          width: "100%",
-                          mb: 2,
-                          borderRadius: 2,
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <img
-                          // COMBINING ENV VARIABLE + PATH
-                          src={`${import.meta.env.VITE_CLOUDFRONT_URL}${
-                            q.fig.startsWith("/") ? q.fig.slice(1) : q.fig
-                          }`}
-                          alt="Question Figure"
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            display: "block",
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = "none"; // Hides the broken image icon
-                          }}
-                        />
-                      </Box>
-                    )} */}
-
-                    {q.fig && (
-                      <Box
-                        sx={{
-                          width: "100%",
-                          mb: 2,
-                          borderRadius: 2,
-                          border: "1px solid rgba(255,255,255,0.1)",
-                          overflow: "hidden",
-                          position: "relative", // Needed for positioning
-                        }}
-                      >
-                        {/* 1. The Image */}
-                        <img
-                          src={`${import.meta.env.VITE_CLOUDFRONT_URL}/${
-                            q.fig.startsWith("/") ? q.fig.slice(1) : q.fig
-                          }`}
-                          alt="Question Figure"
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            display: "block",
-                            minHeight: "50px",
-                          }}
-                          onError={(e) => {
-                            e.target.style.display = "none"; // Hide the broken image
-                            // Find the next sibling (the error box) and show it
-                            const errorBox = e.target.nextSibling;
-                            if (errorBox) {
-                              errorBox.style.display = "flex";
-                            }
-                          }}
-                        />
-
-                        {/* 2. The Error Fallback Message (Hidden by default) */}
-                        <Box
-                          sx={{
-                            display: "none", // Hidden until onError fires
-                            width: "100%",
-                            height: "200px", // Fixed height for the error message
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            bgcolor: "rgba(255, 82, 82, 0.1)", // Light red background
-                            color: "#ff5252", // Red text
-                            textAlign: "center",
-                            p: 2,
-                          }}
-                        >
-                          {/* You can use CloseIcon here since you already imported it */}
-                          <CloseIcon
-                            sx={{ fontSize: 40, mb: 1, opacity: 0.7 }}
-                          />
-                          <Typography
-                            variant="body2"
-                            sx={{ fontWeight: "bold" }}
-                          >
-                            {" "}
-                            इथे प्रतिमा आवश्यक आहे पण लोड झाली नाही{" "}
-                          </Typography>{" "}
-                          <Typography variant="caption" sx={{ opacity: 0.7 }}>
-                            {" "}
-                            कृपया कनेक्शन तपासा किंवा काहीतरी चुकले आहे, आम्ही
-                            लवकरच दुरुस्त करू{" "}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )}
+                    {q.fig && <QuestionImage fig={q.fig} />}
 
                     <RadioGroup
                       name={`q-${q._id}`}
@@ -994,7 +970,7 @@ const QuestionPaper = () => {
                           : (e) => handleAnswerChange(q._id, e.target.value)
                       }
                     >
-                      {q.options.map((opt, i) => {
+                      {(q.options || []).map((opt, i) => {
                         const isCorrectAnswer = i === q.correctAnswerIndex;
                         const isUserSelection = i === userSelectedIndex;
 
@@ -1008,42 +984,62 @@ const QuestionPaper = () => {
                           }
                         }
 
+                        const boxStyle =
+                          submissionData && isCorrectAnswer
+                            ? {
+                                border: "2px solid #4caf50",
+                                borderRadius: "8px",
+                                bgcolor: "rgba(76, 175, 80, 0.1)",
+                                mb: 0.5,
+                                width: "100%",
+                              }
+                            : {
+                                border: "1px solid transparent",
+                                borderRadius: "8px",
+                                mb: 0.5,
+                                width: "100%",
+                              };
+
                         return (
-                          <FormControlLabel
-                            key={i}
-                            value={opt}
-                            control={
-                              <Radio
-                                disabled={submissionData}
-                                checked={
-                                  submissionData
-                                    ? isUserSelection || isCorrectAnswer
-                                    : answers[q._id] === opt
-                                }
-                                sx={{
-                                  color: radioColor,
-                                  "&.Mui-checked": {
+                          <Box key={i} sx={boxStyle}>
+                            <FormControlLabel
+                              value={opt}
+                              control={
+                                <Radio
+                                  disabled={!!submissionData}
+                                  checked={
+                                    submissionData
+                                      ? isUserSelection // ONLY check if user selected it
+                                      : answers[q._id] === opt
+                                  }
+                                  sx={{
                                     color: radioColor,
-                                  },
-                                  "&.Mui-disabled": {
-                                    color: radioColor,
-                                  },
-                                }}
-                              />
-                            }
-                            label={opt}
-                            sx={{
-                              "& .MuiFormControlLabel-label": {
-                                fontSize: "0.95rem",
-                                color: "white",
-                                opacity: 1,
-                              },
-                              "&.Mui-disabled .MuiFormControlLabel-label": {
-                                color: "white",
-                                opacity: 1,
-                              },
-                            }}
-                          />
+                                    "&.Mui-checked": {
+                                      color: radioColor,
+                                    },
+                                    "&.Mui-disabled": {
+                                      color: radioColor,
+                                    },
+                                  }}
+                                />
+                              }
+                              label={opt}
+                              sx={{
+                                width: "100%",
+                                m: 0, // Reset margin to fit in box
+                                "& .MuiFormControlLabel-label": {
+                                  fontSize: "0.95rem",
+                                  color: "white",
+                                  opacity: 1,
+                                  py: 0.5, // Add padding for better touch target
+                                },
+                                "&.Mui-disabled .MuiFormControlLabel-label": {
+                                  color: "white",
+                                  opacity: 1,
+                                },
+                              }}
+                            />
+                          </Box>
                         );
                       })}
                     </RadioGroup>
@@ -1066,17 +1062,19 @@ const QuestionPaper = () => {
                           mt: { xs: 1, sm: 0 },
                         }}
                       >
-                        <Chip
-                          label={q.category.toUpperCase()}
-                          size="small"
-                          sx={{
-                            bgcolor: "rgba(255,255,255,0.1)",
-                            color: "white",
-                            fontWeight: 800,
-                            fontSize: "0.7rem",
-                            letterSpacing: "0.5px",
-                          }}
-                        />
+                        {q.category && (
+                          <Chip
+                            label={q.category.toUpperCase()}
+                            size="small"
+                            sx={{
+                              bgcolor: "rgba(255,255,255,0.1)",
+                              color: "white",
+                              fontWeight: 800,
+                              fontSize: "0.7rem",
+                              letterSpacing: "0.5px",
+                            }}
+                          />
+                        )}
                       </Box>
 
                       {!submissionData && answers[q._id] !== undefined && (
@@ -1163,7 +1161,7 @@ const QuestionPaper = () => {
                           variant="body2"
                           sx={{ whiteSpace: "pre-line" }}
                         >
-                          {q.explanation}
+                          {(q.explanation || "").replace(/\\n/g, "\n")}
                         </Typography>
                       </Box>
                     )}
@@ -1385,10 +1383,13 @@ const QuestionPaper = () => {
           </Box>
 
           <Grid container spacing={1}>
-            {Array.from({ length: paper.totalQuestions }).map((_, i) => {
-              const q = allQuestions[i];
+            {Array.from({ length: paper?.totalQuestions || 0 }).map((_, i) => {
+              const q = allQuestions[i]; // q can be undefined if totalQuestions > allQuestions.length
+              if (!q) return null;
               const pageNum = Math.floor(i / questionsPerPage) + 1;
               const attempted = q ? answers[q._id] : false;
+              const isClickable = !!q;
+
               return (
                 <Grid item key={i}>
                   <Paper
@@ -1400,24 +1401,36 @@ const QuestionPaper = () => {
                       alignItems: "center",
                       justifyContent: "center",
                       borderRadius: 1.5,
-                      bgcolor: attempted ? "#4caf50" : "#2a2a2a",
-                      color: "white",
-                      cursor: "pointer",
+                      bgcolor: attempted
+                        ? "#4caf50"
+                        : isClickable
+                          ? "#2a2a2a"
+                          : "#1e1e1e", // Darker for disabled
+                      color: isClickable ? "white" : "grey.700",
+                      cursor: isClickable ? "pointer" : "not-allowed",
                       fontWeight: 700,
                       border: "1px solid",
                       borderColor: attempted
                         ? "#4caf50"
-                        : "rgba(255,255,255,0.2)",
+                        : isClickable
+                          ? "rgba(255,255,255,0.2)"
+                          : "rgba(255,255,255,0.1)",
                       transition: "all 0.2s",
                       "&:hover": {
-                        bgcolor: attempted ? "#43a047" : "#333",
-                        transform: "scale(1.05)",
+                        bgcolor: isClickable
+                          ? attempted
+                            ? "#43a047"
+                            : "#333"
+                          : "#1e1e1e",
+                        transform: isClickable ? "scale(1.05)" : "none",
                       },
                     }}
                     onClick={() => {
-                      setCurrentQuestionPage(pageNum);
-                      setDrawerHeight(90);
-                      setGridOpen(false);
+                      if (isClickable) {
+                        setCurrentQuestionPage(pageNum);
+                        setDrawerHeight(90);
+                        setGridOpen(false);
+                      }
                     }}
                   >
                     {i + 1}
@@ -1539,6 +1552,17 @@ const QuestionPaper = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <RestoreSessionDialog
+        open={restoreDialogState.open}
+        onContinue={handleContinueSession}
+        onStartFresh={handleStartFresh}
+        savedAnswerCount={
+          restoreDialogState.savedState
+            ? Object.keys(restoreDialogState.savedState.answers || {}).length
+            : 0
+        }
+      />
     </Box>
   );
 };
