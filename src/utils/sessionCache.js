@@ -94,3 +94,53 @@ export const getSimpleCache = (key) => {
   }
   return item.data;
 };
+
+// In-Progress Paper Cache (Session-only, not expired)
+const IN_PROGRESS_KEY = "in_progress_papers";
+
+/**
+ * Saves the state of an in-progress paper to session storage.
+ * Manages a maximum of 2 in-progress papers, removing the least recently used.
+ * @param {string} paperId - The ID of the paper.
+ * @param {object} state - The state to save (e.g., { answers, timeRemaining }).
+ */
+export const saveInProgressPaper = (paperId, state) => {
+  let papers = JSON.parse(sessionStorage.getItem(IN_PROGRESS_KEY) || "{}");
+
+  papers[paperId] = {
+    ...state,
+    lastAccessed: new Date().getTime(),
+  };
+
+  const paperIds = Object.keys(papers);
+  if (paperIds.length > 2) {
+    // Sort by lastAccessed timestamp (oldest first)
+    paperIds.sort((a, b) => papers[a].lastAccessed - papers[b].lastAccessed);
+    const oldestPaperId = paperIds[0];
+    delete papers[oldestPaperId];
+  }
+
+  sessionStorage.setItem(IN_PROGRESS_KEY, JSON.stringify(papers));
+};
+
+/**
+ * Retrieves the saved state of an in-progress paper.
+ * @param {string} paperId - The ID of the paper.
+ * @returns {object|null} The saved state or null if not found.
+ */
+export const getInProgressPaper = (paperId) => {
+  const papers = JSON.parse(sessionStorage.getItem(IN_PROGRESS_KEY) || "{}");
+  return papers[paperId] || null;
+};
+
+/**
+ * Removes the saved state of an in-progress paper.
+ * @param {string} paperId - The ID of the paper to remove.
+ */
+export const removeInProgressPaper = (paperId) => {
+  let papers = JSON.parse(sessionStorage.getItem(IN_PROGRESS_KEY) || "{}");
+  if (papers[paperId]) {
+    delete papers[paperId];
+    sessionStorage.setItem(IN_PROGRESS_KEY, JSON.stringify(papers));
+  }
+};

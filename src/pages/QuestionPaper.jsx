@@ -47,6 +47,12 @@ import {
   setCachedPaper,
   removeCachedPaper,
 } from "../services/paperCache";
+import {
+  getInProgressPaper,
+  saveInProgressPaper,
+  removeInProgressPaper,
+} from "../utils/sessionCache";
+import RestoreSessionDialog from "../component/RestoreSessionDialog";
 import Analysis from "../component/Analysis";
 
 const QuestionPaper = () => {
@@ -86,6 +92,10 @@ const QuestionPaper = () => {
   const [submissionData, setSubmissionData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
+  const [restoreDialogState, setRestoreDialogState] = useState({
+    open: false,
+    savedState: null,
+  });
   const isViewMode = state?.viewMode || false;
 
   const paperType = window.location.pathname.includes("/mock/")
@@ -160,10 +170,13 @@ const QuestionPaper = () => {
   // SUBMIT LOGIC from File B
   const handleSubmit = useCallback(
     async (forcedTime = null) => {
+      const totalDuration = (paper?.durationMinutes || 0) * 60;
+      const calculatedTimeSpent = Math.max(
+        0,
+        Math.min(totalDuration, totalDuration - timeRemaining),
+      );
       const timeSpent =
-        forcedTime !== null
-          ? forcedTime
-          : Math.floor((Date.now() - startTimeRef.current) / 1000);
+        forcedTime !== null ? forcedTime : calculatedTimeSpent;
 
       setConfirmDialog(false);
       setSubmitting(true);
@@ -223,6 +236,8 @@ const QuestionPaper = () => {
           true,
         );
 
+        removeInProgressPaper(paperId); // Clear session state on submit
+
         Object.keys(sessionStorage)
           .filter((key) => key.startsWith(`${paperType}_`))
           .forEach((key) => sessionStorage.removeItem(key));
@@ -235,7 +250,7 @@ const QuestionPaper = () => {
         setSubmitting(false);
       }
     },
-    [answers, paper, paperId, paperType, allQuestions],
+    [answers, paper, paperId, paperType, allQuestions, timeRemaining],
   );
 
   const handleAutoSubmit = useCallback(async () => {
@@ -339,6 +354,7 @@ const QuestionPaper = () => {
           },
           true,
         );
+        removeInProgressPaper(paperId); // Clean up any stale in-progress data
       } else {
         await setCachedPaper(
           paperId,
@@ -350,7 +366,16 @@ const QuestionPaper = () => {
           true,
         );
         if (!isViewMode) {
-          startTimer(currentPaper.durationMinutes);
+          const savedSession = getInProgressPaper(paperId);
+          if (
+            savedSession &&
+            savedSession.answers &&
+            Object.keys(savedSession.answers).length > 0
+          ) {
+            setRestoreDialogState({ open: true, savedState: savedSession });
+          } else {
+            startTimer(currentPaper.durationMinutes);
+          }
         }
       }
     } catch (err) {
@@ -368,9 +393,34 @@ const QuestionPaper = () => {
     window.location.reload();
   };
 
+  const handleContinueSession = () => {
+    const { savedState } = restoreDialogState;
+    if (savedState) {
+      setAnswers(savedState.answers || {});
+      const restoredTime = Math.max(0, savedState.timeRemaining);
+      setTimeRemaining(restoredTime);
+      setTimerActive(true);
+    }
+    setRestoreDialogState({ open: false, savedState: null });
+  };
+
+  const handleStartFresh = () => {
+    removeInProgressPaper(paperId);
+    setAnswers({});
+    startTimer(paper.durationMinutes);
+    setRestoreDialogState({ open: false, savedState: null });
+  };
+
   // UI Handlers from File A
   const handleAnswerChange = (questionId, value) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: value }));
+    const newAnswers = { ...answers, [questionId]: value };
+    setAnswers(newAnswers);
+    if (!isViewMode) {
+      saveInProgressPaper(paperId, {
+        answers: newAnswers,
+        timeRemaining,
+      });
+    }
   };
 
   const toggleDrawer = () => {
@@ -384,12 +434,15 @@ const QuestionPaper = () => {
   };
 
   const handleClearResponse = (questionId) => {
-    setAnswers((prev) => {
-      if (!prev[questionId]) return prev;
-      const updated = { ...prev };
-      delete updated[questionId];
-      return updated;
-    });
+    const updated = { ...answers };
+    delete updated[questionId];
+    setAnswers(updated);
+    if (!isViewMode) {
+      saveInProgressPaper(paperId, {
+        answers: updated,
+        timeRemaining,
+      });
+    }
   };
 
   // UI rendering logic from File A
@@ -1539,6 +1592,17 @@ const QuestionPaper = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <RestoreSessionDialog
+        open={restoreDialogState.open}
+        onContinue={handleContinueSession}
+        onStartFresh={handleStartFresh}
+        savedAnswerCount={
+          restoreDialogState.savedState
+            ? Object.keys(restoreDialogState.savedState.answers || {}).length
+            : 0
+        }
+      />
     </Box>
   );
 };
