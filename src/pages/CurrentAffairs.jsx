@@ -8,6 +8,36 @@ import { getStoredUserProfile } from "../services/authService";
 import Quiz from "../component/Quiz";
 import { getPaginatedCache, setPaginatedCache } from "../utils/sessionCache";
 
+/* ================= IMAGE HELPER ================= */
+const getMagazineCoverUrl = (magazine) => {
+  const baseUrl = import.meta.env.VITE_CLOUDFRONT_URL;
+  if (!baseUrl || !magazine?.coverUrl) return null;
+  return `${baseUrl}/${magazine.coverUrl}`;
+};
+
+/* ================= SHINE ANIMATION LOGIC ================= */
+// 1. We define the keyframes here. The shine moves across, then waits.
+const cardShineKeyframes = `
+@keyframes cardShine {
+  0% { transform: translateX(-150%) skewX(-25deg); }
+  40% { transform: translateX(150%) skewX(-25deg); }
+  100% { transform: translateX(150%) skewX(-25deg); }
+}
+`;
+
+// 2. The style for the shining strip
+const cardShineStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  background:
+    "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.3) 50%, transparent 70%)",
+  pointerEvents: "none", // CRITICAL: Ensures clicks pass through to the card
+  zIndex: 3,
+};
+
 const gradients = [
   "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
   "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
@@ -40,7 +70,7 @@ const marathiMonths = [
 
 const getMarathiMonth = (monthNumber) => {
   if (typeof monthNumber !== "number" || monthNumber < 1 || monthNumber > 12) {
-    return ""; // Return empty string for invalid input
+    return "";
   }
   return marathiMonths[monthNumber - 1];
 };
@@ -61,6 +91,7 @@ const getMarathiMessage = (msg) => {
 const userProfile = getStoredUserProfile();
 const isSubscribed = userProfile?.subscription?.active || false;
 
+/* ================= MAGAZINE CARD ================= */
 const MagazineCard = ({
   magazine,
   isOpen,
@@ -81,6 +112,7 @@ const MagazineCard = ({
 
   const gradient = gradients[index % gradients.length];
   const isLocked = !magazine.isFree;
+  const coverImageUrl = getMagazineCoverUrl(magazine);
 
   return (
     <div
@@ -115,36 +147,39 @@ const MagazineCard = ({
             display: "flex",
             flexDirection: "column",
             justifyContent: "space-between",
-            background: gradient,
+            background: coverImageUrl
+              ? `linear-gradient(to top,rgb(0, 0, 0) 0%,rgba(0,0,0,0) 50%), url(${coverImageUrl})`
+              : gradient,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
             color: "white",
             borderRadius: "24px",
             boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
-            overflow: "hidden",
+            overflow: "hidden", // Keeps the shine inside the rounded corners
             zIndex: 2,
           }}
         >
+          {/* --- SHINE EFFECT ADDED HERE --- */}
+          <span
+            style={{
+              ...cardShineStyle,
+              // Each card shines with a slight delay based on index for a "wave" effect
+              animation: `cardShine 4s ease-in-out infinite ${index * 0.3}s`,
+            }}
+          />
+          {/* ------------------------------- */}
+
           <div
             style={{
               padding: "24px",
               display: "flex",
               justifyContent: "space-between",
               alignItems: "flex-start",
+              position: "relative", // Ensure text is above shine
+              zIndex: 4,
             }}
           >
-            <span
-              style={{
-                display: "inline-block",
-                padding: "4px 12px",
-                backgroundColor: "rgba(255, 255, 255, 0.25)",
-                color: "white",
-                fontWeight: 600,
-                borderRadius: "12px",
-                fontSize: "13px",
-              }}
-            >
-              {magazine.year}
-            </span>
-
             {isLocked && !isSubscribed ? (
               <div
                 style={{
@@ -159,7 +194,9 @@ const MagazineCard = ({
               </div>
             ) : null}
           </div>
-          <div style={{ padding: "0 24px 24px" }}>
+          <div
+            style={{ padding: "0 24px 24px", position: "relative", zIndex: 4 }}
+          >
             <h2
               style={{ fontSize: "32px", fontWeight: 900, marginBottom: "8px" }}
             >
@@ -180,6 +217,25 @@ const MagazineCard = ({
                   : "मराठीत उपलब्ध मासिक"}
               </span>
             </div>
+          </div>
+
+          <div
+            style={{
+              position: "absolute",
+              right: "16px",
+              bottom: "16px",
+              padding: "6px 14px",
+              backgroundColor: "rgba(0,0,0,0.65)",
+              color: "#fff",
+              fontWeight: 700,
+              borderRadius: "14px",
+              fontSize: "14px",
+              letterSpacing: "0.5px",
+              backdropFilter: "blur(4px)",
+              zIndex: 4,
+            }}
+          >
+            {magazine.year}
           </div>
         </div>
 
@@ -468,106 +524,6 @@ const MagazinePage = () => {
     );
   }
 
-  // return (
-  //   <Box
-  //     sx={{
-  //       height: "85vh",
-  //       display: "flex",
-  //       flexDirection: "column",
-  //       justifyContent: "center",
-  //       alignItems: "center",
-  //       textAlign: "center",
-  //       p: 3,
-  //       bgcolor: "#f8f9fa",
-  //     }}
-  //   >
-  //     <Box
-  //       sx={{
-  //         p: { xs: 3, md: 5 },
-  //         borderRadius: "30px",
-  //         bgcolor: "white",
-  //         boxShadow: "0 15px 50px rgba(0,0,0,0.06)",
-  //         maxWidth: "550px",
-  //         width: "100%",
-  //         border: "1px solid rgba(0,0,0,0.05)",
-  //         position: "relative",
-  //         overflow: "hidden",
-  //       }}
-  //     >
-  //       {/* Top Decorative Bar */}
-  //       <Box
-  //         sx={{
-  //           position: "absolute",
-  //           top: 0,
-  //           left: 0,
-  //           right: 0,
-  //           height: "6px",
-  //           background: "linear-gradient(90deg, #de6925, #f39c12)",
-  //         }}
-  //       />
-
-  //       <Box sx={{ fontSize: "3.5rem", mb: 2 }}>🚀</Box>
-
-  //       <Typography
-  //         variant="h4"
-  //         sx={{
-  //           fontWeight: 900,
-  //           mb: 2,
-  //           color: "#1a1a1a",
-  //           fontSize: { xs: "1.8rem", md: "2.2rem" },
-  //         }}
-  //       >
-  //         काही वेळ प्रतिक्षा करा!
-  //       </Typography>
-
-  //       <Typography
-  //         variant="body1"
-  //         sx={{ color: "#666", mb: 4, lineHeight: 1.6 }}
-  //       >
-  //         आम्ही हा विभाग अधिक चांगला बनवण्यासाठी अपडेट करत आहोत. नवीन मासिके आणि
-  //         क्विझ लवकरच उपलब्ध होतील.
-  //       </Typography>
-
-  //       <Box
-  //         sx={{
-  //           bgcolor: "rgba(222, 105, 37, 0.05)",
-  //           border: "1px solid rgba(222, 105, 37, 0.2)",
-  //           py: 2.5,
-  //           px: 3,
-  //           borderRadius: "16px",
-  //         }}
-  //       >
-  //         <Typography
-  //           variant="subtitle2"
-  //           sx={{
-  //             color: "#de6925",
-  //             fontWeight: 700,
-  //             mb: 1,
-  //             textTransform: "uppercase",
-  //             letterSpacing: 1,
-  //           }}
-  //         >
-  //           पुन्हा कधी सुरू होईल?
-  //         </Typography>
-
-  //         <Typography variant="h5" sx={{ fontWeight: 800, color: "#1a1a1a" }}>
-  //           २३ जानेवारी २०२६
-  //         </Typography>
-  //         <Typography variant="h6" sx={{ fontWeight: 600, color: "#444" }}>
-  //           दुपारी २:०० वाजता
-  //         </Typography>
-  //       </Box>
-
-  //       <Typography
-  //         variant="body2"
-  //         sx={{ mt: 4, color: "#aaa", fontStyle: "italic" }}
-  //       >
-  //         सहकार्याबद्दल धन्यवाद!
-  //       </Typography>
-  //     </Box>
-  //   </Box>
-  // );
-
   return (
     <div
       style={{
@@ -578,6 +534,9 @@ const MagazinePage = () => {
         marginRight: 12,
       }}
     >
+      {/* INJECT ANIMATION STYLE */}
+      <style>{cardShineKeyframes}</style>
+
       <Box
         sx={{
           display: "flex",

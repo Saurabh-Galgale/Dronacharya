@@ -187,13 +187,7 @@ const Dashboard = () => {
                       variant="h5"
                       sx={{ fontWeight: 800, color: "white", mb: 1 }}
                     >
-                      फक्त ₹१४९ मध्ये १ महिना!
-                    </Typography>
-                    <Typography
-                      variant="h5"
-                      sx={{ fontWeight: 800, color: "white", mb: 1 }}
-                    >
-                      फक्त ₹३९९ मध्ये ३ महिने!
+                      फक्त ₹१४९ पासून सुरु!
                     </Typography>
                     <Typography
                       variant="body1"
@@ -741,7 +735,7 @@ const Dashboard = () => {
             </Box>
 
             {/* Blogs Card */}
-            <Box sx={{ flex: 1, width: "100%" }}>
+            {/* <Box sx={{ flex: 1, width: "100%" }}>
               <Card
                 onClick={() => handleNavigation("/blogs")}
                 sx={{
@@ -808,7 +802,7 @@ const Dashboard = () => {
                   </Box>
                 </CardContent>
               </Card>
-            </Box>
+            </Box> */}
           </Box>
         </Box>
 

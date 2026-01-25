@@ -10,7 +10,6 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   FormControl,
-  InputLabel,
   Select,
   FormHelperText,
   MenuItem,
@@ -109,10 +108,9 @@ const PaperList = ({ paperType }) => {
     }
   }, [paperType]);
 
-  // NEW: Automatically select Math subject by default when subjects are loaded
+  // FIXED: Automatically select Math subject AND populate topics
   useEffect(() => {
     if (paperType === "subject" && subjects.length > 0 && !selectedSubject) {
-      // Tries to find 'math', 'mathematics', 'ankganit', or 'गणित' (Marathi)
       const mathSubject = subjects.find(
         (s) =>
           s.subjectKey === "math" ||
@@ -124,22 +122,30 @@ const PaperList = ({ paperType }) => {
 
       if (mathSubject) {
         setSelectedSubject(mathSubject.subjectKey);
+        // FIX: Ensure topics are set immediately when default subject is selected
+        setTopics(mathSubject.topics || []);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjects, paperType]);
 
-  // When selectedSubject changes, update the topics list
-  useEffect(() => {
-    if (selectedSubject) {
-      const subjectData = subjects.find(
-        (s) => s.subjectKey === selectedSubject,
-      );
+  const handleSubjectChange = (e) => {
+    const newSubject = e.target.value;
+    setSelectedSubject(newSubject);
+    if (newSubject) {
+      const subjectData = subjects.find((s) => s.subjectKey === newSubject);
       setTopics(subjectData?.topics || []);
-      setSelectedTopic(""); // Reset topic selection
-      setCurrentPage(1); // Reset page
+    } else {
+      setTopics([]);
     }
-  }, [selectedSubject, subjects]);
+    setSelectedTopic("");
+    setCurrentPage(1);
+  };
+
+  const handleTopicChange = (e) => {
+    setSelectedTopic(e.target.value);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     fetchPapers();
@@ -223,6 +229,7 @@ const PaperList = ({ paperType }) => {
     if (totalPages <= 1) return null;
 
     const siblingCount = isMobile ? 1 : 1;
+    // eslint-disable-next-line no-unused-vars
     const boundaryCount = 1;
 
     const range = (start, end) => {
@@ -382,7 +389,6 @@ const PaperList = ({ paperType }) => {
           zIndex: 10,
           bgcolor: "background.default",
           mb: 2,
-          // borderBottom: "1px solid",
           borderColor: "divider",
           pb: 1,
         }}
@@ -425,7 +431,7 @@ const PaperList = ({ paperType }) => {
             <FormControl fullWidth sx={{ width: "100%" }}>
               <Select
                 value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
+                onChange={handleSubjectChange}
                 size="small"
               >
                 <MenuItem value="">
@@ -447,7 +453,7 @@ const PaperList = ({ paperType }) => {
             >
               <Select
                 value={selectedTopic}
-                onChange={(e) => setSelectedTopic(e.target.value)}
+                onChange={handleTopicChange}
                 size="small"
               >
                 <MenuItem value="">

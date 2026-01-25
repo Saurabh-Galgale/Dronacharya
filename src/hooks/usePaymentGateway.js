@@ -68,13 +68,13 @@ const usePaymentGateway = () => {
 
               localStorage.setItem(
                 "user_profile",
-                JSON.stringify(updatedProfile)
+                JSON.stringify(updatedProfile),
               );
 
               toast.success("Payment successful! Subscription activated.", {
                 id: toastId,
               });
-              navigate("/mock");
+              window.location.href = "/short";
             } else {
               toast.error(result.message || "Payment verification failed.", {
                 id: toastId,
