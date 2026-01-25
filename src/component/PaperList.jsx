@@ -129,17 +129,23 @@ const PaperList = ({ paperType }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subjects, paperType]);
 
-  // When selectedSubject changes, update the topics list
-  useEffect(() => {
-    if (selectedSubject) {
-      const subjectData = subjects.find(
-        (s) => s.subjectKey === selectedSubject,
-      );
+  const handleSubjectChange = (e) => {
+    const newSubject = e.target.value;
+    setSelectedSubject(newSubject);
+    if (newSubject) {
+      const subjectData = subjects.find((s) => s.subjectKey === newSubject);
       setTopics(subjectData?.topics || []);
-      setSelectedTopic(""); // Reset topic selection
-      setCurrentPage(1); // Reset page
+    } else {
+      setTopics([]);
     }
-  }, [selectedSubject, subjects]);
+    setSelectedTopic("");
+    setCurrentPage(1);
+  };
+
+  const handleTopicChange = (e) => {
+    setSelectedTopic(e.target.value);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     fetchPapers();
@@ -425,7 +431,7 @@ const PaperList = ({ paperType }) => {
             <FormControl fullWidth sx={{ width: "100%" }}>
               <Select
                 value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
+                onChange={handleSubjectChange}
                 size="small"
               >
                 <MenuItem value="">
@@ -447,7 +453,7 @@ const PaperList = ({ paperType }) => {
             >
               <Select
                 value={selectedTopic}
-                onChange={(e) => setSelectedTopic(e.target.value)}
+                onChange={handleTopicChange}
                 size="small"
               >
                 <MenuItem value="">
