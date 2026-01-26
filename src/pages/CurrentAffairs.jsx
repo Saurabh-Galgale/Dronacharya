@@ -193,6 +193,28 @@ const MagazineCard = ({
                 🔒
               </div>
             ) : null}
+
+            {magazine.isFree && (
+              <div
+                style={{
+                  background:
+                    "linear-gradient(135deg,rgba(46, 125, 50, 0.63) 0%,rgba(0, 200, 83, 0.44) 100%)", // हिरवा ग्रेडियंट
+                  color: "white",
+                  padding: "6px 14px",
+                  borderRadius: "20px", // राउंड शेप (Chip सारखा)
+                  fontSize: "14px",
+                  fontWeight: "800",
+                  boxShadow: "0 4px 15px rgba(0, 200, 83, 0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  backdropFilter: "blur(4px)",
+                  border: "1px solid rgba(0, 200, 83, 0.4)",
+                }}
+              >
+                मोफत मासिक
+              </div>
+            )}
           </div>
           <div
             style={{ padding: "0 24px 24px", position: "relative", zIndex: 4 }}
