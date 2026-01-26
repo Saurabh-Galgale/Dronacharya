@@ -191,6 +191,7 @@ function InfoCard({ data }) {
             key={i}
             sx={{ mb: 1.5, display: "flex", flexDirection: "column" }}
           >
+            {/* CHANGED from item.label to item.title */}
             <Typography
               variant="caption"
               sx={{
@@ -201,8 +202,10 @@ function InfoCard({ data }) {
                 fontSize: "0.7rem",
               }}
             >
-              {item.label}
+              {item.title || item.label}
             </Typography>
+
+            {/* CHANGED from item.value to item.description */}
             <Typography
               variant="body1"
               sx={{
@@ -212,7 +215,7 @@ function InfoCard({ data }) {
                 lineHeight: 1.4,
               }}
             >
-              {item.value}
+              {item.description || item.value}
             </Typography>
           </Box>
         ))}
