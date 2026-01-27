@@ -345,7 +345,7 @@ const MagazineCard = ({
                 flexShrink: 0,
               }}
             >
-              <button
+              <Button
                 onClick={(e) => {
                   e.stopPropagation();
                   onNavigateToMagazine(magazine._id);
@@ -366,10 +366,10 @@ const MagazineCard = ({
                   fontSize: "15px",
                 }}
               >
-                {isLocked && !isSubscribed ? "🔒 अनलॉक करा" : "📈 पूर्ण वाचा"}
-              </button>
+                {isLocked && !isSubscribed ? "🔒 अनलॉक करा" : "पूर्ण वाचा"}
+              </Button>
 
-              <button
+              <Button
                 onClick={(e) => {
                   e.stopPropagation();
                   onOpenQuiz(magazine._id);
@@ -390,8 +390,8 @@ const MagazineCard = ({
                   fontSize: "15px",
                 }}
               >
-                📝 मॅगझिन आधारित प्रश्न
-              </button>
+                मॅगझिन आधारित प्रश्न
+              </Button>
             </div>
           </div>
         </div>

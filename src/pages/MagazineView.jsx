@@ -45,13 +45,28 @@ const PASTEL_PALETTE = [
   "#F1F8E9", // Light Green
 ];
 
-// 2. Vibrant Gradients for Accordion Headers (When image is missing)
+// 2. Professional Dark Gradients for Accordion Headers
 const HEADER_GRADIENTS = [
-  "linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%)", // Blueish
-  "linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%)", // Pinky
-  "linear-gradient(to right, #43e97b 0%, #38f9d7 100%)", // Greenish
-  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)", // Deep Purple
-  "linear-gradient(135deg, #f6d365 0%, #fda085 100%)", // Sunrise
+  "linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)", // Deep Ocean Blue
+  "linear-gradient(135deg, #134e5e 0%, #71b280 100%)", // Teal to Green
+  "linear-gradient(135deg, #2c3e50 0%, #3498db 100%)", // Midnight Blue
+  "linear-gradient(135deg, #4b134f 0%, #c94b4b 100%)", // Purple to Red
+  "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)", // Dark Slate
+  "linear-gradient(135deg, #1a2a6c 0%, #b21f1f 50%, #fdbb2d 100%)", // Royal Sunset
+  "linear-gradient(135deg, #141e30 0%, #243b55 100%)", // Deep Navy
+  "linear-gradient(135deg, #2b5876 0%, #4e4376 100%)", // Blue to Purple
+  "linear-gradient(135deg, #134e5e 0%, #71b280 100%)", // Forest Green
+  "linear-gradient(135deg, #000428 0%, #004e92 100%)", // Deep Space Blue
+  "linear-gradient(135deg, #283048 0%, #859398 100%)", // Charcoal Grey
+  "linear-gradient(135deg, #360033 0%, #0b8793 100%)", // Plum to Teal
+  "linear-gradient(135deg, #4b6cb7 0%, #182848 100%)", // Royal Blue
+  "linear-gradient(135deg, #2e3192 0%, #1bffff 100%)", // Electric Blue
+  "linear-gradient(135deg, #3a1c71 0%, #d76d77 50%, #ffaf7b 100%)", // Purple Dawn
+  "linear-gradient(135deg, #1f4037 0%, #99f2c8 100%)", // Emerald
+  "linear-gradient(135deg, #232526 0%, #414345 100%)", // Graphite
+  "linear-gradient(135deg, #4b134f 0%, #c94b4b 100%)", // Wine Red
+  "linear-gradient(135deg, #00467f 0%, #a5cc82 100%)", // Ocean Breeze
+  "linear-gradient(135deg, #373b44 0%, #4286f4 100%)", // Steel Blue
 ];
 
 // ========== SECURITY LAYER ==========
@@ -191,7 +206,6 @@ function InfoCard({ data }) {
             key={i}
             sx={{ mb: 1.5, display: "flex", flexDirection: "column" }}
           >
-            {/* CHANGED from item.label to item.title */}
             <Typography
               variant="caption"
               sx={{
@@ -205,7 +219,6 @@ function InfoCard({ data }) {
               {item.title || item.label}
             </Typography>
 
-            {/* CHANGED from item.value to item.description */}
             <Typography
               variant="body1"
               sx={{
@@ -574,16 +587,6 @@ export default function MagazineView() {
     }
   }, [magazineId]);
 
-  // const setInitialExpanded = (sections) => {
-  //   const initialExpanded = {};
-  //   if (sections) {
-  //     sections.forEach((s) => {
-  //       initialExpanded[s.sectionId] = true;
-  //     });
-  //   }
-  //   setExpandedSections(initialExpanded);
-  // };
-
   const handleToggleSection = (sectionId) => {
     setExpandedSections((prev) => ({
       ...prev,
@@ -733,21 +736,20 @@ export default function MagazineView() {
               py: 1,
               background: "#000",
               "&:hover": {
-                background: "#1a1a1a", // Slightly lighter black on hover
+                background: "#1a1a1a",
                 boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
               },
               "&:active": {
-                background: "#000", // Back to pure black when clicked
+                background: "#000",
               },
             }}
           >
             {isAnySectionOpen ? "सर्व माहिती लपवा" : "सर्व माहिती उलगडा"}
           </Button>
 
-          {/* Sections */}
+          {/* Sections with Gradient Headers */}
           {magazine.sections.map((s, index) => {
-            const fallbackGradient =
-              HEADER_GRADIENTS[index % HEADER_GRADIENTS.length];
+            const gradient = HEADER_GRADIENTS[index % HEADER_GRADIENTS.length];
             return (
               <Accordion
                 key={s.sectionId}
@@ -755,11 +757,16 @@ export default function MagazineView() {
                 onChange={() => handleToggleSection(s.sectionId)}
                 sx={{
                   mb: 1.5,
-                  borderRadius: 2, // This sets the roundness (approx 8px)
-                  overflow: "hidden", // CRITICAL: This clips the sharp image corners to fit the rounded border
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
-                  border: "1px solid rgba(0,0,0,0.02)",
-                  "&:before": { display: "none" }, // Removes default MUI line
+                  borderRadius: 2,
+                  overflow: "hidden",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    boxShadow: "0 12px 32px rgba(0,0,0,0.18)",
+                    transform: "translateY(-2px)",
+                  },
+                  "&:before": { display: "none" },
                 }}
               >
                 <AccordionSummary
@@ -768,121 +775,75 @@ export default function MagazineView() {
                       sx={{
                         color: "#fff",
                         fontSize: 32,
-                        filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.5))",
-                        zIndex: 10,
+                        filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.5))",
                       }}
                     />
                   }
                   sx={{
-                    p: 0, // Removes all internal padding
-                    m: 0, // Removes margins
-                    minHeight: { xs: 140, sm: 160, md: 180 }, // Set height on Summary
-                    "& .MuiAccordionSummary-content": {
-                      m: 0, // IMPORTANT: Removes default content margin
-                      p: 0,
-                      width: "100%", // Force content to take full width
-                      flexGrow: 1,
-                    },
-                    "& .MuiAccordionSummary-expandIconWrapper": {
+                    background: gradient,
+                    minHeight: { xs: 100, sm: 110, md: 120 },
+                    p: { xs: 2, sm: 2.5, md: 3 },
+                    pr: { xs: 6, sm: 7 },
+                    position: "relative",
+                    overflow: "hidden",
+                    "&::before": {
+                      content: '""',
                       position: "absolute",
-                      right: 16,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      zIndex: 10,
-                    },
-                  }}
-                >
-                  {/* Image Container */}
-                  <Box
-                    sx={{
-                      position: "absolute", // Take image out of document flow to fill parent
                       top: 0,
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      width: "100%",
-                      height: expandedSections[s.sectionId]
-                        ? { xs: 90, sm: 80, md: 90 }
-                        : { xs: 140, sm: 160, md: 180 },
+                      background: "rgba(0,0,0,0.15)",
+                      opacity: 0,
+                      transition: "opacity 0.3s ease",
+                    },
+                    "&:hover::before": {
+                      opacity: 1,
+                    },
+                    "& .MuiAccordionSummary-content": {
+                      my: 1,
+                      position: "relative",
                       zIndex: 1,
-                      background: fallbackGradient,
-                    }}
-                  >
-                    {/* Actual Image */}
-                    {s.url && s.url !== "" && (
-                      <Box
-                        component="img"
-                        src={`${import.meta.env.VITE_CLOUDFRONT_URL}/${s.url}`} // Note: removed slash if env has it, or add '/' if needed
+                    },
+                  }}
+                >
+                  <Box sx={{ width: "100%" }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 700,
+                        color: "#fff",
+                        fontSize: {
+                          xs: "1.1rem",
+                          sm: "1.25rem",
+                          md: "1.4rem",
+                        },
+                        mb: s.tag ? 0.8 : 0,
+                        textShadow: "0 2px 12px rgba(0,0,0,0.4)",
+                        lineHeight: 1.3,
+                        letterSpacing: "0.3px",
+                      }}
+                    >
+                      {s.title}
+                    </Typography>
+                    {s.tag && (
+                      <Chip
+                        label={s.tag}
+                        size="small"
                         sx={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          objectPosition: "center",
-                          display: "block", // Removes tiny bottom whitespace in some browsers
+                          bgcolor: "rgba(255,255,255,0.25)",
+                          backdropFilter: "blur(12px)",
+                          color: "#fff",
+                          fontWeight: 600,
+                          fontSize: { xs: "0.7rem", sm: "0.75rem" },
+                          height: { xs: 22, sm: 24 },
+                          border: "1px solid rgba(255,255,255,0.3)",
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
                         }}
                       />
                     )}
-
-                    {/* Gradient Overlay */}
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: "100%",
-                        background: s.url
-                          ? "linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 50%, transparent 100%)"
-                          : fallbackGradient,
-                        zIndex: 1,
-                      }}
-                    />
-
-                    {/* Content */}
-                    <Box
-                      sx={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        p: { xs: 1.5, sm: 2 },
-                        pr: { xs: 5, sm: 6 },
-                        zIndex: 2,
-                      }}
-                    >
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: 800,
-                          color: "#fff",
-                          fontSize: {
-                            xs: "1rem",
-                            sm: "1.15rem",
-                            md: "1.25rem",
-                          },
-                          mb: s.tag ? 0.5 : 0,
-                          textShadow: "0 2px 8px rgba(0,0,0,0.4)",
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {s.title}
-                      </Typography>
-                      {s.tag && (
-                        <Chip
-                          label={s.tag}
-                          size="small"
-                          sx={{
-                            bgcolor: "rgba(255,255,255,0.25)",
-                            backdropFilter: "blur(10px)",
-                            color: "#fff",
-                            fontWeight: 700,
-                            fontSize: { xs: "0.7rem", sm: "0.75rem" },
-                            height: { xs: 22, sm: 24 },
-                            border: "1px solid rgba(255,255,255,0.3)",
-                          }}
-                        />
-                      )}
-                    </Box>
                   </Box>
                 </AccordionSummary>
 
