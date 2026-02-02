@@ -130,6 +130,73 @@ export const getSolvedSubjectPapers = (page, limit, subject, topic) =>
 export const getUnsolvedSubjectPapers = (page, limit, subject, topic) =>
   fetchPapers("subject", "unsolved", page, limit, { subject, topic });
 
+/* ================= PACKAGES API ================= */
+
+/**
+ * Get packages with filter (available/purchased)
+ * GET /api/packages?filter=available&page=1&limit=20
+ */
+export async function getPackages(filter = "available", page = 1, limit = 20) {
+  try {
+    const res = await api.get("/api/packages", {
+      params: { filter, page, limit },
+    });
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch packages");
+  }
+}
+
+/**
+ * Get solved papers in a package
+ * GET /api/packages/:packageId/papers/solved
+ */
+export async function getPackagePapersSolved(packageId, page = 1, limit = 20) {
+  try {
+    const res = await api.get(`/api/packages/${packageId}/papers/solved`, {
+      params: { page, limit },
+    });
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch solved package papers");
+  }
+}
+
+/**
+ * Get unsolved papers in a package
+ * GET /api/packages/:packageId/papers/unsolved
+ */
+export async function getPackagePapersUnsolved(packageId, page = 1, limit = 20) {
+  try {
+    const res = await api.get(`/api/packages/${packageId}/papers/unsolved`, {
+      params: { page, limit },
+    });
+    return res.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to fetch unsolved package papers");
+  }
+}
+
+/**
+ * Get a single package paper with access check
+ * GET /api/packages/:packageId/papers/:paperId
+ */
+export async function getPackagePaperById(packageId, paperId) {
+  try {
+    const res = await api.get(`/api/packages/${packageId}/papers/${paperId}`);
+    return res.data.data;
+  } catch (error) {
+    // Specialized error handling for access denied
+    if (error.status === 403) {
+      const accessError = new Error(error.message);
+      accessError.status = 403;
+      accessError.action = error.originalError?.response?.data?.action;
+      throw accessError;
+    }
+    throw error;
+  }
+}
+
 /**
  * Get all subjects and topics for subject papers
  * GET /api/papers/subject/topics

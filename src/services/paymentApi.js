@@ -31,3 +31,33 @@ export const verifyPayment = async (paymentData) => {
     throw new Error(error.message || "Payment verification failed.");
   }
 };
+
+/**
+ * Creates a package payment order on the backend.
+ * @param {string} packageId - The ID of the selected package.
+ * @returns {Promise<object>} - The order details from the backend.
+ */
+export const createPackageOrder = async (packageId) => {
+  try {
+    const response = await api.post("/api/payment/package/order", {
+      packageId,
+    });
+    return response.data.data;
+  } catch (error) {
+    throw new Error(error.message || "Failed to create package payment order.");
+  }
+};
+
+/**
+ * Verifies a package payment on the backend.
+ * @param {object} paymentData - The payment verification data.
+ * @returns {Promise<object>} - The verification response from the backend.
+ */
+export const verifyPackagePayment = async (paymentData) => {
+  try {
+    const response = await api.post("/api/payment/package/verify", paymentData);
+    return response.data;
+  } catch (error) {
+    throw new Error(error.message || "Package payment verification failed.");
+  }
+};

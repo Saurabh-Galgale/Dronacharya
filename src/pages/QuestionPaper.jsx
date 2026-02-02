@@ -41,6 +41,7 @@ import {
   getPaperWithQuestions,
   submitPaper,
   getPaperSubmissions,
+  getPackagePaperById,
 } from "../services/api";
 import {
   getCachedPaper,
@@ -55,9 +56,10 @@ import {
 import RestoreSessionDialog from "../component/RestoreSessionDialog";
 import QuestionImage from "../component/QuestionImage";
 import Analysis from "../component/Analysis";
+import PackageAccessModal from "../component/PackageAccessModal";
 
 const QuestionPaper = () => {
-  const { paperId } = useParams();
+  const { paperId, packageId } = useParams();
   const navigate = useNavigate();
   const { state } = useLocation();
   const drawerRef = useRef(null);
@@ -94,6 +96,10 @@ const QuestionPaper = () => {
   const [submissionData, setSubmissionData] = useState(null);
   const [confirmDialog, setConfirmDialog] = useState(false);
   const [showRetry, setShowRetry] = useState(false);
+  const [accessModal, setAccessModal] = useState({
+    open: false,
+    isAvailableToSubscribers: false,
+  });
   const [restoreDialogState, setRestoreDialogState] = useState({
     open: false,
     savedState: null,
@@ -106,7 +112,9 @@ const QuestionPaper = () => {
       ? "short"
       : window.location.pathname.includes("/subject/")
         ? "subject"
-        : "pyq";
+        : window.location.pathname.includes("/package/")
+          ? "package-paper"
+          : "pyq";
 
   // UI Helpers from File A
   const isLastPage = currentQuestionPage === totalQuestionPages;
@@ -319,14 +327,21 @@ const QuestionPaper = () => {
 
       // 2. Cache Miss? Fetch FULL paper from API
       if (!currentPaper) {
-        const data = await getPaperWithQuestions(
-          paperType,
-          paperId,
-          1,
-          1000, // Fetch all
-        );
-        currentPaper = data.paper;
-        currentQuestions = data.questions || [];
+        let data;
+        if (paperType === "package-paper") {
+          data = await getPackagePaperById(packageId, paperId);
+          currentPaper = data.paper;
+          currentQuestions = data.paper?.questions || [];
+        } else {
+          data = await getPaperWithQuestions(
+            paperType,
+            paperId,
+            1,
+            1000, // Fetch all
+          );
+          currentPaper = data.paper;
+          currentQuestions = data.questions || [];
+        }
       }
 
       // 3. Check for existing submissions on server (Sync)
@@ -385,7 +400,14 @@ const QuestionPaper = () => {
     } catch (err) {
       setError(err.message || "Failed to load paper data.");
       if (err.status === 403) {
-        setError("A subscription is required to view this paper.");
+        if (paperType === "package-paper") {
+          setAccessModal({
+            open: true,
+            isAvailableToSubscribers: state?.isAvailableToSubscribers ?? true,
+          });
+        } else {
+          setError("A subscription is required to view this paper.");
+        }
       }
     } finally {
       setLoading(false);
@@ -1562,6 +1584,16 @@ const QuestionPaper = () => {
             ? Object.keys(restoreDialogState.savedState.answers || {}).length
             : 0
         }
+      />
+
+      <PackageAccessModal
+        open={accessModal.open}
+        onClose={() => {
+          setAccessModal({ ...accessModal, open: false });
+          navigate(-1);
+        }}
+        isAvailableToSubscribers={accessModal.isAvailableToSubscribers}
+        packageId={packageId}
       />
     </Box>
   );

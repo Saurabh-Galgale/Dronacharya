@@ -11,25 +11,38 @@ import {
 import LockIcon from "@mui/icons-material/Lock";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
-const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
+const PaperCard = ({
+  paper,
+  filter,
+  isSubscribed,
+  onPaperClick,
+  idx,
+  isPremium,
+  isPurchased,
+  isAvailableToSubscribers,
+}) => {
   const isFree = paper.isFree !== false;
   const isPublished = paper.isPublished !== false;
+
+  const hasAccess = isPremium
+    ? isFree || isPurchased || (isAvailableToSubscribers && isSubscribed)
+    : isFree || isSubscribed;
   const isSolved = filter === "solved";
 
   const percentage = (paper.obtainedMarks / paper.totalMarks) * 100;
-  let statusColor, statusBgColor, statusText;
+  let statusColor, _statusBgColor, statusText;
 
   if (percentage <= 40) {
     statusColor = "#d32f2f"; // red text
-    statusBgColor = "#ffebee"; // light red background
+    _statusBgColor = "#ffebee"; // light red background
     statusText = "अपुरे";
   } else if (percentage <= 60) {
     statusColor = "#f57c00"; // orange text
-    statusBgColor = "#fff3e0"; // light orange background
+    _statusBgColor = "#fff3e0"; // light orange background
     statusText = "चांगले";
   } else {
     statusColor = "#2e7d32"; // green text
-    statusBgColor = "#e8f5e9"; // light green background
+    _statusBgColor = "#e8f5e9"; // light green background
     statusText = "उत्तम";
   }
 
@@ -41,7 +54,9 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
         position: "relative",
         overflow: "hidden",
         borderRadius: 3,
-        background: isSolved
+        background: isPremium
+          ? "linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #e94560 100%)"
+          : isSolved
           ? "linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)"
           : `linear-gradient(135deg, ${
               idx % 3 === 0
@@ -72,7 +87,7 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
               sx={{
                 fontWeight: 700,
                 fontSize: "1.1rem",
-                color: "text.primary",
+                color: isPremium ? "white" : "text.primary",
                 mb: 0.5,
               }}
             >
@@ -100,12 +115,18 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
                 py: 0.5,
                 mr: 0.5,
                 borderRadius: 2,
-                bgcolor: "rgba(88, 204, 132, 0.2)",
+                bgcolor: isPremium
+                  ? "rgba(255, 255, 255, 0.1)"
+                  : "rgba(88, 204, 132, 0.2)",
               }}
             >
               <Typography
                 variant="body2"
-                sx={{ fontWeight: 700, fontSize: "0.9rem" }}
+                sx={{
+                  fontWeight: 700,
+                  fontSize: "0.9rem",
+                  color: isPremium ? "white" : "inherit",
+                }}
               >
                 {paper.year}
               </Typography>
@@ -120,16 +141,26 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
               px: 1.5,
               py: 0.5,
               borderRadius: 2,
-              bgcolor: "rgba(0,0,0,0.06)",
+              bgcolor: isPremium ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)",
             }}
           >
             <Typography
               variant="body2"
-              sx={{ fontWeight: 700, fontSize: "0.9rem" }}
+              sx={{
+                fontWeight: 700,
+                fontSize: "0.9rem",
+                color: isPremium ? "white" : "inherit",
+              }}
             >
               ⏱ {paper.durationMinutes || 0}
             </Typography>
-            <Typography variant="caption" sx={{ opacity: 0.8 }}>
+            <Typography
+              variant="caption"
+              sx={{
+                opacity: 0.8,
+                color: isPremium ? "rgba(255,255,255,0.7)" : "inherit",
+              }}
+            >
               मिनिटे
             </Typography>
           </Box>
@@ -146,22 +177,34 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
           <Box>
             <Typography
               variant="caption"
-              sx={{ color: "text.secondary", display: "block" }}
+              sx={{
+                color: isPremium ? "rgba(255,255,255,0.7)" : "text.secondary",
+                display: "block",
+              }}
             >
               प्रश्नसंख्या
             </Typography>
-            <Typography variant="body1" sx={{ fontWeight: 700 }}>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 700, color: isPremium ? "white" : "inherit" }}
+            >
               {paper.totalQuestions || 0}
             </Typography>
           </Box>
           <Box>
             <Typography
               variant="caption"
-              sx={{ color: "text.secondary", display: "block" }}
+              sx={{
+                color: isPremium ? "rgba(255,255,255,0.7)" : "text.secondary",
+                display: "block",
+              }}
             >
               एकूण गुण
             </Typography>
-            <Typography variant="body1" sx={{ fontWeight: 700 }}>
+            <Typography
+              variant="body1"
+              sx={{ fontWeight: 700, color: isPremium ? "white" : "inherit" }}
+            >
               {paper.totalMarks || 0}
             </Typography>
           </Box>
@@ -186,11 +229,20 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
               <Box>
                 <Typography
                   variant="caption"
-                  sx={{ color: "text.secondary", display: "block" }}
+                  sx={{
+                    color: isPremium ? "rgba(255,255,255,0.7)" : "text.secondary",
+                    display: "block",
+                  }}
                 >
                   सोडवलेली तारीख
                 </Typography>
-                <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    fontWeight: 700,
+                    color: isPremium ? "white" : "inherit",
+                  }}
+                >
                   {new Date(paper.solvedAt).toLocaleDateString()}
                 </Typography>
               </Box>
@@ -222,15 +274,19 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
               />
             )}
 
-            {!isFree && !isSubscribed ? (
+            {!hasAccess ? (
               <>
                 <IconButton
                   size="medium"
                   sx={{
                     color: "white",
-                    background:
-                      "linear-gradient(135deg,rgba(222, 105, 37, 0.9),rgba(248, 178, 74, 0.9))",
+                    background: isPremium
+                      ? "linear-gradient(135deg, #FFD700, #FFA500)"
+                      : "linear-gradient(135deg,rgba(222, 105, 37, 0.9),rgba(248, 178, 74, 0.9))",
                     backdropFilter: "blur(10px)",
+                    "& .MuiSvgIcon-root": {
+                      color: isPremium ? "#1a1a2e" : "white",
+                    },
                   }}
                 >
                   <LockIcon fontSize="medium" />
@@ -251,11 +307,17 @@ const PaperCard = ({ paper, filter, isSubscribed, onPaperClick, idx }) => {
               fontWeight: 700,
               background: isSolved
                 ? "linear-gradient(135deg, #66bb6a, #43a047)"
+                : isPremium
+                ? "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)"
                 : "linear-gradient(135deg, #de6925, #f8b14a)",
-              color: "#fff",
+              color: isPremium && !isSolved ? "#1a1a2e" : "#fff",
               boxShadow: "0 4px 10px rgba(0,0,0,0.15)",
               "&:hover": {
                 boxShadow: "0 6px 16px rgba(0,0,0,0.2)",
+                background:
+                  isPremium && !isSolved
+                    ? "linear-gradient(135deg, #FFA500 0%, #FFD700 100%)"
+                    : undefined,
               },
               "&:disabled": {
                 background: "rgba(0,0,0,0.12)",
