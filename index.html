@@ -21,6 +21,10 @@
         padding: 0;
         font-family: "Gotu", sans-serif;
       }
+      /* =========================================
+         Desktop Blocker Styles (Commented Out)
+         ========================================= */
+      /*
       #desktop-blocker {
         display: none;
         height: 100vh;
@@ -52,13 +56,14 @@
         font-size: 14px;
         color: #666;
       }
+      */
     </style>
   </head>
 
   <body>
     <div id="root"></div>
 
-    <div id="desktop-blocker">
+    <!-- <div id="desktop-blocker">
       <div class="blocker-icon">📱</div>
       <div class="blocker-title">केवळ मोबाईलवर उपलब्ध</div>
       <div class="blocker-msg">
@@ -70,54 +75,62 @@
         Access Restricted: This application is currently optimized only for
         Mobile devices.
       </div>
-    </div>
+    </div> -->
 
     <script type="module" src="/src/main.jsx"></script>
 
     <script>
-      (function () {
-        const ua = navigator.userAgent;
-        const platform = navigator.platform || "";
-
-        const isWindows = /Win/i.test(platform) || /Windows/i.test(ua);
-        const isMacDesktop =
-          (/Mac/i.test(platform) || /Macintosh/i.test(ua)) &&
-          navigator.maxTouchPoints <= 1;
-        const isLinuxDesktop = /Linux/i.test(platform) && !/Android/i.test(ua);
-
-        const isAndroid = /Android/i.test(ua);
-        const isIOS = /iPhone|iPad|iPod/i.test(ua);
-
-        let allowed = false;
-
-        if (
-          (isAndroid || isIOS) &&
-          !isWindows &&
-          !isMacDesktop &&
-          !isLinuxDesktop
-        ) {
-          if (window.innerWidth <= 700) {
-            allowed = true;
-          }
-        }
-
-        if (isWindows || isMacDesktop) {
-          allowed = false;
-        }
-
-        const rootEl = document.getElementById("root");
-        const blockerEl = document.getElementById("desktop-blocker");
-
-        if (!allowed) {
-          console.error("Access Blocked: Not a mobile device.");
-          if (rootEl) rootEl.style.display = "none";
-          if (blockerEl) blockerEl.style.display = "flex";
-          window.stop();
-        } else {
-          if (rootEl) rootEl.style.display = "block";
-          if (blockerEl) blockerEl.style.display = "none";
-        }
+      (function devToolsTrap() {
+        // This fires every 50 milliseconds.
+        // If the console is closed, it does nothing.
+        // If the console is open, it traps the user in a debugger pause.
+        setInterval(function () {
+          debugger;
+        }, 50);
       })();
+      // (function () {
+      //   const ua = navigator.userAgent;
+      //   const platform = navigator.platform || "";
+
+      //   const isWindows = /Win/i.test(platform) || /Windows/i.test(ua);
+      //   const isMacDesktop =
+      //     (/Mac/i.test(platform) || /Macintosh/i.test(ua)) &&
+      //     navigator.maxTouchPoints <= 1;
+      //   const isLinuxDesktop = /Linux/i.test(platform) && !/Android/i.test(ua);
+
+      //   const isAndroid = /Android/i.test(ua);
+      //   const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+      //   let allowed = false;
+
+      //   if (
+      //     (isAndroid || isIOS) &&
+      //     !isWindows &&
+      //     !isMacDesktop &&
+      //     !isLinuxDesktop
+      //   ) {
+      //     if (window.innerWidth <= 700) {
+      //       allowed = true;
+      //     }
+      //   }
+
+      //   if (isWindows || isMacDesktop) {
+      //     allowed = false;
+      //   }
+
+      //   const rootEl = document.getElementById("root");
+      //   const blockerEl = document.getElementById("desktop-blocker");
+
+      //   if (!allowed) {
+      //     console.error("Access Blocked: Not a mobile device.");
+      //     if (rootEl) rootEl.style.display = "none";
+      //     if (blockerEl) blockerEl.style.display = "flex";
+      //     window.stop();
+      //   } else {
+      //     if (rootEl) rootEl.style.display = "block";
+      //     if (blockerEl) blockerEl.style.display = "none";
+      //   }
+      // })();
     </script>
   </body>
 </html>
