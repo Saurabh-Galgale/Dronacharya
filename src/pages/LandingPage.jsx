@@ -188,7 +188,7 @@ const LandingPage = () => {
             navigate("/dashboard");
           } catch (loginErr) {
             setErrorMsg(
-              "Account created but login failed. Please login manually."
+              "Account created but login failed. Please login manually.",
             );
             setRegisterDrawer(false);
             setLoginDrawer(true);
@@ -212,7 +212,7 @@ const LandingPage = () => {
       setErrorMsg(null);
       await forgotPassword(loginForm.email);
       setSuccessMsg(
-        "तुमचा ई-मेल नोंदणीकृत असल्यास, तुम्हाला लवकरच रीसेट लिंक प्राप्त होईल. ई-मेल प्राप्त होण्यासाठी काही मिनिटे लागू शकतात."
+        "तुमचा ई-मेल नोंदणीकृत असल्यास, तुम्हाला लवकरच रीसेट लिंक प्राप्त होईल. ई-मेल प्राप्त होण्यासाठी काही मिनिटे लागू शकतात.",
       );
       setForgotCooldown(true);
       setTimeout(() => setForgotCooldown(false), 300000); // 5 minute cooldown
@@ -281,7 +281,7 @@ const LandingPage = () => {
                   style={{
                     width: "100%",
                     height: "100%",
-                    objectFit: isMobile ? "cover" : "fill",
+                    objectFit: isMobile ? "cover" : "contain",
                   }}
                 />
               </Box>
@@ -630,8 +630,8 @@ const LandingPage = () => {
               {forgotLoading
                 ? "Sending..."
                 : forgotCooldown
-                ? "Wait a minute"
-                : "Forgot password?"}
+                  ? "Wait a minute"
+                  : "Forgot password?"}
             </Typography>
           </Box>
           <Button
