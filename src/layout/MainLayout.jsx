@@ -51,6 +51,8 @@ import PersonIcon from "@mui/icons-material/Person";
 import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined";
 import CategoryIcon from "@mui/icons-material/Category";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
+import Inventory2Icon from "@mui/icons-material/Inventory2";
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 
 import Footer from "../component/Footer";
 import { useTheme } from "@mui/material/styles";
@@ -162,6 +164,8 @@ export default function Layout({ children }) {
     "/mock",
     "/pyq",
     "/subject",
+    "/packages",
+    "/package",
     "/profile",
     "/analysis",
     "/ca",
@@ -219,6 +223,12 @@ export default function Layout({ children }) {
       icon: <LibraryBooksOutlinedIcon />, // Changed to match your imports
       iconActive: <LibraryBooksIcon />, // Assuming MenuBook is the filled version you want
       path: "/pyq",
+    },
+    {
+      text: "विशेष पॅकेजेस",
+      icon: <Inventory2OutlinedIcon />,
+      iconActive: <Inventory2Icon />,
+      path: "/packages",
     },
   ];
 
