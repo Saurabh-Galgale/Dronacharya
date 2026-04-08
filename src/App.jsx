@@ -40,6 +40,11 @@ const Blogs = lazy(() => import("./pages/Blogs"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const Profile = lazy(() => import("./pages/Profile"));
 
+// Prison Game Pages
+const PrisonGameLobby = lazy(() => import("./pages/PrisonGameLobby"));
+const PrisonGamePlayer = lazy(() => import("./pages/PrisonGamePlayer"));
+const GameOver = lazy(() => import("./pages/GameOver"));
+
 // Loading fallback
 const LoadingFallback = () => (
   <Box
@@ -114,6 +119,32 @@ const AppContent = () => {
             element={
               <PrivateRoute>
                 <QuestionPaper />
+              </PrivateRoute>
+            }
+          />
+
+          {/* Prison Game Routes (Full Screen) */}
+          <Route
+            path="/prison-game"
+            element={
+              <PrivateRoute>
+                <PrisonGameLobby />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/prison-game/play"
+            element={
+              <PrivateRoute>
+                <PrisonGamePlayer />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/prison-game/game-over"
+            element={
+              <PrivateRoute>
+                <GameOver />
               </PrivateRoute>
             }
           />
